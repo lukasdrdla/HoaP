@@ -1,10 +1,16 @@
+using HoaP.Application.Interfaces;
+using HoaP.Application.Mappings;
+using HoaP.Application.Services;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
+using HoaP.Infrastructure.Repositories;
 using HoaP.Web.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAutoMapper(typeof(CustomerProfile));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -18,6 +24,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<CustomerService>();
 
 var app = builder.Build();
 
