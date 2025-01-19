@@ -1,0 +1,53 @@
+﻿@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Message { get; set; }
+    [Parameter] public EventCallback<bool> OnClose { get; set; }
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string ActionType { get; set; }
+
+    private async Task CloseModal(bool result)
+    {
+        await OnClose.InvokeAsync(result);
+    }
+
+    private string GetMessage()
+    {
+        return ActionType switch
+        {
+            "DeleteMealPlan" => "Opravdu chcete smazat tento jídelní plán?",
+            "DeleteRoomType" => "Opravdu chcete smazat tento typ pokoje?",
+            "DeleteRoomStatus" => "Opravdu chcete smazat tento status pokoje?",
+            "DeleteReservationStatus" => "Opravdu chcete smazat tento status rezervace?",
+            "DeleteRole" => "Opravdu chcete smazat tuto roli?",
+            "DeleteRoom" => "Opravdu chcete smazat tento pokoj?",
+            "DeleteReservation" => "Opravdu chcete smazat tuto rezervaci?",
+            "DeleteCustomer" => "Opravdu chcete smazat tohoto zákazníka?",
+            "DeleteInvoice" => "Opravdu chcete smazat tuto fakturu?",
+            "DeleteEmployee" => "Opraavdu chcete smazat tohoto zaměstnance?",
+            "DeletePayment" => "Opravdu chcete smazat tuto platbu?",
+            "DeleteGuest" => "Opravdu chcete smazat tohoto hosta?",
+            _ => "Opravdu chcete pokračovat?"
+        };
+    }
+}
+
+@if (IsVisible)
+{
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5);" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@Title</h5>
+                    <button type="button" class="btn-close" @onclick="() => CloseModal(false)"></button>
+                </div>
+                <div class="modal-body">
+                    <p>@GetMessage()</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="() => CloseModal(false)">Zrušit</button>
+                    <button type="button" class="btn btn-danger" @onclick="() => CloseModal(true)">Smazat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
