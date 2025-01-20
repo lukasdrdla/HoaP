@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using HoaP.Domain.Entities;
@@ -31,11 +32,16 @@ namespace HoaP.Infrastructure.Data
         public DbSet<RoomStatus> RoomStatuses { get; set; }
         public DbSet<TaskItem> TaskItems { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
-
+        public DbSet<Amenity> Amenities { get; set; }
+        public DbSet<RoomAmenity> RoomAmenities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<RoomAmenity>()
+            .HasKey(ra => new { ra.RoomId, ra.AmenityId });
+
             SeedData(builder);
         }
 
