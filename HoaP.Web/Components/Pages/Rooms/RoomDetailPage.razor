@@ -1,0 +1,142 @@
+﻿@page "/pokoj/{roomId:int}"
+@using HoaP.Application.ViewModels.Amenity
+@using HoaP.Application.ViewModels
+@using HoaP.Application.ViewModels.Room
+@inject RoomService RoomService
+@inject AmenityService AmenityService
+@inject ReservationService ReservationService
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="container mt-2">
+    @if (room == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only"></span>
+            </div>
+            <p class="mt-2">Načítám podrobnosti o zákazníkovi...</p>
+        </div>
+    }
+    else
+    {
+        <div class="container py-5">
+            <div class="room-header">
+                <h3>@room.RoomTypeName - @room.RoomNumber</h3>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary">Edit Room</button>
+                    <button class="btn btn-success">Create New Booking</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Room Image -->
+                <div class="col-md-6 room-image">
+                    <img src="@room.Image" alt="Room Image">
+                </div>
+
+                <!-- Room Details -->
+                <div class="col-md-6 mt-4">
+					<h1 class="room-price">@room.Price Kč/noc </h1>
+                    <div class="mb-3">
+						<div class="row mt-4">
+							<div class="col-6">
+                                <p><strong>Room Number:</strong> @room.RoomNumber</p>
+                                <p><strong>Return Status:</strong> @room.RoomStatusName</p>
+                                <p><strong>Room Type:</strong> @room.RoomTypeName</p>
+                            </div>
+							<div class="col-6">
+                                <p><strong>Room Počet dosepělí:</strong> @room.MaxAdults</p>
+                                <p><strong>Room Počet dětí:</strong> @room.MaxChildren</p>
+                                <p><strong>Room Description:</strong> @room.Description</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Room Amenities -->
+                    <h5>Room Amenities</h5>
+                    <div class="row room-amenities">
+						@foreach (var amenity in amenities)
+						{
+                            <div class="col-6"> <i class="@amenity.Icon"></i> @amenity.Name</div>
+
+						}
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Room Booking History -->
+            <div class="booking-history-table mt-5">
+                <h5>Room Booking History</h5>
+                <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
+					<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
+					<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+					<PropertyColumn Title="Customer" Property="@(x => x.CustomerName)" Sortable="true">
+                        <ColumnOptions>
+                            <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
+                        </ColumnOptions>
+					</PropertyColumn>
+					<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+					<PropertyColumn Title="Total Price" Property="@(x => x.TotalPrice)" Sortable="true" />
+					<TemplateColumn Title="Actions">
+						<div class="d-inline-flex">
+							<button class="btn text-primary">
+								<i class="bi bi-search"></i>
+							</button>
+							<button class="btn text-danger" >
+								<i class="bi bi-trash"></i>
+							</button>
+						</div>
+					</TemplateColumn>
+                </QuickGrid>
+            </div>
+        </div>
+
+    }
+</div>
+
+
+@code {
+
+	[Parameter]
+	public int roomId { get; set; }
+	private DetailRoomViewModel room = new DetailRoomViewModel();
+
+	private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
+
+    private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
+    private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
+
+    private PaginationState paginationState = new PaginationState { ItemsPerPage = 20 };
+
+	private string? searchTerm;
+
+	protected override async Task OnInitializedAsync()
+	{
+		room = await RoomService.GetRoomByIdAsync(roomId);
+		amenities = await AmenityService.GetAmenitiesByRoomIdAsync(roomId);
+        reservations = await ReservationService.GetReservationsByRoomIdAsync(roomId);
+		filteredReservations = reservations;
+
+	}
+
+	private void SearchCustomers(ChangeEventArgs e)
+	{
+		searchTerm = e.Value.ToString();
+
+		if (!string.IsNullOrWhiteSpace(searchTerm))
+		{
+			filteredReservations = reservations.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+		else
+		{
+			filteredReservations = reservations;
+		}
+        
+	}
+
+
+
+		
+
+}

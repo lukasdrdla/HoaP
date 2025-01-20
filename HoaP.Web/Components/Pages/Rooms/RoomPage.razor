@@ -1,0 +1,215 @@
+﻿@page "/pokoje"
+@using HoaP.Application.ViewModels.Room
+@inject RoomService RoomService
+@inject IJSRuntime jsRuntime
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+
+
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Pokoje</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchRooms" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-end mb-3">
+                <button class="btn btn-primary" @onclick="NavigateToAddRoom">
+                    <i class="bi bi-plus"></i> Přidat pokoj
+                </button>
+            </div>
+            @if (rooms == null || rooms.Count == 0)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="sr-only"></span>
+                    </div>
+                    <p class="mt-2">Načítám pokoje...</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="w-100">
+                        <QuickGrid Items="filteredRooms.AsQueryable()" Pagination="pagginationState" Class="w-100">
+                            <PropertyColumn Title="Číslo pokoje" Property="@(r => r.RoomNumber)" Sortable="true" />
+                            <PropertyColumn Title="Typ pokoje" Property="@(r => r.RoomTypeName)" Sortable="true" />
+                            <PropertyColumn Title="Status" Property="@(r => r.RoomStatusName)" Sortable="true" />
+                            <PropertyColumn Title="Cena" Property="@(r => r.Price)" Sortable="true" />
+                            <PropertyColumn Title="Max Dospělí" Property="@(r => r.MaxAdults)" Sortable="true" />
+                            <PropertyColumn Title="Max Děti" Property="@(r => r.MaxChildren)" Sortable="true" />
+                            <TemplateColumn Title="Akce">
+								<div class="d-inline-flex" tabindex="0" @onmousedown="HideOptions">
+                                    <button class="btn text-primary" @onclick="() => NavigateToRoomDetail(context.Id)">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                    <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+
+                                    @if (VisibleRoomId == context.Id)
+                                    {
+                                        <div class="options-menu">
+                                            <button class="dropdown-item" @onclick="() => EditRoom(context.Id)">Upravit</button>
+                                            <button class="dropdown-item" @onclick="() => DeleteRoom(context.Id)">Smazat</button>
+                                        </div>
+                                    }
+                                </div>
+                            </TemplateColumn>
+
+                        </QuickGrid>
+                        <Paginator State="pagginationState" />
+
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<DeleteModal IsVisible="@isModalVisible" Title="Smazání pokoje" ActionType="DeleteRoom" OnClose="CloseModal" />
+
+
+<style>
+    .options-menu {
+        position: absolute;
+        background-color: white;
+        border: 1px solid #ccc;
+        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 5px;
+        border-radius: 5px;
+        margin-left: 10px;
+    }
+
+        .options-menu button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 5px 10px;
+            border: none;
+            background: none;
+            cursor: pointer;
+        }
+
+            .options-menu button:hover {
+                background-color: #f0f0f0;
+            }
+
+</style>
+
+
+@code {
+    private PaginationState pagginationState = new PaginationState() { ItemsPerPage = 10 };
+
+    private ICollection<RoomViewModel> rooms;
+    private string searchTerm;
+    private List<RoomType> RoomTypes = new List<RoomType>();
+    private List<RoomStatus> RoomStatuses = new List<RoomStatus>();
+    private ICollection<RoomViewModel> filteredRooms;
+    private bool isAvailable;
+    private int? VisibleRoomId { get; set; } = null;
+
+
+
+    private bool isModalVisible = false;
+    private int? deleteRoomId;
+    private string Title;
+    private string modalMessage;
+    private string ActionType;
+
+
+    private void NavigateToSettingRoomPage()
+    {
+        NavigationManager.NavigateTo("/nastaveni-pokoju");
+    }
+
+    private void ToggleOptions(int roomId)
+    {
+        // Pokud je již menu zobrazeno, zavře se, jinak se otevře
+        VisibleRoomId = VisibleRoomId == roomId ? null : roomId;
+    }
+
+    private void EditRoom(int roomId)
+    {
+		NavigationManager.NavigateTo($"/upravit-pokoj/{roomId}");
+		HideOptions();
+    }
+
+	private void DeleteRoom(int roomId)
+	{
+		Console.WriteLine($"Mažu pokoj s ID: {roomId}");
+		OpenDeleteRoomConfirmation(roomId);
+		VisibleRoomId = null; // Skryje menu po akci
+	}
+
+	private void HideOptions()
+	{
+		VisibleRoomId = null;
+	}
+
+
+    private void OpenDeleteRoomConfirmation(int roomId)
+    {
+        isModalVisible = true;
+        deleteRoomId = roomId;
+
+    }
+
+    private async Task CloseModal(bool result)
+    {
+		var room = rooms.FirstOrDefault(r => r.Id == deleteRoomId);
+        isModalVisible = false;
+
+        if (result)
+        {
+            rooms.Remove(room);
+            filteredRooms = rooms;
+        }
+    }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+		rooms = await RoomService.GetRoomsAsync();
+        filteredRooms = rooms;
+
+    }
+
+
+
+    private void SearchRooms(ChangeEventArgs e)
+    {
+        searchTerm = e.Value.ToString();
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredRooms = rooms.Where(r => r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                || r.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                || r.MaxAdults.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                || r.MaxChildren.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.RoomTypeName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.RoomStatusName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        else
+        {
+            filteredRooms = rooms;
+        }
+    }
+
+    private void NavigateToRoomDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/pokoj/{id}");
+    }
+
+    private void NavigateToAddRoom()
+    {
+        NavigationManager.NavigateTo("/pridat-pokoj");
+    }
+
+
+}

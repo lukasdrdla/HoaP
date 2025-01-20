@@ -1,0 +1,30 @@
+﻿.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.room-price {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.room-image {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+    .room-image img {
+        width: 100%;
+        height: auto;
+    }
+
+.room-amenities i {
+    font-size: 18px;
+    margin-right: 5px;
+}
+
+.booking-history-table {
+    margin-top: 30px;
+}
