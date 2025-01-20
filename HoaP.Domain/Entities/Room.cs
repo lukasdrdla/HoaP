@@ -24,5 +24,7 @@ namespace HoaP.Domain.Entities
 
 
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public List<RoomAmenity> RoomAmenities { get; set; } = new List<RoomAmenity>();
+
     }
 }
