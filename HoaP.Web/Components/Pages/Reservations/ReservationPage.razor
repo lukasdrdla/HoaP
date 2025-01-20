@@ -1,0 +1,149 @@
+﻿@page "/rezervace"
+@inject ReservationService ReservationService
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender:false))
+
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Rezervace</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchReservations" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <div></div> <!-- Placeholder for alignment -->
+                <button class="btn btn-primary" @onclick="NavigateToAddReservation">
+                    <i class="bi bi-plus"></i> Přidat rezervaci
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="w-100">
+                    <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class=" w-100">
+                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+                        <PropertyColumn Title="CheckIn" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+                        <PropertyColumn Title="CheckOut" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
+                        <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
+                        <PropertyColumn Title="Cena" Property="@(x => x.TotalPrice)" Sortable="true" />
+						<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex">
+                                <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+
+                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteModal Title="Smazání rezervace" ActionType="DeleteReservation" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+
+
+@code {
+
+    private List<ReservationViewModel> reservations;
+    private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
+    private string? searchTerm;
+
+    private Reservation reservation = new Reservation();
+    private bool isReservationModalVisible = false;
+
+
+
+    private int reservationIdToDelete;
+    private bool isDeleteModalVisible = false;
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+    private async Task OpenDeleteConfirmation(int reservationId)
+    {
+        reservationIdToDelete = reservationId;
+        isDeleteModalVisible = true;
+    }
+
+
+    private void OpenAddReservationModal()
+    {
+        isReservationModalVisible = true;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+        var reservation = reservations.FirstOrDefault(r => r.Id == reservationIdToDelete);
+        isDeleteModalVisible = false;
+
+        if (result)
+        {
+            reservations.Remove(reservation);
+            filteredReservations = reservations;
+        }
+    }
+
+    private void SearchReservations(ChangeEventArgs e)
+    {
+        searchTerm = e.Value.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredReservations = reservations.Where(
+				r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+				|| r.TotalPrice.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+			).ToList();
+        }
+        else
+        {
+            filteredReservations = reservations;
+        }
+
+
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        reservations = await ReservationService.GetReservationsAsync();
+        filteredReservations = reservations;
+    }
+
+
+    private void NavigateToReservationDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/rezervace/{id}");
+    }
+
+    private void NavigateToAddReservation()
+    {
+        NavigationManager.NavigateTo("/pridat-rezervaci");
+    }
+
+
+    private string GetReservationStatus(string status)
+    {
+        return status switch
+        {
+            "Čekající" => "text-warning",
+            "Potvrzená" => "text-primary",
+            "Dokončená" => "text-success",
+            "Zrušená" => "text-danger",
+            "Odmítnutá" => "text-danger",
+            _ => "badge badge-info"
+        };
+    }
+
+}
