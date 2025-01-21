@@ -1,0 +1,113 @@
+﻿@page "/platby"
+@using HoaP.Application.ViewModels.Payment
+@inject PaymentService PaymentService
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Platby</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchPayments" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <div></div> <!-- Placeholder for alignment -->
+                <button class="btn btn-primary" @onclick="NavigateToAddPayment">
+                    <i class="bi bi-plus"></i> Přidat platbu
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="w-100">
+                    <QuickGrid Items="filteredPayments.AsQueryable()" Pagination="paginationState" Class="w-100">
+                        <PropertyColumn Title="ID platby" Property="@(x => x.Id)" Sortable="true" />
+                        <PropertyColumn Title="ID faktury" Property="@(x => x.InvoiceNumber)" Sortable="true" />
+                        <PropertyColumn Title="Částka" Property="@(x => x.TotalAmount.ToString("C"))" Sortable="true" />
+                        <PropertyColumn Title="Metoda" Property="@(x => x.PaymentMethodName)" Sortable="true" />
+                        <PropertyColumn Title="Datum" Property="@(x => x.PaymentDate.ToShortDateString())" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex">
+                                <button class="btn text-primary" @onclick="() => NavigateToPaymentDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+
+                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteModal Title="Smazání platby" ActionType="DeletePayment" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+@code {
+    private List<PaymentViewModel> payments;
+    private List<PaymentViewModel> filteredPayments = new List<PaymentViewModel>();
+    private string? searchTerm;
+
+    private bool isDeleteModalVisible = false;
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+    private async Task OpenDeleteConfirmation(Guid paymentId)
+    {
+        isDeleteModalVisible = true;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+		if (result)
+		{
+			
+            payments = await PaymentService.GetPaymentsAsync();
+            filteredPayments = payments;
+		}
+
+
+		
+    }
+
+    private void SearchPayments(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredPayments = payments.Where(
+                p => p.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || p.InvoiceNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || p.TotalAmount.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || p.PaymentMethodName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || p.PaymentDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        else
+        {
+            filteredPayments = payments;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        payments = await PaymentService.GetPaymentsAsync() ?? new List<PaymentViewModel>();
+        filteredPayments = payments;
+    }
+
+    private void NavigateToPaymentDetail(Guid id)
+    {
+        NavigationManager.NavigateTo($"/platby/{id}");
+    }
+
+    private void NavigateToAddPayment()
+    {
+        NavigationManager.NavigateTo("/pridat-platbu");
+    }
+}

@@ -1,5 +1,6 @@
 ﻿@page "/zakaznik/{Id:int}"
 @inject CustomerService CustomerService
+@inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -17,83 +18,133 @@
     else
     {
         <div class="row">
-                <div class="card border-0 shadow-sm mx-auto">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-4 page-title">Upravit Zákazníka</h3>
-                        <EditForm Model="customer" OnValidSubmit="HandleValidSubmit" FormName="EditCustomer">
-						<input type="hidden" @bind="customer.Id" />
-						<DataAnnotationsValidator />
-						<ValidationSummary />
-                            <div class="mb-3">
-                                <label for="firstName" class="form-label">Jméno</label>
-                                <InputText id="firstName" class="form-control" @bind-Value="customer.FirstName" />
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <div class="container py-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3>@customer.FirstName @customer.LastName - #@customer.Id</h3>
+							<button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci </button>
+                        </div>
+
+                        <div class="row">
+                            <!-- Customer Information -->
+                            <div class="col-md-12">
+                                <div class="customer-detail">
+                                    <h5>Customer Information</h5>
+                                    <div class="detail-item">
+                                        <span><strong>Jméno:</strong></span>
+                                        <span>@customer.FirstName @customer.LastName</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>Document Number:</strong></span>
+                                        <span>@customer.DocumentNumber</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>Place of Birth:</strong></span>
+                                        <span>@customer.PlaceOfBirth</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>Date of Birth:</strong></span>
+                                        <span>@customer.DateOfBirth</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Date of Issue:</strong></span>
+                                        <span>@customer.DateOfIssue</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Date of Expiry:</strong></span>
+                                        <span>@customer.DateOfExpiry</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Personal Identification Number:</strong></span>
+                                        <span>@customer.PersonalIdentificationNumber</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Nationality :</strong></span>
+                                        <span>@customer.Nationality</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>Phone:</strong></span>
+                                        <span>@customer.Phone</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Email:</strong></span>
+                                        <span>@customer.Email</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Address:</strong></span>
+                                        <span>@customer.Address</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>City:</strong></span>
+                                        <span>@customer.City</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Postal Code:</strong></span>
+                                        <span>@customer.PostalCode</span>
+                                    </div>
+
+                                    <div class="detail-item">
+                                        <span><strong>Country:</strong></span>
+                                        <span>@customer.Country</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Created At:</strong></span>
+                                        <span>@customer.CreatedAt</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span><strong>Updated At:</strong></span>
+                                        <span>@customer.UpdatedAt</span>
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex gap-3 mt-4">
+                                    <button class="btn btn-danger flex-grow-1" @onclick="OpenDeleteConfirmation">Delete</button>
+                                    <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToCustomers">Back to List</button>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="lastName" class="form-label">Příjmení</label>
-                                <InputText id="lastName" class="form-control" @bind-Value="customer.LastName" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="documentNumber" class="form-label">Číslo Dokladu</label>
-                                <InputText id="documentNumber" class="form-control" @bind-Value="customer.DocumentNumber" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="placeOfBirth" class="form-label">Místo Narození</label>
-                                <InputText id="placeOfBirth" class="form-control" @bind-Value="customer.PlaceOfBirth" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="dateOfBirth" class="form-label">Datum Narození</label>
-                                <InputDate id="dateOfBirth" class="form-control" @bind-Value="customer.DateOfBirth" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="dateOfIssue" class="form-label">Datum Vydání (dokladu)</label>
-                                <InputDate id="dateOfIssue" class="form-control" @bind-Value="customer.DateOfIssue" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="dateOfExpiry" class="form-label">Datum Expirace (dokladu)</label>
-                                <InputDate id="dateOfExpiry" class="form-control" @bind-Value="customer.DateOfExpiry" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="personalIdentificationNumber" class="form-label">Rodné Číslo</label>
-                                <InputText id="personalIdentificationNumber" class="form-control" @bind-Value="customer.PersonalIdentificationNumber" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <InputText id="email" type="email" class="form-control" @bind-Value="customer.Email" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="phone" class="form-label">Telefon</label>
-                                <InputText id="phone" class="form-control" @bind-Value="customer.Phone" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="address" class="form-label">Adresa</label>
-                                <InputText id="address" class="form-control" @bind-Value="customer.Address" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="city" class="form-label">Město</label>
-                                <InputText id="city" class="form-control" @bind-Value="customer.City" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="country" class="form-label">Země</label>
-                                <InputText id="country" class="form-control" @bind-Value="customer.Country" />
-                            </div>
-                            <div class="mb-3">
-                                <label for="postalCode" class="form-label">PSČ</label>
-                                <InputText id="postalCode" class="form-control" @bind-Value="customer.PostalCode" />
-                            </div>
-                            <div class="text-center mt-4">
-                                <button type="submit" class="btn btn-primary">Uložit</button>
-                                <a href="/zakaznici" class="btn btn-outline-secondary">Zpět na seznam</a>
-                            </div>
-                        </EditForm>
+                        </div>
                     </div>
+                </div>
+
+
             </div>
 
-            </div>
+        </div>
+
+        <div class="mt-5">
+            <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class=" w-100">
+                <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+                <PropertyColumn Title="CheckIn" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+                <PropertyColumn Title="CheckOut" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
+                <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
+                <PropertyColumn Title="Cena" Property="@(x => x.TotalPrice)" Sortable="true" />
+                <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+                <TemplateColumn Title="Akce">
+                    <div class="d-inline-flex">
+                        <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </TemplateColumn>
+
+            </QuickGrid>
+            <Paginator State="paginationState" />
+		</div>
 
 
-               
+
     }
 </div>
+
+
+<DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteCustomer" Title="Smazání zákazníka" />
 
 
 @code {
@@ -101,20 +152,58 @@
     public int Id { get; set; }
 
     [SupplyParameterFromForm]
-    private UpdateCustomerViewModel customer { get; set; } = new UpdateCustomerViewModel();
+    private DetailCustomerViewModel customer { get; set; } = new DetailCustomerViewModel();
+	private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
+	private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
+	private string? searchTerm;
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
 
+    private bool isDeleteModalVisible = false;
+
+
+    private void OpenDeleteConfirmation()
+    {
+        isDeleteModalVisible = true;
+    }
+
+    private async void HandleModalClose(bool result)
+    {
+        if (result)
+        {
+			await DeleteCustomer();
+    }
+		isDeleteModalVisible = false;
+	}
 
     protected override async Task OnInitializedAsync()
     {
 		customer = await CustomerService.GetCustomerById(Id);
+		reservations = await ReservationService.GetReservationsByCustomerIdAsync(Id);
+		filteredReservations = reservations;
     }
 
+	private async Task DeleteCustomer()
+	{
+		await CustomerService.DeleteCustomer(Id);
+		NavigateToCustomers();
+	}
 
-    private async Task HandleValidSubmit()
+	private void NavigateToCustomers()
+	{
+		NavigationManager.NavigateTo("/zakaznici");
+	}
+
+
+    private void NavigateToReservationDetail(int id)
     {
-		await CustomerService.UpdateCustomer(customer);
-        NavigationManager.NavigateTo("/zakaznici");
+        NavigationManager.NavigateTo($"/rezervace/{id}");
     }
+
+    private void NavigateToAddReservation()
+    {
+        NavigationManager.NavigateTo("/pridat-rezervaci");
+    }
+
 
  
 

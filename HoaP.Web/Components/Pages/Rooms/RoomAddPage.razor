@@ -1,0 +1,133 @@
+﻿@page "/pridat-pokoj"
+@using HoaP.Application.ViewModels.Room
+@inject RoomService RoomService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+
+
+<div class="container mt-2">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4 page-title">Přidat Pokoj</h3>
+            <EditForm Model="room" OnValidSubmit="HandleValidSubmit" FormName="AddRoom">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                        <label for="RoomImg" class="form-label">Obrázek</label>
+                        <InputText id="RoomImg" class="form-control" @bind-Value="room.Image" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="RoomNumber" class="form-label">Číslo pokoje</label>
+                        <InputText id="RoomNumber" class="form-control" @bind-Value="room.RoomNumber" />
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="roomType" class="form-label">Typ pokoje</label>
+                    <div class="form-group position-relative">
+                        <input type="text" class="form-control" placeholder="Hledat pokoj.." @bind="searchTerm" @oninput="SearchRoom" @onblur="HideRoomList" />
+
+                        @if (filteredRoomTypes.Any())
+                        {
+                            <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                @foreach (var room in filteredRoomTypes)
+                                {
+                                    <li class="list-group-item list-group-item-action" @onclick="@(() => SelectRoomType(room))">@room.Name</li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="RoomStatus" class="form-label">Status</label>
+                    <InputSelect id="RoomStatus" class="form-control" @bind-Value="room.RoomStatusId">
+                        <option value="">Vyberte status</option>
+                        @foreach (var status in roomStatuses)
+                        {
+                            <option value="@status.Id">@status.Name</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                        <label for="MaxAdults" class="form-label">Max Dospělí</label>
+                        <InputNumber id="MaxAdults" class="form-control" @bind-Value="room.MaxAdults" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="MaxChildren" class="form-label">Max Děti</label>
+                        <InputNumber id="MaxChildren" class="form-control" @bind-Value="room.MaxChildren" />
+                    </div>
+
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Price" class="form-label">Cena</label>
+                    <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
+                </div>
+
+
+                <div class="form-group mb-3">
+                    <label for="Description" class="form-label">Popis</label>
+                    <InputTextArea id="Description" class="form-control" @bind-Value="room.Description" />
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <a href="/pokoje" class="btn btn-outline-secondary">Zpět na seznam</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+
+
+@code {
+    [SupplyParameterFromForm]
+	private CreateRoomViewModel room { get; set; } = new CreateRoomViewModel();
+
+    private string searchTerm;
+    private List<RoomType> roomTypes = new List<RoomType>();
+    private List<RoomType> filteredRoomTypes = new List<RoomType>();
+
+    private List<RoomStatus> roomStatuses = new List<RoomStatus>();
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        filteredRoomTypes = new List<RoomType>();
+
+    }
+
+    private async Task SearchRoom(ChangeEventArgs e)
+    {
+        searchTerm = e.Value.ToString();
+        filteredRoomTypes = roomTypes.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void SelectRoomType(RoomType roomType)
+    {
+        room.RoomTypeId = roomType.Id;
+        searchTerm = $"{roomType.Name}";
+        filteredRoomTypes = new List<RoomType>();
+    }
+
+    private void HideRoomList()
+    {
+        filteredRoomTypes.Clear();
+    }
+
+    private async void HandleValidSubmit()
+    {
+
+        await RoomService.CreateRoomAsync(room);
+        NavigationManager.NavigateTo("/pokoje");
+    }
+}

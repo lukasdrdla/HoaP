@@ -1,0 +1,113 @@
+﻿@page "/faktury"
+@using HoaP.Application.ViewModels.Invoice
+@inject InvoiceService InvoiceService
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Faktury</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchInvoices" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <div></div> <!-- Placeholder for alignment -->
+                <button class="btn btn-primary" @onclick="NavigateToAddInvoice">
+                    <i class="bi bi-plus"></i> Přidat fakturu
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="w-100">
+                    <QuickGrid Items="filteredInvoices.AsQueryable()" Pagination="paginationState" Class="w-100">
+                        <PropertyColumn Title="Číslo faktury" Property="@(x => x.Id)" Sortable="true" />
+                        <PropertyColumn Title="Rezervace" Property="@(x => x.ReservationId)" Sortable="true" />
+                        <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("C"))" Sortable="true" />
+                        <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
+                        <PropertyColumn Title="Stav" Property="@(x => x.IsPaid ? "Zaplaceno" : "Nezaplaceno")" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex">
+                                <button class="btn text-primary" @onclick="() => NavigateToInvoiceDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+
+                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteModal Title="Smazání faktury" ActionType="DeleteInvoice" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+@code {
+    private List<InvoiceViewModel> invoices;
+    private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
+    private string? searchTerm;
+
+    private int invoiceIdToDelete;
+    private bool isDeleteModalVisible = false;
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+    private async Task OpenDeleteConfirmation(int invoiceId)
+    {
+        invoiceIdToDelete = invoiceId;
+        isDeleteModalVisible = true;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+        var invoice = invoices.FirstOrDefault(r => r.Id == invoiceIdToDelete);
+        isDeleteModalVisible = false;
+
+        if (result)
+        {
+            invoices.Remove(invoice);
+            filteredInvoices = invoices;
+        }
+    }
+
+    private void SearchInvoices(ChangeEventArgs e)
+    {
+        searchTerm = e.Value.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredInvoices = invoices.Where(
+                r => r.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.ReservationId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        else
+        {
+            filteredInvoices = invoices;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        invoices = await InvoiceService.GetInvoicesAsync();
+        filteredInvoices = invoices;
+    }
+
+    private void NavigateToInvoiceDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/faktury/{id}");
+    }
+
+    private void NavigateToAddInvoice()
+    {
+        NavigationManager.NavigateTo("/pridat-fakturu");
+    }
+}

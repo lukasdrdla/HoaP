@@ -1,0 +1,119 @@
+﻿@page "/pridat-platbu"
+@using HoaP.Application.ViewModels.Invoice
+@using HoaP.Application.ViewModels.Payment
+@inject PaymentService PaymentService
+@inject InvoiceService InvoiceService
+@inject PaymentMethodService PaymentMethodService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container mt-2">
+    <div class="card border-0 shadow-sm mx-auto w-50">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4 page-title">Přidat Platbu</h3>
+            <EditForm Model="payment" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label for="invoiceId" class="form-label">Faktura</label>
+                    <div class="form-group position-relative">
+                        <input type="text" class="form-control" placeholder="Hledat fakturu..." @bind="searchTerm" @oninput="SearchInvoice" @onblur="HideInvoices" />
+                        @if (filteredInvoices.Any())
+                        {
+                            <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                @foreach (var invoice in filteredInvoices)
+                                {
+                                    <li class="list-group-item list-group-item-action" @onmousedown="() => SelectInvoice(invoice)">
+                                        <div>
+                                            <strong>Číslo faktury:</strong> #@invoice.Id
+                                        </div>
+                                        <div>
+                                            <strong>Zákazník:</strong> @invoice.CustomerName
+                                        </div>
+                                        <div>
+											<strong>Termín:</strong> @invoice.IssueDate.ToShortDateString() - @invoice.DueDate.ToShortDateString()
+                                        </div>
+                                        <div>
+                                            <strong>Cena:</strong> @invoice.Price.ToString("C")
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="amount" class="form-label">Částka</label>
+                    <InputNumber id="amount" class="form-control" @bind-Value="payment.TotalAmount" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="paymentDate" class="form-label">Datum platby</label>
+                    <InputDate id="paymentDate" class="form-control" @bind-Value="payment.PaymentDate" />
+                </div>
+                <div class="mb-3">
+                    <div class="mb-3">
+                        <label for="paymentMethod" class="form-label">Způsob platby</label>
+                        <select id="paymentMethod" class="form-control" @bind="payment.PaymentMethodId">
+                            <option value="">-- Vyberte metodu --</option>
+                            @foreach (var method in payment.PaymentMethods)
+                            {
+                                <option value="@method.Id">@method.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <a href="/platby" class="btn btn-outline-secondary">Zpět na seznam</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreatePaymentViewModel payment { get; set; } = new CreatePaymentViewModel();
+    private List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
+    private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
+
+    private string searchTerm = string.Empty;
+
+    private void SearchInvoice(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? string.Empty;
+        filteredInvoices = invoices
+		.Where(i => i.Id.ToString().Contains(searchTerm) || i.CustomerName.Contains(searchTerm) || i.Price.ToString().Contains(searchTerm) || i.IssueDate.ToShortDateString().Contains(searchTerm) || i.DueDate.ToShortDateString().Contains(searchTerm))
+			.ToList();
+    }
+
+    private void SelectInvoice(InvoiceViewModel invoice)
+    {
+		searchTerm = $"#{invoice.Id} - {invoice.CustomerName}";
+        payment.InvoiceId = invoice.Id;
+        payment.TotalAmount = invoice.Price;
+        filteredInvoices.Clear();
+    }
+
+    private void HideInvoices()
+    {
+        filteredInvoices.Clear();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        invoices = await InvoiceService.GetInvoicesAsync() ?? new List<InvoiceViewModel>();
+        filteredInvoices = new List<InvoiceViewModel>();
+
+		payment.PaymentMethods = await PaymentMethodService.GetPaymentMethodsAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await PaymentService.CreatePaymentAsync(payment);
+        NavigationManager.NavigateTo("/platby");
+    }
+}
