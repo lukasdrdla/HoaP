@@ -1,0 +1,108 @@
+﻿@page "/zamestnanci"
+@using HoaP.Application.ViewModels.Employee
+@inject EmployeeService EmployeeService
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Zaměstnanci</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchEmployees" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <div></div> <!-- Placeholder for alignment -->
+                <button class="btn btn-primary" @onclick="NavigateToAddEmployee">
+                    <i class="bi bi-plus"></i> Přidat zaměstnance
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="w-100">
+                    <QuickGrid Items="filteredEmployees.AsQueryable()" Pagination="paginationState" Class="w-100">
+                        <PropertyColumn Title="Jméno" Property="@(x => x.FirstName + " " + x.LastName)" Sortable="true" />
+                        <PropertyColumn Title="Pozice" Property="@(x => x.JobTitle)" Sortable="true" />
+                        <PropertyColumn Title="Plat" Property="@(x => x.Salary.ToString("C"))" Sortable="true" />
+                        <PropertyColumn Title="Nástup" Property="@(x => x.StartDate.ToShortDateString())" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex">
+                                <button class="btn text-primary" @onclick="() => NavigateToEmployeeDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+
+                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteModal Title="Smazání zaměstnance" ActionType="DeleteEmployee" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+@code {
+	private List<EmployeeViewModel> employees = new List<EmployeeViewModel>();
+    private List<EmployeeViewModel> filteredEmployees = new List<EmployeeViewModel>();
+    private string? searchTerm;
+
+    private bool isDeleteModalVisible = false;
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+    private async Task OpenDeleteConfirmation(string employeeId)
+    {
+        isDeleteModalVisible = true;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+		if (result)
+		{
+			employees = await EmployeeService.GetEmployeesAsync();
+			filteredEmployees = employees;
+		}
+        
+    }
+
+    private void SearchEmployees(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredEmployees = employees.Where(
+                e => (e.FirstName + " " + e.LastName).Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || e.JobTitle.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || e.Salary.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || e.StartDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        else
+        {
+            filteredEmployees = employees;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await EmployeeService.GetEmployeesAsync() ?? new List<EmployeeViewModel>();
+        filteredEmployees = employees;
+    }
+
+    private void NavigateToEmployeeDetail(string id)
+    {
+        NavigationManager.NavigateTo($"/zamestnanci/{id}");
+    }
+
+    private void NavigateToAddEmployee()
+    {
+        NavigationManager.NavigateTo("/pridat-zamestnance");
+    }
+}
