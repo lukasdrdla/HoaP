@@ -1,7 +1,236 @@
 ﻿@page "/"
+@using HoaP.Application.ViewModels.DashBoard
+@inject NavigationManager NavigationManager
+@inject DashBoardService DashBoardService
+@inject ReservationService ReservationService
+@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard - Hotel Management</PageTitle>
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <p>
+                        <i class="bi bi-people-fill"></i>
+                        Počet zákazníků
+                    </p>
 
-<h1>Hello, world!</h1>
+					<h3>@totalCustomers</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <p>
+                        <i class="bi bi-calendar-check"></i>
+                        Počet rezervací
+                    </p>
 
-Welcome to your new app.
+					<h3>@totalReservations</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <p>
+                        <i class="bi bi-house-door"></i>
+                        Počet pokojů
+                    </p>
+
+					<h3>@totalRooms</h3>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <p>
+                        <i class="bi bi-cash"></i>
+                        Příjem za poslední měsíc
+                    </p>
+
+					<h3>@totalRevenue Kč</h3>
+                    
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <div class="row mt-4">
+        <div class="col-lg-12">
+            <div class="card border-0 shadow-sm mx-auto">
+                <div class="card-body">
+                    <div class="container mt-4">
+                        <div class="card border-0 shadow-sm mx-auto">
+                            <div class="card-body">
+								<h3 class="text-center mb-4 page-title">Kalendář rezervací</h3>
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <button class="btn btn-outline-secondary" @onclick="GoToPreviousMonth">←</button>
+                                    <h4>@currentMonth.ToString("MMMM yyyy")</h4>
+                                    <button class="btn btn-outline-secondary" @onclick="GoToNextMonth">→</button>
+                                </div>
+
+                                <div class="calendar-grid">
+                                    @foreach (var week in GetCalendarGrid())
+                                    {
+                                        @foreach (var day in week)
+                                        {
+                                            <div class="calendar-day @(day.IsToday ? "today" : "") @(day.IsSelected ? "selected" : "")"
+                                                 @onclick="() => SelectDay(day.Date)">
+                                                <span>@day.Date.Day</span>
+                                                @if (day.HasBookings)
+                                                {
+                                                    <div class="booking-dot"></div>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                </div>
+
+
+                                <div class="table-responsive mt-4">
+                                    <QuickGrid Items="selectedDayBookings.AsQueryable()" Pagination="paginationState" Class="w-100">
+                                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
+                                            <ColumnOptions>
+                                                <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
+                                            </ColumnOptions>
+                                        </PropertyColumn>
+                                        <PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
+                                        <PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+                                        <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+                                        <PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+                                        <TemplateColumn Title="Akce">
+                                            <div class="d-inline-flex">
+                                                <button class="btn text-primary">
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                                <button class="btn text-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </TemplateColumn>
+                                    </QuickGrid>
+                                    <Paginator State="paginationState" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+ 
+@code {
+
+	private DashBoardViewModel dashBoardViewModel = new DashBoardViewModel();
+    private int totalCustomers;
+    private int totalReservations;
+    private int totalRooms;
+    private decimal totalRevenue;
+
+    private DateTime currentMonth = DateTime.Now;
+    private DateTime selectedDay = DateTime.Now;
+    private List<ReservationViewModel> bookings = new();
+    private List<ReservationViewModel> selectedDayBookings = new();
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+    private string? searchTerm;
+
+	protected override async Task OnInitializedAsync()
+	{
+
+		totalCustomers = await DashBoardService.GetTotalCustomers();
+		totalReservations = await DashBoardService.GetTotalReservations();
+		totalRooms = await DashBoardService.GetTotalRooms();
+		totalRevenue = await DashBoardService.GetRevenueFromLastMonth();
+
+        bookings = await ReservationService.GetReservationsAsync();
+        UpdateSelectedDayBookings();
+	}
+
+    private void SearchCustomers(ChangeEventArgs e)
+    {
+        searchTerm = e.Value.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            selectedDayBookings = selectedDayBookings.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else
+        {
+            selectedDayBookings = selectedDayBookings;
+        }
+
+    }
+
+
+    private void GoToPreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+    }
+
+    private void GoToNextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+    }
+
+    private void SelectDay(DateTime date)
+    {
+        selectedDay = date;
+        UpdateSelectedDayBookings();
+    }
+
+    private void UpdateSelectedDayBookings()
+    {
+        selectedDayBookings = bookings.Where(b => b.CheckIn.Date == selectedDay.Date).ToList();
+    }
+
+    private List<List<CalendarDay>> GetCalendarGrid()
+    {
+        var days = new List<List<CalendarDay>>();
+        var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        var startOfWeek = firstDay.AddDays(-(int)firstDay.DayOfWeek);
+
+        for (int week = 0; week < 6; week++)
+        {
+            var weekDays = new List<CalendarDay>();
+            for (int day = 0; day < 7; day++)
+            {
+                var date = startOfWeek.AddDays(week * 7 + day);
+                weekDays.Add(new CalendarDay
+                    {
+                        Date = date,
+                        IsToday = date.Date == DateTime.Now.Date,
+                        IsSelected = date.Date == selectedDay.Date,
+                        HasBookings = bookings.Any(b => b.CheckIn.Date == date.Date)
+                    });
+            }
+            days.Add(weekDays);
+        }
+        return days;
+    }
+
+    private class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public bool IsToday { get; set; }
+        public bool IsSelected { get; set; }
+        public bool HasBookings { get; set; }
+    }
+
+
+   
+
+}
