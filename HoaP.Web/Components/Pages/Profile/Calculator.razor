@@ -1,0 +1,192 @@
+﻿@page "/kalkulacka"
+@using System.Data
+@rendermode InteractiveServer
+
+<h3 class="mb-4 page-title">Kalkulačka</h3>
+
+<div class="calculator" @onkeydown="OnKeyDown" tabindex="0">
+    <input type="text" class="form-control mb-3 display" @bind="display" disabled />
+
+    <div class="row">
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('1')">1</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('2')">2</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('3')">3</button>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('4')">4</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('5')">5</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('6')">6</button>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('7')">7</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('8')">8</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('9')">9</button>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('0')">0</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('+')">+</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('-')">-</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('*')">*</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('/')">/</button>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('(')">(</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add(')')">)</button>
+        <button class="btn btn-primary btn-calc" @onclick="() => Add('.')">.</button>
+        <button class="btn btn-clear clear" @onclick="() => display = string.Empty">C</button>
+    </div>
+
+    <div class="row">
+        <button class="btn btn-primary equal" @onclick="Calculate">=</button>
+    </div>
+
+</div>
+
+<style>
+    .calculator {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 20px;
+        background-color: #f1f1f1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .display {
+        width: 100%;
+        height: 70px;
+        font-size: 36px;
+        text-align: right;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #fff;
+        border: none;
+        border-radius: 12px;
+        color: #333;
+        box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .button-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .btn-calc {
+        width: 70px;
+        height: 70px;
+        font-size: 28px;
+        border-radius: 12px;
+        background-color: #3498db;
+        color: #fff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin: 5px;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+        .btn-calc:hover {
+            background-color: #2980b9;
+        }
+
+        .btn-calc:active {
+            background-color: #1f6fa5;
+        }
+
+    .operator {
+        background-color: #f39c12;
+    }
+
+        .operator:hover {
+            background-color: #e67e22;
+        }
+
+        .operator:active {
+            background-color: #d35400;
+        }
+
+    .clear {
+        background-color: #e74c3c;
+    }
+
+        .clear:hover {
+            background-color: #c0392b;
+        }
+
+        .clear:active {
+            background-color: #a93226;
+        }
+
+    .equal {
+        background-color: #2ecc71;
+        width: 100%;
+        font-size: 32px;
+    }
+
+        .equal:hover {
+            background-color: #27ae60;
+        }
+
+        .equal:active {
+            background-color: #1e8449;
+        }
+
+</style>
+
+
+@code {
+    private string display = "";
+
+    private void Add(char value)
+    {
+        display += value;
+    }
+
+    private void OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "1" || e.Key == "2" || e.Key == "3" || e.Key == "4" || e.Key == "5" || e.Key == "6" || e.Key == "7" || e.Key == "8" || e.Key == "9" || e.Key == "0" || e.Key == "+" || e.Key == "-" || e.Key == "*" || e.Key == "/" || e.Key == "(" || e.Key == ")" || e.Key == ".")
+        {
+            display += e.Key;
+        }
+        else if (e.Key == "Enter")
+        {
+            Calculate();
+        }
+        else if (e.Key == "Backspace")
+        {
+            //if the there is no more characters to delete, clear the display
+            if (display.Length == 0)
+            {
+                display = string.Empty;
+            }
+            else
+            {
+                display = display.Remove(display.Length - 1);
+            }
+
+        }
+    }
+
+    private void Calculate()
+    {
+        try
+        {
+            // Použití DataTable pro výpočet matematického výrazu
+            var dataTable = new System.Data.DataTable();
+            var result = dataTable.Compute(display, string.Empty);
+            display = result.ToString(); // Zobrazení výsledku
+        }
+        catch (Exception)
+        {
+            display = "Error"; // Pokud dojde k chybě, zobrazí se "Error"
+        }
+    }
+}
+
