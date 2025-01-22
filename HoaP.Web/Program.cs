@@ -11,6 +11,17 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
+builder.Services.AddAutoMapper(typeof(RoomProfile));
+builder.Services.AddAutoMapper(typeof(AmenityProfile));
+builder.Services.AddAutoMapper(typeof(ReservationProfile));
+builder.Services.AddAutoMapper(typeof(InvoiceProfile));
+builder.Services.AddAutoMapper(typeof(PaymentProfile));
+builder.Services.AddAutoMapper(typeof(EmployeeProfile));
+builder.Services.AddAutoMapper(typeof(PaymentMethodProfile));
+builder.Services.AddAutoMapper(typeof(RoomStatusProfile));
+builder.Services.AddAutoMapper(typeof(RoomTypeProfile));
+builder.Services.AddAutoMapper(typeof(InsuranceCompanyProfile));
+builder.Services.AddAutoMapper(typeof(CurrencyProfile));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -27,6 +38,48 @@ builder.Services.AddIdentity<AppUser, AppRole>()
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
 builder.Services.AddScoped<CustomerService>();
+
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<RoomService>();
+
+builder.Services.AddScoped<IAmenityRepository, AmenityRepository>();
+builder.Services.AddScoped<AmenityService>();
+
+builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
+builder.Services.AddScoped<ReservationService>();
+
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<InvoiceService>();
+
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<PaymentService>();
+
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<EmployeeService>();
+
+builder.Services.AddScoped<IPaymentMethodRepository, PaymentMethodRepository>();
+builder.Services.AddScoped<PaymentMethodService>();
+
+builder.Services.AddScoped<IRoomTypeRepository, RoomTypeRepository>();
+builder.Services.AddScoped<RoomTypeService>();
+
+builder.Services.AddScoped<IRoomStatusRepository, RoomStatusRepository>();
+builder.Services.AddScoped<RoomStatusService>();
+
+builder.Services.AddScoped<IInsuranceCompanyRepository, InsuranceCompanyRepository>();
+builder.Services.AddScoped<InsuranceCompanyService>();
+
+builder.Services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+builder.Services.AddScoped<CurrencyService>();
+
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<AccountService>();
+
+builder.Services.AddScoped<IDashBoardRepsoitory, DashBoardRepository>();
+builder.Services.AddScoped<DashBoardService>();
+
+
+
 
 var app = builder.Build();
 
