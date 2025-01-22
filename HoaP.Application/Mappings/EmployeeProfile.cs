@@ -26,6 +26,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.InsuranceCompanyName, opt => opt.MapFrom(src => src.InsuranceCompany.Name));
 
             CreateMap<UpdateEmployeeViewModel, AppUser>();
+
+            CreateMap<CreateEmployeeViewModel, AppUser>();
         }
     }
 }

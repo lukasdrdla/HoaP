@@ -44,6 +44,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
 
+            CreateMap<Customer, DetailCustomerViewModel>();
+
 
 
 
