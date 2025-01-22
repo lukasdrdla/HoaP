@@ -1,0 +1,77 @@
+﻿@page "/login"
+@using HoaP.Application.ViewModels.AppUser
+@using Microsoft.AspNetCore.Authorization
+@attribute [AllowAnonymous]
+@inject AccountService AccountService
+@inject NavigationManager NavigationManager
+
+<div class="container d-flex align-items-center justify-content-center vh-100 " style="flex-direction: column;">
+    <div style="width: 100%; max-width: 400px;">
+        <div class="card-body">
+            <h3 class="card-title text-center">Přihlášení</h3>
+            <p class="text-center text-muted mb-3">Přihlašte se do svého účtu</p>
+
+            <EditForm Model="loginModel" OnValidSubmit="HandleValidSubmit" FormName="login">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+
+                <div class="form-group mb-3">
+                    <label for="Email">Email</label>
+                    <InputText id="Email" class="form-control" @bind-Value="loginModel.Email" />
+                    <ValidationMessage For="@(() => loginModel.Email)" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="Password">Heslo</label>
+                    <InputText id="Password" class="form-control" @bind-Value="loginModel.Password" type="Password" />
+                    <ValidationMessage For="@(() => loginModel.Password)" />
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary w-100">Přihlásit</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<style>
+    main {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .sidebar {
+        display: none;
+    }
+</style>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginViewModel loginModel { get; set; } = new LoginViewModel();
+    private string errorMessage;
+
+    private async Task HandleValidSubmit()
+    {
+        var result = await AccountService.LoginAsync(loginModel);
+
+        if (result.Succeeded)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Neplatné přihlašovací údaje. Zkontrolujte email a heslo.";
+        }
+    }
+}
