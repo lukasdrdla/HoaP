@@ -42,12 +42,12 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
-        public async Task<UpdateCustomerViewModel> GetCustomerByIdAsync(int id)
+        public async Task<DetailCustomerViewModel> GetCustomerByIdAsync(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
             if (customer != null)
             {
-                return _mapper.Map<UpdateCustomerViewModel>(customer);
+                return _mapper.Map<DetailCustomerViewModel>(customer);
             }
 
             return null;
