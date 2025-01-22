@@ -98,3 +98,80 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+}
+
+.search-container {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+}
+
+.topbar-icons {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.notification-icon {
+    position: relative;
+}
+
+.notification-dot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background-color: red;
+    border-radius: 50%;
+    border: 2px solid #f8f9fa;
+}
+
+.menu-icon i {
+    font-size: 20px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-info {
+    text-align: left;
+}
+
+    .user-info span {
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .user-info small {
+        font-size: 12px;
+        color: #888;
+    }
