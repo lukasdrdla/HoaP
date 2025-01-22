@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Currency;
 
 namespace HoaP.Application.ViewModels.Invoice
 {
@@ -12,8 +13,7 @@ namespace HoaP.Application.ViewModels.Invoice
         [Required]
         public int ReservationId { get; set; }
 
-        [Required]
-        public int CurrencyId { get; set; }
+        
 
         [Required]
         [DataType(DataType.Date)]
@@ -34,6 +34,11 @@ namespace HoaP.Application.ViewModels.Invoice
 
         [Range(0, double.MaxValue, ErrorMessage = "Prepayment must be a positive value.")]
         public decimal Prepayment { get; set; } = 0.0m;
+
+        [Required]
+        public int CurrencyId { get; set; }
+
+        public List<CurrencyViewModel> Currencies { get; set; } = new();
     }
 
 }
