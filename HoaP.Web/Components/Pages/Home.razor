@@ -103,16 +103,16 @@
                                                 <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
                                             </ColumnOptions>
                                         </PropertyColumn>
-                                        <PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
-                                        <PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+                                        <PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+                                        <PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                                         <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
                                         <PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
                                         <TemplateColumn Title="Akce">
                                             <div class="d-inline-flex">
-                                                <button class="btn text-primary">
+                                                <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
                                                     <i class="bi bi-search"></i>
                                                 </button>
-                                                <button class="btn text-danger">
+                                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </div>
@@ -131,6 +131,10 @@
     </div>
 </div>
 
+
+<DeleteModal Title="Smazání rezervace" ActionType="DeleteReservation" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+
  
 @code {
 
@@ -139,6 +143,9 @@
     private int totalReservations;
     private int totalRooms;
     private decimal totalRevenue;
+
+	private bool isDeleteModalVisible = false;
+	private int reservationIdToDelete;
 
     private DateTime currentMonth = DateTime.Now;
     private DateTime selectedDay = DateTime.Now;
@@ -160,6 +167,26 @@
         UpdateSelectedDayBookings();
 	}
 
+	private void OpenDeleteConfirmation(int reservationId)
+	{
+		reservationIdToDelete = reservationId;
+		isDeleteModalVisible = true;
+	}
+
+	private async Task HandleModalClose(bool result)
+    {
+		var reservation = bookings.FirstOrDefault(r => r.Id == reservationIdToDelete);
+		isDeleteModalVisible = false;
+
+		if (result)
+        {
+			await ReservationService.DeleteReservationAsync(reservationIdToDelete);
+            bookings.Remove(reservation);
+			UpdateSelectedDayBookings();
+        }
+
+    }
+
     private void SearchCustomers(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
@@ -173,6 +200,11 @@
             selectedDayBookings = selectedDayBookings;
         }
 
+    }
+
+    private void NavigateToReservationDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/rezervace/{id}");
     }
 
 
@@ -221,6 +253,10 @@
         }
         return days;
     }
+
+
+
+
 
     private class CalendarDay
     {
