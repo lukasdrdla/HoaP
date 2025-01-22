@@ -28,12 +28,12 @@ namespace HoaP.Application.Services
             return await _customerRepository.GetCustomerByIdAsync(id);
         }
 
-        public async Task CreateCustomer(CreateCustomerViewModel customer)
+        public async Task CreateCustomer(CustomerFormViewModel customer)
         {
             await _customerRepository.CreateCustomerAsync(customer);
         }
 
-        public async Task UpdateCustomer(UpdateCustomerViewModel customer)
+        public async Task UpdateCustomer(CustomerFormViewModel customer)
         {
             await _customerRepository.UpdateCustomerAsync(customer);
         }

@@ -24,7 +24,7 @@ namespace HoaP.Infrastructure.Repositories
         }
 
 
-        public async Task CreateCustomerAsync(CreateCustomerViewModel customer)
+        public async Task CreateCustomerAsync(CustomerFormViewModel customer)
         {
             var customerEntity = _mapper.Map<Customer>(customer);
             await _context.Customers.AddAsync(customerEntity);
@@ -60,7 +60,7 @@ namespace HoaP.Infrastructure.Repositories
 
         }
 
-        public async Task UpdateCustomerAsync(UpdateCustomerViewModel customer)
+        public async Task UpdateCustomerAsync(CustomerFormViewModel customer)
         {
             var existingCustomer = await _context.Customers.FindAsync(customer.Id);
 
