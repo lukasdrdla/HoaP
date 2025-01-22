@@ -8,8 +8,9 @@ using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels.Customer
 {
-    public class CreateCustomerViewModel
+    public class CustomerFormViewModel
     {
+        public int? Id { get; set; }
 
         [Required(ErrorMessage = "First name is required. Please provide a valid first name.")]
         [StringLength(100, ErrorMessage = "First name cannot be longer than 100 characters. Please shorten the first name.")]
