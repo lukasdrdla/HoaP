@@ -1,6 +1,8 @@
 ﻿@page "/pridat-pokoj"
 @using HoaP.Application.ViewModels.Room
 @inject RoomService RoomService
+@inject RoomTypeService RoomTypeService
+@inject RoomStatusService RoomStatusService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
@@ -26,34 +28,40 @@
                     </div>
                 </div>
 
-                <div class="form-group mb-3">
-                    <label for="roomType" class="form-label">Typ pokoje</label>
-                    <div class="form-group position-relative">
-                        <input type="text" class="form-control" placeholder="Hledat pokoj.." @bind="searchTerm" @oninput="SearchRoom" @onblur="HideRoomList" />
 
-                        @if (filteredRoomTypes.Any())
-                        {
-                            <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
-                                @foreach (var room in filteredRoomTypes)
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="roomType" class="form-label">Typ pokoje</label>
+                            <div class="form-group position-relative">
+                                <input type="text" class="form-control" placeholder="Vyhledat pokoj..." @bind="searchTerm" @oninput="SearchRoom" @onblur="HideRoomList" />
+
+                                @if (filteredRoomTypes.Any())
                                 {
-                                    <li class="list-group-item list-group-item-action" @onclick="@(() => SelectRoomType(room))">@room.Name</li>
+                                    <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                        @foreach (var room in filteredRoomTypes)
+                                        {
+                                            <li class="list-group-item list-group-item-action" @onmousedown="@(() => SelectRoomType(room))">@room.Name</li>
+                                        }
+                                    </ul>
                                 }
-                            </ul>
-                        }
-                    </div>
-                </div>
+                            </div>
+                        </div>
+					</div>
 
-                <div class="form-group mb-3">
-                    <label for="RoomStatus" class="form-label">Status</label>
-                    <InputSelect id="RoomStatus" class="form-control" @bind-Value="room.RoomStatusId">
-                        <option value="">Vyberte status</option>
-                        @foreach (var status in roomStatuses)
-                        {
-                            <option value="@status.Id">@status.Name</option>
-                        }
-                    </InputSelect>
-                </div>
-
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="RoomStatus" class="form-label">Status</label>
+                            <InputSelect id="RoomStatus" class="form-control" @bind-Value="room.RoomStatusId">
+                                <option value="">Vyberte status</option>
+                                @foreach (var status in roomStatuses)
+                                {
+                                    <option value="@status.Id">@status.Name</option>
+                                }
+                            </InputSelect>
+                        </div>
+					</div>
+				</div>
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="MaxAdults" class="form-label">Max Dospělí</label>
@@ -91,32 +99,42 @@
 
 @code {
     [SupplyParameterFromForm]
-	private CreateRoomViewModel room { get; set; } = new CreateRoomViewModel();
+    private CreateRoomViewModel room { get; set; } = new CreateRoomViewModel();
 
     private string searchTerm;
-    private List<RoomType> roomTypes = new List<RoomType>();
-    private List<RoomType> filteredRoomTypes = new List<RoomType>();
+    private List<RoomTypeViewModel> roomTypes = new List<RoomTypeViewModel>();
+    private List<RoomTypeViewModel> filteredRoomTypes = new List<RoomTypeViewModel>();
 
-    private List<RoomStatus> roomStatuses = new List<RoomStatus>();
+    private List<RoomStatusViewModel> roomStatuses = new List<RoomStatusViewModel>();
 
     protected override async Task OnInitializedAsync()
     {
 
-        filteredRoomTypes = new List<RoomType>();
+        roomStatuses = await RoomStatusService.GetRoomStatusesAsync();
+        roomTypes = await RoomTypeService.GetRoomTypesAsync();
+        filteredRoomTypes = new List<RoomTypeViewModel>();
+
 
     }
 
     private async Task SearchRoom(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
-        filteredRoomTypes = roomTypes.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		if (!string.IsNullOrWhiteSpace(searchTerm))
+		{
+			filteredRoomTypes = roomTypes.Where(r => r.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+		else
+		{
+			filteredRoomTypes = new List<RoomTypeViewModel>();
+		}
     }
 
-    private void SelectRoomType(RoomType roomType)
+    private void SelectRoomType(RoomTypeViewModel roomType)
     {
         room.RoomTypeId = roomType.Id;
-        searchTerm = $"{roomType.Name}";
-        filteredRoomTypes = new List<RoomType>();
+		searchTerm = $"{roomType.Name}";
+        filteredRoomTypes = new List<RoomTypeViewModel>();
     }
 
     private void HideRoomList()

@@ -14,17 +14,19 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="sr-only"></span>
             </div>
-            <p class="mt-2">Načítám podrobnosti o zákazníkovi...</p>
+            <p class="mt-2">Načítám podrobnosti o pokoji...</p>
         </div>
     }
     else
     {
-        <div class="container py-5">
+		<div class="card border-0 shadow-sm mx-auto">
+			<div class="card-body">
+				<div class="container py-5">
             <div class="room-header">
                 <h3>@room.RoomTypeName - @room.RoomNumber</h3>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-outline-secondary">Edit Room</button>
-                    <button class="btn btn-success">Create New Booking</button>
+					<button class="btn btn-outline-secondary">Upravit pokoj</button>
+					<button class="btn btn-success">+ Vytvořit rezervaci</button>
                 </div>
             </div>
 
@@ -40,20 +42,20 @@
                     <div class="mb-3">
 						<div class="row mt-4">
 							<div class="col-6">
-                                <p><strong>Room Number:</strong> @room.RoomNumber</p>
-                                <p><strong>Return Status:</strong> @room.RoomStatusName</p>
-                                <p><strong>Room Type:</strong> @room.RoomTypeName</p>
+								<p><strong>Číslo pokoje:</strong> @room.RoomNumber</p>
+								<p><strong>Typ pokoje:</strong> @room.RoomTypeName</p>
+								<p><strong>Status pokoje:</strong> @room.RoomStatusName</p>
                             </div>
 							<div class="col-6">
-                                <p><strong>Room Počet dosepělí:</strong> @room.MaxAdults</p>
-                                <p><strong>Room Počet dětí:</strong> @room.MaxChildren</p>
-                                <p><strong>Room Description:</strong> @room.Description</p>
+                                <p><strong>Max. Počet dosepělí:</strong> @room.MaxAdults</p>
+                                <p><strong>Max. Počet dětí:</strong> @room.MaxChildren</p>
+                                <p><strong>Popis pokoje</strong> @room.Description</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Room Amenities -->
-                    <h5>Room Amenities</h5>
+					<h5>Vybavení pokoje</h5>
                     <div class="row room-amenities">
 						@foreach (var amenity in amenities)
 						{
@@ -67,18 +69,18 @@
 
             <!-- Room Booking History -->
             <div class="booking-history-table mt-5">
-                <h5>Room Booking History</h5>
+				<h5>Historie rezervací</h5>
                 <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
+					<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
+						<ColumnOptions>
+							<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
+						</ColumnOptions>
+					</PropertyColumn>
 					<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
 					<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
-					<PropertyColumn Title="Customer" Property="@(x => x.CustomerName)" Sortable="true">
-                        <ColumnOptions>
-                            <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
-                        </ColumnOptions>
-					</PropertyColumn>
 					<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-					<PropertyColumn Title="Total Price" Property="@(x => x.TotalPrice)" Sortable="true" />
-					<TemplateColumn Title="Actions">
+					<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+					<TemplateColumn Title="Akce">
 						<div class="d-inline-flex">
 							<button class="btn text-primary">
 								<i class="bi bi-search"></i>
@@ -89,8 +91,13 @@
 						</div>
 					</TemplateColumn>
                 </QuickGrid>
+				<Paginator State="paginationState" />
+
+
             </div>
         </div>
+			</div>
+		</div>
 
     }
 </div>

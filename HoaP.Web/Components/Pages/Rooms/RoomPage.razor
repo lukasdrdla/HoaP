@@ -8,7 +8,7 @@
 
 
 
-<div class="container mt-5">
+<div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
             <h3 class="text-center mb-4 page-title">Pokoje</h3>
@@ -42,7 +42,7 @@
                             <PropertyColumn Title="Max Dospělí" Property="@(r => r.MaxAdults)" Sortable="true" />
                             <PropertyColumn Title="Max Děti" Property="@(r => r.MaxChildren)" Sortable="true" />
                             <TemplateColumn Title="Akce">
-								<div class="d-inline-flex" tabindex="0" @onmousedown="HideOptions">
+								<div class="d-inline-flex">
                                     <button class="btn text-primary" @onclick="() => NavigateToRoomDetail(context.Id)">
                                         <i class="bi bi-search"></i>
                                     </button>
@@ -52,9 +52,8 @@
 
                                     @if (VisibleRoomId == context.Id)
                                     {
-                                        <div class="options-menu">
-                                            <button class="dropdown-item" @onclick="() => EditRoom(context.Id)">Upravit</button>
-                                            <button class="dropdown-item" @onclick="() => DeleteRoom(context.Id)">Smazat</button>
+										<div class="options-menu" @ref="optionsMenu">
+                                            <button class="dropdown-item" @onmousedown="() => DeleteRoom(context.Id)">Smazat</button>
                                         </div>
                                     }
                                 </div>
@@ -74,30 +73,7 @@
 
 
 <style>
-    .options-menu {
-        position: absolute;
-        background-color: white;
-        border: 1px solid #ccc;
-        box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
-        z-index: 1000;
-        padding: 5px;
-        border-radius: 5px;
-        margin-left: 10px;
-    }
-
-        .options-menu button {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: 5px 10px;
-            border: none;
-            background: none;
-            cursor: pointer;
-        }
-
-            .options-menu button:hover {
-                background-color: #f0f0f0;
-            }
+    
 
 </style>
 
@@ -112,6 +88,8 @@
     private ICollection<RoomViewModel> filteredRooms;
     private bool isAvailable;
     private int? VisibleRoomId { get; set; } = null;
+	private ElementReference optionsMenu;
+
 
 
 
@@ -133,10 +111,15 @@
         VisibleRoomId = VisibleRoomId == roomId ? null : roomId;
     }
 
+    private void HandleFocusOut(FocusEventArgs e)
+    {
+        VisibleRoomId = null;
+        StateHasChanged();
+    }
+
     private void EditRoom(int roomId)
     {
 		NavigationManager.NavigateTo($"/upravit-pokoj/{roomId}");
-		HideOptions();
     }
 
 	private void DeleteRoom(int roomId)
@@ -146,10 +129,14 @@
 		VisibleRoomId = null; // Skryje menu po akci
 	}
 
-	private void HideOptions()
-	{
-		VisibleRoomId = null;
-	}
+	private void HideOptions(MouseEventArgs e)
+    {
+		if (VisibleRoomId.HasValue && optionsMenu.Context != null)
+		{
+			VisibleRoomId = null;
+			
+		}
+    }
 
 
     private void OpenDeleteRoomConfirmation(int roomId)
