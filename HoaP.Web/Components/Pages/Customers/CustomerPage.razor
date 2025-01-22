@@ -4,7 +4,7 @@
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="container mt-5">
+<div class="container mt-5" @onmousedown="HideOptions">
     <div class="row">
         <div class="col-md-12 d-flex flex-fill">
             <div class="card border-0 shadow-sm mx-auto flex-fill">
@@ -43,9 +43,17 @@
                                             <button class="btn text-primary" @onclick="() => NavigateToCustomerDetail(context.Id)">
                                                 <i class="bi bi-search"></i>
                                             </button>
-                                            <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
-                                                <i class="bi bi-trash"></i>
+
+                                            <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                                <i class="bi bi-three-dots-vertical"></i>
                                             </button>
+
+                                            @if (VisibleCustomerId == context.Id)
+                                            {
+                                                <div class="options-menu" @ref="optionsMenu">
+                                                    <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                                </div>
+                                            }
 
                                         </div>
                                     </TemplateColumn>
@@ -61,14 +69,15 @@
     </div>
 </div>
 
-<DeleteModal Title="Smazaní zákazníka" ActionType="DeleteCustomer" IsVisible="@isModalVisible" OnClose="HandleModalClose" />
+<DeleteModal Title="Smazaní zákazníka" ActionType="DeleteCustomer" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
 
 @code {
     private List<CustomerViewModel> customers;
     private List<CustomerViewModel> filteredCustomers;
-    private bool isModalVisible = false;
+    private bool isDeleteModalVisible = false;
     private int customerIdToDelete;
-
+    private int? VisibleCustomerId;
+    private ElementReference optionsMenu;
     private string searchTerm = string.Empty;
     private PaginationState paginationState = new PaginationState { ItemsPerPage = 20 };
 
@@ -78,13 +87,19 @@
         filteredCustomers = customers;
     }
 
-
-
-    private void NavigateToAddCustomer()
+    private void ToggleOptions(int customerId)
     {
-        NavigationManager.NavigateTo("/pridat-zakaznika");
+        VisibleCustomerId = VisibleCustomerId == customerId ? null : customerId;
     }
 
+    private void HideOptions(MouseEventArgs e)
+    {
+        if (VisibleCustomerId.HasValue && optionsMenu.Context != null)
+        {
+            VisibleCustomerId = null;
+
+        }
+    }
     private void SearchCustomers(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
@@ -111,31 +126,29 @@
     private void OpenDeleteConfirmation(int customerId)
     {
         customerIdToDelete = customerId;
-        isModalVisible = true;
+        isDeleteModalVisible = true;
     }
 
     private async Task HandleModalClose(bool result)
     {
         var customer = customers.FirstOrDefault(r => r.Id == customerIdToDelete);
-        isModalVisible = false;
+        isDeleteModalVisible = false;
 
         if (result)
         {
-            await CustomerService.DeleteCustomer(customerIdToDelete);
+			await CustomerService.DeleteCustomer(customerIdToDelete);
             customers.Remove(customer);
             filteredCustomers = customers;
         }
     }
 
-    private async Task DeleteCustomer(int customerId)
-    {
-        await CustomerService.DeleteCustomer(customerId);
-		customers = await CustomerService.GetCustomers();
-        FilterCustomers();
-    }
-
     private void NavigateToCustomerDetail(int id)
     {
         NavigationManager.NavigateTo($"/zakaznik/{id}");
+    }
+
+    private void NavigateToAddCustomer()
+    {
+        NavigationManager.NavigateTo("/pridat-zakaznika");
     }
 }
