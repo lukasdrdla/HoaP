@@ -11,6 +11,7 @@ namespace HoaP.Application.ViewModels.Invoice
         public int Id { get; set; }
         public int ReservationId { get; set; }
         public string CurrencyName { get; set; } = string.Empty;
+        public string CustomerName { get; set; } = string.Empty;
         public DateTime IssueDate { get; set; }
         public DateTime DueDate { get; set; }
         public decimal Price { get; set; }
@@ -20,9 +21,9 @@ namespace HoaP.Application.ViewModels.Invoice
         public decimal Prepayment { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        
-        
-        //public List<PaymentViewModel> Payments { get; set; } = new();
+
+        public int CurrencyId { get; set; }
+
     }
 
 }

@@ -8,12 +8,13 @@ using HoaP.Application.ViewModels.Currency;
 
 namespace HoaP.Application.ViewModels.Invoice
 {
-    public class CreateInvoiceViewModel
+    public class InvoiceFormViewModel
     {
+
+        public int? Id { get; set; }
+
         [Required]
         public int ReservationId { get; set; }
-
-        
 
         [Required]
         [DataType(DataType.Date)]
@@ -39,6 +40,8 @@ namespace HoaP.Application.ViewModels.Invoice
         public int CurrencyId { get; set; }
 
         public List<CurrencyViewModel> Currencies { get; set; } = new();
+
+
     }
 
 }
