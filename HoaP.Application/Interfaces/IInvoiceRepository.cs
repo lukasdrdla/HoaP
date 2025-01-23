@@ -12,8 +12,8 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<InvoiceViewModel>> GetInvoicesAsync();
         Task<DetailInvoiceViewModel> GetInvoiceByIdAsync(int id);
-        Task CreateInvoiceAsync(CreateInvoiceViewModel invoice);
-        Task UpdateInvoiceAsync(UpdateInvoiceViewModel invoice);
+        Task CreateInvoiceAsync(InvoiceFormViewModel invoice);
+        Task UpdateInvoiceAsync(InvoiceFormViewModel invoice);
         Task DeleteInvoiceAsync(int id);
 
         Task<bool> CheckIfInvoiceExistsForReservation(int reservationId);
