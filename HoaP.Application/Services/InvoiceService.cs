@@ -27,12 +27,12 @@ namespace HoaP.Application.Services
             return await _invoiceRepository.GetInvoiceByIdAsync(id);
         }
 
-        public async Task CreateInvoiceAsync(CreateInvoiceViewModel invoice)
+        public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
         {
             await _invoiceRepository.CreateInvoiceAsync(invoice);
         }
 
-        public async Task UpdateInvoiceAsync(UpdateInvoiceViewModel invoice)
+        public async Task UpdateInvoiceAsync(InvoiceFormViewModel invoice)
         {
             await _invoiceRepository.UpdateInvoiceAsync(invoice);
         }
