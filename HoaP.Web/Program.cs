@@ -36,12 +36,13 @@ builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.Cookie.HttpOnly = true;
     options.ExpireTimeSpan = TimeSpan.FromDays(1);
     options.SlidingExpiration = false;
+    options.Cookie.HttpOnly = true;
+    options.LoginPath = "/Account/LoginPage";
+
 });
 
 builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
@@ -85,6 +86,9 @@ builder.Services.AddScoped<AccountService>();
 
 builder.Services.AddScoped<IDashBoardRepsoitory, DashBoardRepository>();
 builder.Services.AddScoped<DashBoardService>();
+
+builder.Services.AddScoped<IMealPlanRepository, MealPlanRepository>();
+builder.Services.AddScoped<MealPlanService>();
 
 
 
