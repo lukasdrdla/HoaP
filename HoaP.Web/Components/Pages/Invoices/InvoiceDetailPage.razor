@@ -1,0 +1,61 @@
+﻿@page "/faktura/{invoiceId:int}"
+@using HoaP.Application.ViewModels.Invoice
+@inject InvoiceService InvoiceService
+@inject NavigationManager NavigationManager
+
+<div class="invoice-detail-container mt-5">
+    <div class="invoice-header">
+		<h2>Faktura #@invoice.Id</h2>
+		<button class="btn btn-primary">Stáhnout PDF</button>
+    </div>
+
+    <div class="invoice-summary">
+        <div class="summary-item">
+            <span class="label">Invoice ID:</span>
+			<span class="value">#@invoice.Id</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Customer:</span>
+			<span class="value">@invoice.CustomerName</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Date Issued:</span>
+			<span class="value">@invoice.IssueDate.ToShortDateString()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Due Date:</span>
+			<span class="value">@invoice.DueDate.ToShortDateString()</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Total Amount:</span>
+			<span class="value">@invoice.Price.ToString("C")</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Status:</span>
+            <span class="value @(invoice.IsPaid ? "status-paid" : "status-unpaid")">
+                @(invoice.IsPaid ? "Paid" : "Unpaid")
+            </span>
+        </div>
+    </div>
+
+    <h3>Items</h3>
+    <table class="invoice-table">
+        
+    </table>
+
+    <div class="invoice-footer">
+        <p>If you have any questions about this invoice, please contact us at support@company.com.</p>
+    </div>
+</div>
+
+@code{
+	[Parameter]
+	public int InvoiceId { get; set; }
+
+    private DetailInvoiceViewModel invoice = new DetailInvoiceViewModel();
+
+	protected override async Task OnInitializedAsync()
+	{
+		invoice = await InvoiceService.GetInvoiceByIdAsync(InvoiceId);
+	}
+}

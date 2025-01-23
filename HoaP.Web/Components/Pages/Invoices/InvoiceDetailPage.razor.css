@@ -1,0 +1,72 @@
+﻿.invoice-detail-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+    .invoice-header h2 {
+        font-size: 24px;
+        margin: 0;
+    }
+
+.invoice-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+}
+
+    .summary-item .label {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .summary-item .value {
+        font-weight: normal;
+    }
+
+.status-paid {
+    color: green;
+    font-weight: bold;
+}
+.status-unpaid {
+    color: red;
+    font-weight: bold;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+    .invoice-table thead {
+        background-color: #f8f9fa;
+    }
+
+    .invoice-table th, .invoice-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+.invoice-footer {
+    text-align: center;
+    font-size: 14px;
+    color: #555;
+}
