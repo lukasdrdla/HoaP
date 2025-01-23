@@ -4,7 +4,7 @@
 @inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="container mt-5">
+<div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
             <h3 class="text-center mb-4 page-title">Faktury</h3>
@@ -13,7 +13,7 @@
                 <button class="btn btn-outline-secondary" type="button">Hledat</button>
             </div>
             <div class="d-flex justify-content-between mb-3">
-                <div></div> <!-- Placeholder for alignment -->
+                <div></div>
                 <button class="btn btn-primary" @onclick="NavigateToAddInvoice">
                     <i class="bi bi-plus"></i> Přidat fakturu
                 </button>
@@ -23,6 +23,7 @@
                 <table class="w-100">
                     <QuickGrid Items="filteredInvoices.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Číslo faktury" Property="@(x => x.Id)" Sortable="true" />
+						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
                         <PropertyColumn Title="Rezervace" Property="@(x => x.ReservationId)" Sortable="true" />
                         <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
@@ -33,9 +34,17 @@
                                     <i class="bi bi-search"></i>
                                 </button>
 
-                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
-                                    <i class="bi bi-trash"></i>
+                                <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
+
+                                @if (VisibleInvoiceId == context.Id)
+                                {
+                                    <div class="options-menu" @ref="optionsMenu">
+                                        <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                        <button class="dropdown-item" @onmousedown="() => NavigateToUpdateInvoice(context.Id)">Upravit</button>
+                                    </div>
+                                }
                             </div>
                         </TemplateColumn>
                     </QuickGrid>
@@ -52,16 +61,31 @@
     private List<InvoiceViewModel> invoices;
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
     private string? searchTerm;
-
     private int invoiceIdToDelete;
     private bool isDeleteModalVisible = false;
+    private int? VisibleInvoiceId;
+	private ElementReference optionsMenu;
 
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
 
-    private async Task OpenDeleteConfirmation(int invoiceId)
+    private void OpenDeleteConfirmation(int invoiceId)
     {
         invoiceIdToDelete = invoiceId;
         isDeleteModalVisible = true;
+    }
+
+    private void ToggleOptions(int invoiceId)
+    {
+        VisibleInvoiceId = VisibleInvoiceId == invoiceId ? null : invoiceId;
+    }
+
+    private void HideOptions(MouseEventArgs e)
+    {
+        if (VisibleInvoiceId.HasValue && optionsMenu.Context != null)
+        {
+            VisibleInvoiceId = null;
+
+        }
     }
 
     private async Task HandleModalClose(bool result)
@@ -71,6 +95,7 @@
 
         if (result)
         {
+			await InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
             invoices.Remove(invoice);
             filteredInvoices = invoices;
         }
@@ -87,6 +112,7 @@
                   || r.ReservationId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
             ).ToList();
         }
         else
@@ -103,11 +129,16 @@
 
     private void NavigateToInvoiceDetail(int id)
     {
-        NavigationManager.NavigateTo($"/faktury/{id}");
+        NavigationManager.NavigateTo($"/faktura/{id}");
     }
 
     private void NavigateToAddInvoice()
     {
-        NavigationManager.NavigateTo("/pridat-fakturu");
+		NavigationManager.NavigateTo("/spravovat-fakturu");
     }
+
+	private void NavigateToUpdateInvoice(int id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-fakturu/{id}");
+	}
 }
