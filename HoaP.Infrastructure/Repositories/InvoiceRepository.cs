@@ -28,7 +28,7 @@ namespace HoaP.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public async Task CreateInvoiceAsync(CreateInvoiceViewModel invoice)
+        public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
         {
             await _context.Invoices.AddAsync(_mapper.Map<Invoice>(invoice));
             await _context.SaveChangesAsync();
@@ -84,9 +84,18 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<InvoiceViewModel>>(invoices);
         }
 
-        public Task UpdateInvoiceAsync(UpdateInvoiceViewModel invoice)
+        public async Task UpdateInvoiceAsync(InvoiceFormViewModel invoice)
         {
-            throw new NotImplementedException();
+            var existingInvoice = await _context.Invoices.FindAsync(invoice.Id);
+
+            if (existingInvoice == null)
+            {
+                return;
+            }
+
+            _mapper.Map(invoice, existingInvoice);
+            _context.Invoices.Update(existingInvoice);
+            await _context.SaveChangesAsync();
         }
     }
 }
