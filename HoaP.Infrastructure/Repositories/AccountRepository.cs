@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.AppUser;
+using HoaP.Application.ViewModels.Employee;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +39,25 @@ namespace HoaP.Infrastructure.Repositories
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
             return result;
+        }
+
+        public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
+        {
+            var existingUser = await _context.Users.FindAsync(model.Id);
+
+            if (existingUser != null)
+            {
+                existingUser.FirstName = model.FirstName;
+                existingUser.LastName = model.LastName;
+                existingUser.Address = model.Address;
+                existingUser.City = model.City;
+                existingUser.PostalCode = model.PostalCode;
+                existingUser.PhoneNumber = model.PhoneNumber;
+                existingUser.Country = model.Country;
+                await _userManager.UpdateAsync(existingUser);
+                await _context.SaveChangesAsync();
+            }
+
         }
     }
 }

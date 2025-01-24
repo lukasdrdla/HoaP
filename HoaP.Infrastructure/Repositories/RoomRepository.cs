@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.Room;
+using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,9 +22,9 @@ namespace HoaP.Infrastructure.Repositories
             _context = context;
             _mapper = mapper;
         }
-        public async Task CreateRoomAsync(CreateRoomViewModel room)
+        public async Task CreateRoomAsync(RoomFormViewModel room)
         {
-            await _context.Rooms.AddAsync(_mapper.Map<Domain.Entities.Room>(room));
+            await _context.Rooms.AddAsync(_mapper.Map<Room>(room));
             await _context.SaveChangesAsync();
         }
 
@@ -42,6 +43,8 @@ namespace HoaP.Infrastructure.Repositories
             var room = await _context.Rooms
                 .Include(r => r.RoomType)
                 .Include(r => r.RoomStatus)
+                .Include(r => r.RoomAmenities)
+                .ThenInclude(ra => ra.Amenity)
                 .FirstOrDefaultAsync(r => r.Id == id);
             return _mapper.Map<DetailRoomViewModel>(room);
         }
@@ -55,9 +58,37 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<RoomViewModel>>(rooms);
         }
 
-        public Task UpdateRoomAsync(UpdateRoomViewModel room)
+        public async Task UpdateRoomAsync(RoomFormViewModel room)
         {
-            throw new NotImplementedException();
+            var existingRoom = await _context.Rooms
+                .Include(r => r.RoomAmenities)
+                .FirstOrDefaultAsync(r => r.Id == room.Id);
+
+            if (existingRoom == null)
+            {
+                return;
+            }
+
+            existingRoom.RoomNumber = room.RoomNumber;
+            existingRoom.Price = room.Price;
+            existingRoom.MaxAdults = room.MaxAdults;
+            existingRoom.MaxChildren = room.MaxChildren;
+            existingRoom.RoomStatusId = room.RoomStatusId;
+            existingRoom.RoomTypeId = room.RoomTypeId;
+            existingRoom.Description = room.Description;
+            existingRoom.Image = room.Image;
+            existingRoom.UpdatedAt = DateTime.Now;
+
+            existingRoom.RoomAmenities = room.Amenities.Select(a => new RoomAmenity
+            {
+                AmenityId = a.Id
+            }).ToList();
+
+
+            _context.Rooms.Update(existingRoom);
+            await _context.SaveChangesAsync();
+
+
         }
     }
 }

@@ -23,19 +23,26 @@ namespace HoaP.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public Task<Amenity> CreateAmenityAsync(Amenity amenity)
+        public async Task CreateAmenityAsync(AmenityViewModel amenity)
         {
-            throw new NotImplementedException();
+            await _context.Amenities.AddAsync(_mapper.Map<Amenity>(amenity));
+            await _context.SaveChangesAsync();
         }
 
-        public Task DeleteAmenityAsync(int id)
+        public async Task DeleteAmenityAsync(int id)
         {
-            throw new NotImplementedException();
+            var eixstingAmenity = await _context.Amenities.FindAsync(id);
+            if (eixstingAmenity != null)
+            {
+                _context.Amenities.Remove(eixstingAmenity);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public Task<List<Amenity>> GetAmenitiesAsync()
+        public async Task<List<AmenityViewModel>> GetAmenitiesAsync()
         {
-            throw new NotImplementedException();
+            var amenities = await _context.Amenities.ToListAsync();
+            return _mapper.Map<List<AmenityViewModel>>(amenities);
         }
 
         public async Task<List<AmenityViewModel>> GetAmenitiesByRoomIdAsync(int roomId)
@@ -44,14 +51,20 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<AmenityViewModel>>(amenities);
         }
 
-        public Task<Amenity> GetAmenityByIdAsync(int id)
+        public Task<AmenityViewModel> GetAmenityByIdAsync(int id)
         {
             throw new NotImplementedException();
         }
 
-        public Task<Amenity> UpdateAmenityAsync(Amenity amenity)
+        public async Task UpdateAmenityAsync(AmenityViewModel amenity)
         {
-            throw new NotImplementedException();
+            var existingAmenity = await _context.Amenities.FindAsync(amenity.Id);
+            if (existingAmenity != null)
+            {
+                _mapper.Map(amenity, existingAmenity);
+                _context.Amenities.Update(existingAmenity);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

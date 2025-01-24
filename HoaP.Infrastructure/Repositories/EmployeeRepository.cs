@@ -28,7 +28,7 @@ namespace HoaP.Infrastructure.Repositories
         }
 
 
-        public async Task CreateEmployeeAsync(CreateEmployeeViewModel employee)
+        public async Task CreateEmployeeAsync(EmployeeFormViewModel employee)
         {
            var existingUser = await _userManager.FindByEmailAsync(employee.Email);
             if (existingUser == null)
@@ -70,9 +70,23 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
+        public async Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email)
+        {
+            var employee = await _context.Users.FirstOrDefaultAsync(x => x.Email == email);
+            if (employee != null)
+            {
+                return _mapper.Map<DetailEmployeeViewModel>(employee);
+            }
+
+            return null;
+
+        }
+
         public async Task<DetailEmployeeViewModel> GetEmployeeByIdAsync(string id)
         {
-            var employee = await _context.Users.FindAsync(id);
+            var employee = await _context.Users
+                .Include(x => x.InsuranceCompany)
+                .FirstOrDefaultAsync(x => x.Id == id);
             if (employee != null)
             {
                 return _mapper.Map<DetailEmployeeViewModel>(employee);
@@ -87,9 +101,20 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<EmployeeViewModel>>(employees);
         }
 
-        public async Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee)
+        public async Task UpdateEmployeeAsync(EmployeeFormViewModel employee)
         {
-            throw new NotImplementedException();
+            var existingEmployee = await _context.Users.FindAsync(employee.Id);
+
+            if (existingEmployee == null)
+            {
+                return;
+            }
+
+            _mapper.Map(employee, existingEmployee);
+            _context.Users.Update(existingEmployee);
+            await _context.SaveChangesAsync();
+
+
 
         }
     }

@@ -23,7 +23,7 @@ namespace HoaP.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public async Task CreatePaymentAsync(CreatePaymentViewModel payment)
+        public async Task CreatePaymentAsync(PaymentFormViewModel payment)
         {
             await _context.Payments.AddAsync(_mapper.Map<Payment>(payment));
             await _context.SaveChangesAsync();
@@ -45,6 +45,7 @@ namespace HoaP.Infrastructure.Repositories
                 .Include(p => p.Invoice)
                 .ThenInclude(i => i.Reservation)
                 .ThenInclude(r => r.Customer)
+                .Include(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return _mapper.Map<DetailPaymentViewModel>(payment);
@@ -78,12 +79,18 @@ namespace HoaP.Infrastructure.Repositories
 
         }
 
-        public Task UpdatePaymentAsync(UpdatePaymentViewModel payment)
+        public async Task UpdatePaymentAsync(PaymentFormViewModel payment)
         {
 
 
-            throw new NotImplementedException();
+            var existingPayment = await _context.Payments.FindAsync(payment.Id);
 
+            if (existingPayment != null)
+            {
+                _mapper.Map(payment, existingPayment);
+                _context.Payments.Update(existingPayment);
+                await _context.SaveChangesAsync();
+            }
 
         }
     }

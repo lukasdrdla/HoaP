@@ -26,5 +26,12 @@ namespace HoaP.Infrastructure.Repositories
             var insuranceCompanies = await _context.InsuranceCompanies.ToListAsync();
             return _mapper.Map<List<InsuranceCompanyViewModel>>(insuranceCompanies);
         }
+
+        public async Task<InsuranceCompanyViewModel> GetInsuranceCompanyByIdAsync(int id)
+        {
+            var insuranceCompany = await _context.InsuranceCompanies.FindAsync(id);
+
+            return _mapper.Map<InsuranceCompanyViewModel>(insuranceCompany);
+        }
     }
 }
