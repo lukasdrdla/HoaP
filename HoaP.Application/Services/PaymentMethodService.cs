@@ -21,5 +21,25 @@ namespace HoaP.Application.Services
         {
             return await _paymentMethodRepository.GetAllPaymentMethodsAsync();
         }
+
+        public async Task<PaymentMethodViewModel> GetPaymentMethodByIdAsync(int id)
+        {
+            return await _paymentMethodRepository.GetPaymentMethodByIdAsync(id);
+        }
+
+        public async Task CreatePaymentMethodAsync(PaymentMethodViewModel model)
+        {
+            await _paymentMethodRepository.CreatePaymentMethodAsync(model);
+        }
+
+        public async Task UpdatePaymentMethodAsync(PaymentMethodViewModel model)
+        {
+            await _paymentMethodRepository.UpdatePaymentMethodAsync(model);
+        }
+
+        public async Task DeletePaymentMethodAsync(int id)
+        {
+            await _paymentMethodRepository.DeletePaymentMethodAsync(id);
+        }
     }
 }

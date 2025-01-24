@@ -21,5 +21,26 @@ namespace HoaP.Application.Services
         {
             return await _roomTypeRepository.GetRoomTypesAsync();
         }
+
+        public async Task<RoomTypeViewModel> GetRoomTypeByIdAsync(int id)
+        {
+            return await _roomTypeRepository.GetRoomTypeByIdAsync(id);
+        }
+
+        public async Task CreateRoomTypeAsync(RoomTypeViewModel model)
+        {
+            await _roomTypeRepository.CreateRoomTypeAsync(model);
+        }
+
+        public async Task UpdateRoomTypeAsync(RoomTypeViewModel model)
+        {
+            await _roomTypeRepository.UpdateRoomTypeAsync(model);
+        }
+
+        public async Task DeleteRoomTypeAsync(int id)
+        {
+            await _roomTypeRepository.DeleteRoomTypeAsync(id);
+        }
+
     }
 }

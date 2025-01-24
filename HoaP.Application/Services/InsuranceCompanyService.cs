@@ -26,5 +26,20 @@ namespace HoaP.Application.Services
         {
             return await _insuranceCompanyRepository.GetInsuranceCompanyByIdAsync(id);
         }
+
+        public async Task CreateInsuranceCompanyAsync(InsuranceCompanyViewModel model)
+        {
+            await _insuranceCompanyRepository.CreateInsuranceCompanyAsync(model);
+        }
+
+        public async Task UpdateInsuranceCompanyAsync(InsuranceCompanyViewModel model)
+        {
+            await _insuranceCompanyRepository.UpdateInsuranceCompanyAsync(model);
+        }
+
+        public async Task DeleteInsuranceCompanyAsync(int id)
+        {
+            await _insuranceCompanyRepository.DeleteInsuranceCompanyAsync(id);
+        }
     }
 }

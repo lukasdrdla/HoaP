@@ -21,5 +21,25 @@ namespace HoaP.Application.Services
         {
             return await _currencyRepository.GetCurrenciesAsync();
         }
+
+        public async Task<CurrencyViewModel> GetCurrencyByIdAsync(int id)
+        {
+            return await _currencyRepository.GetCurrencyByIdAsync(id);
+        }
+
+        public async Task CreateCurrencyAsync(CurrencyViewModel model)
+        {
+            await _currencyRepository.CreateCurrencyAsync(model);
+        }
+
+        public async Task UpdateCurrencyAsync(CurrencyViewModel model)
+        {
+            await _currencyRepository.UpdateCurrencyAsync(model);
+        }
+
+        public async Task DeleteCurrencyAsync(int id)
+        {
+            await _currencyRepository.DeleteCurrencyAsync(id);
+        }
     }
 }
