@@ -11,8 +11,10 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<EmployeeViewModel>> GetEmployeesAsync();
         Task<DetailEmployeeViewModel> GetEmployeeByIdAsync(string id);
-        Task CreateEmployeeAsync(CreateEmployeeViewModel employee);
-        Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee);
+        Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email);
+
+        Task CreateEmployeeAsync(EmployeeFormViewModel employee);
+        Task UpdateEmployeeAsync(EmployeeFormViewModel employee);
 
         Task DeleteEmployeeAsync(string id);
     }

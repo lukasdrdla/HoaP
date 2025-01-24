@@ -10,6 +10,7 @@ namespace HoaP.Application.Interfaces
     public interface IInsuranceCompanyRepository
     {
         Task<List<InsuranceCompanyViewModel>> GetInsuranceCompaniesAsync();
+        Task<InsuranceCompanyViewModel> GetInsuranceCompanyByIdAsync(int id);
 
     }
 }

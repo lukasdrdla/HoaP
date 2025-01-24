@@ -10,10 +10,10 @@ namespace HoaP.Application.Interfaces
 {
     public interface IAmenityRepository
     {
-        Task<List<Amenity>> GetAmenitiesAsync();
-        Task<Amenity> GetAmenityByIdAsync(int id);
-        Task<Amenity> CreateAmenityAsync(Amenity amenity);
-        Task<Amenity> UpdateAmenityAsync(Amenity amenity);
+        Task<List<AmenityViewModel>> GetAmenitiesAsync();
+        Task<AmenityViewModel> GetAmenityByIdAsync(int id);
+        Task CreateAmenityAsync(AmenityViewModel amenity);
+        Task UpdateAmenityAsync(AmenityViewModel amenity);
         Task DeleteAmenityAsync(int id);
 
 

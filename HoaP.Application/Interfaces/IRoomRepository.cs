@@ -12,8 +12,8 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<RoomViewModel>> GetRooomsAsync();
         Task<DetailRoomViewModel> GetRoomByIdAsync(int id);
-        Task CreateRoomAsync(CreateRoomViewModel room);
-        Task UpdateRoomAsync(UpdateRoomViewModel room);
+        Task CreateRoomAsync(RoomFormViewModel room);
+        Task UpdateRoomAsync(RoomFormViewModel room);
         Task DeleteRoomAsync(int id);
     }
 }

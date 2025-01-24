@@ -12,8 +12,8 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<PaymentViewModel>> GetPaymentsAsync();
         Task<DetailPaymentViewModel> GetPaymentByIdAsync(Guid id);
-        Task CreatePaymentAsync(CreatePaymentViewModel payment);
-        Task UpdatePaymentAsync(UpdatePaymentViewModel payment);
+        Task CreatePaymentAsync(PaymentFormViewModel payment);
+        Task UpdatePaymentAsync(PaymentFormViewModel payment);
         Task DeletePaymentAsync(Guid id);
 
         Task<List<PaymentViewModel>> GetPaymentsByReservationIdAsync(int reservationId);
