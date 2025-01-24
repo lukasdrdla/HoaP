@@ -5,6 +5,7 @@
 @inject RoomService RoomService
 @inject AmenityService AmenityService
 @inject ReservationService ReservationService
+@inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="container mt-2">
@@ -25,8 +26,8 @@
             <div class="room-header">
                 <h3>@room.RoomTypeName - @room.RoomNumber</h3>
                 <div class="d-flex gap-2">
-					<button class="btn btn-outline-secondary">Upravit pokoj</button>
-					<button class="btn btn-success">+ Vytvořit rezervaci</button>
+					<button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateRoom(room.Id)">Upravit pokoj</button>
+					<button class="btn btn-success" @onclick="NavigateToCreateRezervation">+ Vytvořit rezervaci</button>
                 </div>
             </div>
 
@@ -127,6 +128,11 @@
 
 	}
 
+	private void NavigateToCreateRezervation()
+	{
+		NavigationManager.NavigateTo("/pridat-rezervaci");
+	}
+
 	private void SearchCustomers(ChangeEventArgs e)
 	{
 		searchTerm = e.Value.ToString();
@@ -140,6 +146,11 @@
 			filteredReservations = reservations;
 		}
         
+	}
+
+	private void NavigateToUpdateRoom(int roomId)
+	{
+		NavigationManager.NavigateTo($"/spravovat-pokoj/{roomId}");
 	}
 
 

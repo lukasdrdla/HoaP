@@ -1,0 +1,99 @@
+﻿@page "/admin-nastaveni"
+@using HoaP.Application.ViewModels
+@using HoaP.Web.Components.Pages.AdminSettings
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4 page-title">Admin Nastavení</h3>
+
+            <ul class="nav nav-tabs mb-3" id="settingsTabs">
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(1)" @onclick="() => SelectTab(1)">Jídelní plány</a>
+                </li>
+
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(2)" @onclick="() => SelectTab(2)">Vybavení pokoje </a>
+                </li>
+
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(3)" @onclick="() => SelectTab(3)">Typy pokojů</a>
+                </li>
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(4)" @onclick="() => SelectTab(4)">Měny</a>
+                </li>
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(5)" @onclick="() => SelectTab(5)">Role</a>
+                </li>
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(6)" @onclick="() => SelectTab(6)">Pojištovny</a>
+                </li>
+
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(7)" @onclick="() => SelectTab(7)">Platební metody</a>
+                </li>
+
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(8)" @onclick="() => SelectTab(8)">Statusy rezervací</a>
+                </li>
+
+                <li class="nav-item">
+					<a class="@GetNavLinkClass(9)" @onclick="() => SelectTab(9)">Statusy pokojů</a>
+                </li>
+
+
+
+            </ul>
+
+            <div>
+                @switch (activeTabId)
+                {
+                    case 1:
+                        <MealPlansComponent />
+                        break;
+                    case 2:
+                        <AmenitiesComponent />
+                        break;
+                    case 3:
+                        <RoomTypesComponent />
+                        break;
+                    case 4:
+                        <CurrenciesComponent />
+                        break;
+                    case 5:
+                        <RolesComponent />
+                        break;
+                    case 6:
+                    <InsuranceCompaniesComponent />
+                        break;
+					case 7:
+                    <PaymentMethodsComponent />
+                        break;
+					case 8:
+                    <ReservationStatusesComponent />
+                        break;
+                    case 9:
+                    <RoomStatusesComponent />
+                        break;
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+	private int activeTabId = 1;
+    private void SelectTab(int tab)
+    {
+        activeTabId = tab;
+    }
+
+    private string GetNavLinkClass(int tab)
+	{
+        return activeTabId == tab ? "nav-link active" : "nav-link";
+    }
+}

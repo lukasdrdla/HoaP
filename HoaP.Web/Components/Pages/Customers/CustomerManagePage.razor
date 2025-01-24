@@ -1,12 +1,13 @@
-﻿@page "/pridat-zakaznika"
+﻿@page "/spravovat-zakaznika/{customerId:int?}"
 @inject CustomerService CustomerService
 @inject NavigationManager NavigationManager
+@inject IMapper Mapper
 @rendermode InteractiveServer
 
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
-            <h3 class="card-title text-center mb-4 page-title">Přidat Zákazníka</h3>
+            <h3 class="card-title text-center mb-4 page-title">@(customerId.HasValue ? "Upravit zákazníka" : "Vytvořit zákazníka")</h3>
             <EditForm Model="customer" OnValidSubmit="HandleValidSubmit" FormName="AddCustomer">
 
                 <DataAnnotationsValidator />
@@ -119,7 +120,7 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">Přidat</button>
+                    <button type="submit" class="btn btn-primary">@(customerId.HasValue ? "Uložit změny" : "Vytvořit zákazníka")</button>
                     <a href="/zakaznici" class="btn btn-outline-secondary ml-2">Zpět na seznam</a>
                 </div>
             </EditForm>
@@ -128,12 +129,38 @@
 </div>
 
 @code {
+
+    [Parameter]
+    public int? customerId { get; set; }
+
     [SupplyParameterFromForm]
-    private CreateCustomerViewModel customer { get; set; } = new CreateCustomerViewModel();
+    private CustomerFormViewModel customer { get; set; } = new CustomerFormViewModel();
 
     private async Task HandleValidSubmit()
     {
-		await CustomerService.CreateCustomer(customer);
+        if (customerId.HasValue)
+        {
+            await CustomerService.UpdateCustomer(customer);
+        }
+		else
+		{
+			await CustomerService.CreateCustomer(customer);
+		}
+
         NavigationManager.NavigateTo("/zakaznici");
     }
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (customerId.HasValue)
+		{
+			customer = Mapper.Map<CustomerFormViewModel>(await CustomerService.GetCustomerById(customerId.Value));
+
+		}
+		else
+		{
+            customer = new CustomerFormViewModel();
+		}
+
+	}
 }

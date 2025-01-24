@@ -4,7 +4,7 @@
 @inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="container mt-5">
+<div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
             <h3 class="text-center mb-4 page-title">Zaměstnanci</h3>
@@ -26,15 +26,24 @@
                         <PropertyColumn Title="Pozice" Property="@(x => x.JobTitle)" Sortable="true" />
                         <PropertyColumn Title="Plat" Property="@(x => x.Salary.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Nástup" Property="@(x => x.StartDate.ToShortDateString())" Sortable="true" />
+						<PropertyColumn Title="Zaměstnán" Property="@(x => x.IsEmployed ? "Ano" : "Ne")" Sortable="true" />
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">
                                 <button class="btn text-primary" @onclick="() => NavigateToEmployeeDetail(context.Id)">
                                     <i class="bi bi-search"></i>
                                 </button>
 
-                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
-                                    <i class="bi bi-trash"></i>
+                                <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
+
+                                @if (VisibleEmployeeId == context.Id)
+                                {
+                                    <div class="options-menu" @ref="optionsMenu">
+                                        <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                        <button class="dropdown-item" @onmousedown="() => NavigateToUpdateEmployee(context.Id)">Upravit</button>
+                                    </div>
+                                }
                             </div>
                         </TemplateColumn>
                     </QuickGrid>
@@ -48,27 +57,55 @@
 <DeleteModal Title="Smazání zaměstnance" ActionType="DeleteEmployee" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
 
 @code {
-	private List<EmployeeViewModel> employees = new List<EmployeeViewModel>();
+    private List<EmployeeViewModel> employees = new List<EmployeeViewModel>();
     private List<EmployeeViewModel> filteredEmployees = new List<EmployeeViewModel>();
     private string? searchTerm;
-
     private bool isDeleteModalVisible = false;
+	private string? employeeIdToDelete;
+    private string? VisibleEmployeeId;
+	private ElementReference optionsMenu;
 
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
 
-    private async Task OpenDeleteConfirmation(string employeeId)
+
+    protected override async Task OnInitializedAsync()
+    {
+        employees = await EmployeeService.GetEmployeesAsync() ?? new List<EmployeeViewModel>();
+        filteredEmployees = employees;
+    }
+
+
+    private void OpenDeleteConfirmation(string employeeId)
     {
         isDeleteModalVisible = true;
+		employeeIdToDelete = employeeId;
     }
 
     private async Task HandleModalClose(bool result)
     {
-		if (result)
-		{
-			employees = await EmployeeService.GetEmployeesAsync();
-			filteredEmployees = employees;
-		}
+		var employee = employees.FirstOrDefault(e => e.Id == employeeIdToDelete);
+		isDeleteModalVisible = false;
+
+		if (result && employee != null)
+        {
+			await EmployeeService.DeleteEmployeeAsync(employee.Id);
+			employees.Remove(employee);
+			filteredEmployees.Remove(employee);
+        }
         
+    }
+
+    private void ToggleOptions(string employeeId)
+    {
+        VisibleEmployeeId = VisibleEmployeeId == employeeId ? null : employeeId;
+    }
+
+    private void HideOptions(MouseEventArgs e)
+    {
+		if (!string.IsNullOrWhiteSpace(VisibleEmployeeId) && optionsMenu.Context != null)
+		{
+			VisibleEmployeeId = null;
+		}
     }
 
     private void SearchEmployees(ChangeEventArgs e)
@@ -90,19 +127,20 @@
         }
     }
 
-    protected override async Task OnInitializedAsync()
-    {
-        employees = await EmployeeService.GetEmployeesAsync() ?? new List<EmployeeViewModel>();
-        filteredEmployees = employees;
-    }
+   
 
     private void NavigateToEmployeeDetail(string id)
     {
-        NavigationManager.NavigateTo($"/zamestnanci/{id}");
+        NavigationManager.NavigateTo($"/zamestnanec/{id}");
     }
 
     private void NavigateToAddEmployee()
     {
-        NavigationManager.NavigateTo("/pridat-zamestnance");
+		NavigationManager.NavigateTo("/spravovat-zamestnance");
     }
+
+	private void NavigateToUpdateEmployee(string Id)
+	{
+        NavigationManager.NavigateTo($"/spravovat-zamestnance/{Id}");
+	}
 }

@@ -1,0 +1,108 @@
+﻿@page "/zamestnanec/{EmployeeId}"
+@using HoaP.Application.ViewModels.Employee
+@inject EmployeeService EmployeeService
+@inject NavigationManager NavigationManager
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Detail Zaměstnance</h3>
+            @if (employee is not null)
+            {
+                <div class="text-center mb-4">
+                    <img src="@employee.ProfilePicture" alt="Profile Picture" class="rounded-circle img-thumbnail profile-pic" />
+                </div>
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Jméno:</span>
+                        <span class="value">@($"{employee.FirstName} {employee.LastName}")</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Uživatelské jméno:</span>
+                        <span class="value">@employee.UserName</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Email:</span>
+                        <span class="value">@employee.Email</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Telefon:</span>
+                        <span class="value">@employee.PhoneNumber</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+						<span class="text-muted">Adresa bydliště:</span>
+						<span class="value">@employee.Address</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+						<span class="text-muted">Město</span>
+						<span class="value">@employee.City</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+						<span class="text-muted">PSČ </span>
+						<span class="value">@employee.PostalCode</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+						<span class="text-muted">Země</span>
+						<span class="value">@employee.Country</span>
+                    </div>
+
+
+
+
+
+
+                    
+
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Rodné číslo:</span>
+                        <span class="value">@employee.PersonalIdentificationNumber</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Místo narození:</span>
+                        <span class="value">@employee.PlaceOfBirth</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Pozice:</span>
+                        <span class="value">@employee.JobTitle</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Datum nástupu:</span>
+                        <span class="value">@employee.StartDate.ToString("dd.MM.yyyy")</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Plat:</span>
+                        <span class="value">@employee.Salary.ToString("C")</span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Zaměstnanecký stav:</span>
+                        <span class="badge @(employee.IsEmployed ? "bg-success" : "bg-danger")">
+                            @(employee.IsEmployed ? "Zaměstnán" : "Nezaměstnán")
+                        </span>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <span class="text-muted">Pojišťovna:</span>
+                        <span class="value">@employee.InsuranceCompanyName</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="text-center text-muted">Zaměstnanec nebyl nalezen.</p>
+            }
+
+            <div class="text-center mt-4">
+                <a href="/zamestnanci" class="btn btn-outline-secondary">Zpět na seznam zaměstnanců</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string EmployeeId { get; set; }
+    private DetailEmployeeViewModel employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await EmployeeService.GetEmployeeByIdAsync(EmployeeId);
+    }
+}

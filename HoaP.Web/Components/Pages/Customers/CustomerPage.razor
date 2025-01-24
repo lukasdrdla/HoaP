@@ -52,6 +52,7 @@
                                             {
                                                 <div class="options-menu" @ref="optionsMenu">
                                                     <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                                    <button class="dropdown-item" @onmousedown="() => NavigateToUpdateCustomer(context.Id)">Upravit</button>
                                                 </div>
                                             }
 
@@ -149,6 +150,11 @@
 
     private void NavigateToAddCustomer()
     {
-        NavigationManager.NavigateTo("/pridat-zakaznika");
+        NavigationManager.NavigateTo("/spravovat-zakaznika");
     }
+
+	private void NavigateToUpdateCustomer(int id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-zakaznika/{id}");
+	}
 }

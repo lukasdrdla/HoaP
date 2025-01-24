@@ -21,9 +21,13 @@
             <div class="card border-0 shadow-sm mx-auto">
                 <div class="card-body">
                     <div class="container py-5">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+						<div class="d-flex justify-content-between mb-3">
                             <h3>@customer.FirstName @customer.LastName - #@customer.Id</h3>
-							<button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateCustomer(Id)">Upravit zákazníka</button>
+                                <button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci </button>
+
+                            </div>
                         </div>
 
                         <div class="row">
@@ -105,8 +109,8 @@
                                 </div>
 
                                 <div class="d-flex gap-3 mt-4">
-                                    <button class="btn btn-danger flex-grow-1" @onclick="OpenDeleteConfirmation">Delete</button>
-                                    <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToCustomers">Back to List</button>
+                                    <button class="btn btn-danger flex-grow-1" @onclick="OpenDeleteConfirmation">Smazat</button>
+									<button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToCustomers">Zpět na seznam</button>
                                 </div>
                             </div>
                         </div>
@@ -203,6 +207,11 @@
     {
         NavigationManager.NavigateTo("/pridat-rezervaci");
     }
+
+	private void NavigateToUpdateCustomer(int id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-zakaznika/{id}");
+	}
 
 
  

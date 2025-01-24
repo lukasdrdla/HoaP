@@ -1,9 +1,11 @@
-﻿@page "/pridat-pokoj"
-@using HoaP.Application.ViewModels.Room
+﻿@page "/spravovat-pokoj/{roomId:int?}"
+@using HoaP.Application.ViewModels.Amenity
 @inject RoomService RoomService
 @inject RoomTypeService RoomTypeService
+@inject AmenityService AmenityService
 @inject RoomStatusService RoomStatusService
 @inject NavigationManager NavigationManager
+@inject IMapper Mapper
 @rendermode InteractiveServer
 
 
@@ -11,10 +13,12 @@
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
-            <h3 class="card-title text-center mb-4 page-title">Přidat Pokoj</h3>
+            <h3 class="card-title text-center mb-4 page-title">@(roomId.HasValue ? "Upravit pokoj" : "Vytvořit pokoj")</h3>
             <EditForm Model="room" OnValidSubmit="HandleValidSubmit" FormName="AddRoom">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
+
+
 
                 <div class="mb-3 row">
                     <div class="col-md-6">
@@ -47,7 +51,7 @@
                                 }
                             </div>
                         </div>
-					</div>
+                    </div>
 
                     <div class="col-md-6">
                         <div class="form-group mb-3">
@@ -60,8 +64,8 @@
                                 }
                             </InputSelect>
                         </div>
-					</div>
-				</div>
+                    </div>
+                </div>
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="MaxAdults" class="form-label">Max Dospělí</label>
@@ -72,6 +76,17 @@
                         <InputNumber id="MaxChildren" class="form-control" @bind-Value="room.MaxChildren" />
                     </div>
 
+                </div>
+
+                <h3>Select Amenities</h3>
+                <div>
+					@foreach (var amenity in amenities)
+                    {
+                        <div>
+                            <input type="checkbox" @bind="@amenity.isSelected" />
+                            <label>@amenity.Name</label>
+                        </div>
+                    }
                 </div>
 
                 <div class="form-group mb-3">
@@ -86,7 +101,7 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">Uložit</button>
+                    <button type="submit" class="btn btn-primary">@(roomId.HasValue ? "Uložit změny" : "Vytvořit pokoj")</button>
                     <a href="/pokoje" class="btn btn-outline-secondary">Zpět na seznam</a>
                 </div>
             </EditForm>
@@ -98,12 +113,16 @@
 
 
 @code {
+    [Parameter]
+    public int? roomId { get; set; }
+
     [SupplyParameterFromForm]
-    private CreateRoomViewModel room { get; set; } = new CreateRoomViewModel();
+    private RoomFormViewModel room { get; set; } = new RoomFormViewModel();
 
     private string searchTerm;
     private List<RoomTypeViewModel> roomTypes = new List<RoomTypeViewModel>();
     private List<RoomTypeViewModel> filteredRoomTypes = new List<RoomTypeViewModel>();
+    private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
 
     private List<RoomStatusViewModel> roomStatuses = new List<RoomStatusViewModel>();
 
@@ -113,8 +132,49 @@
         roomStatuses = await RoomStatusService.GetRoomStatusesAsync();
         roomTypes = await RoomTypeService.GetRoomTypesAsync();
         filteredRoomTypes = new List<RoomTypeViewModel>();
+		amenities = await AmenityService.GetAmenitiesAsync();
+
+		if (roomId.HasValue)
+		{
+
+			room = Mapper.Map<RoomFormViewModel>(await RoomService.GetRoomByIdAsync(roomId.Value));
+			var roomType = roomTypes.FirstOrDefault(r => r.Id == room.RoomTypeId);
+			if (roomType != null)
+			{
+				searchTerm = $"{roomType.Name}";
+			}
+
+			var roomAmenities = await AmenityService.GetAmenitiesByRoomIdAsync(roomId.Value);
+
+			foreach (var amenity in amenities)
+			{
+				amenity.isSelected = roomAmenities.Any(a => a.Id == amenity.Id);
+			}
 
 
+		}
+		else
+		{
+			room = new RoomFormViewModel();
+		}
+
+
+    }
+
+    private async void HandleValidSubmit()
+    {
+		room.Amenities = amenities.Where(a => a.isSelected).Select(a => new AmenityViewModel { Id = a.Id }).ToList();
+
+		if (roomId.HasValue)
+		{
+			await RoomService.UpdateRoomAsync(room);
+		}
+		else
+		{
+			await RoomService.CreateRoomAsync(room);
+		}
+        
+        NavigationManager.NavigateTo("/pokoje");
     }
 
     private async Task SearchRoom(ChangeEventArgs e)
@@ -142,10 +202,5 @@
         filteredRoomTypes.Clear();
     }
 
-    private async void HandleValidSubmit()
-    {
-
-        await RoomService.CreateRoomAsync(room);
-        NavigationManager.NavigateTo("/pokoje");
-    }
+   
 }

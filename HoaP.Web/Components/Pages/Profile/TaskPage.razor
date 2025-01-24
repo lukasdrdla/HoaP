@@ -1,0 +1,70 @@
+﻿@page "/ukoly"
+@inject AccountService AccountService
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">To-Do List</h3>
+            <div class="input-group mb-4">
+                <input type="text" @bind="newTask" class="form-control" placeholder="Zadejte nový úkol" />
+                <button class="btn btn-outline-secondary" @onclick="AddTask">Přidat</button>
+            </div>
+
+            @if (tasks == null || tasks.Count == 0)
+            {
+                <div class="text-center">
+                    <span>Žádné úkoly</span>
+                </div>
+            }
+            else
+            {
+                <ul class="list-group">
+                    @foreach (var task in tasks)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" @bind="task.IsCompleted" @onclick="() => ToggleTaskCompletion(task)" />
+                                <label class="form-check-label" style="text-decoration: @(task.IsCompleted ? "line-through" : "none")">
+                                    @task.Title
+                                </label>
+                            </div>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteTask(task)">Smazat</button>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string newTask;
+    private List<TaskItem> tasks = new List<TaskItem>();
+    private AppUser user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await AccountService.GetCurrentUserAsync();
+    }
+
+    private async Task AddTask()
+    {
+        if (!string.IsNullOrWhiteSpace(newTask))
+        {
+            var task = new TaskItem { Title = newTask, IsCompleted = false };
+            tasks.Add(task);
+            newTask = string.Empty;
+        }
+    }
+
+    private async Task ToggleTaskCompletion(TaskItem task)
+    {
+        task.IsCompleted = !task.IsCompleted;
+    }
+
+    private async Task DeleteTask(TaskItem task)
+    {
+        tasks.Remove(task);
+    }
+}

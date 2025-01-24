@@ -4,7 +4,7 @@
 @inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<div class="container mt-5">
+<div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
             <h3 class="text-center mb-4 page-title">Platby</h3>
@@ -26,6 +26,7 @@
                         <PropertyColumn Title="ID faktury" Property="@(x => x.InvoiceNumber)" Sortable="true" />
                         <PropertyColumn Title="Částka" Property="@(x => x.TotalAmount.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Metoda" Property="@(x => x.PaymentMethodName)" Sortable="true" />
+						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
                         <PropertyColumn Title="Datum" Property="@(x => x.PaymentDate.ToShortDateString())" Sortable="true" />
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">
@@ -33,9 +34,17 @@
                                     <i class="bi bi-search"></i>
                                 </button>
 
-                                <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
-                                    <i class="bi bi-trash"></i>
+                                <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                    <i class="bi bi-three-dots-vertical"></i>
                                 </button>
+
+                                @if (VisiblePaymentId == context.Id)
+                                {
+                                    <div class="options-menu" @ref="optionsMenu">
+                                        <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+										<button class="dropdown-item" @onmousedown="() => NavigateToUpdatePayment(context.Id)">Upravit</button>
+                                    </div>
+                                }
                             </div>
                         </TemplateColumn>
                     </QuickGrid>
@@ -55,24 +64,35 @@
 
     private bool isDeleteModalVisible = false;
 
+
+	private Guid deletePaymentId;
+    private Guid VisiblePaymentId { get; set; }
+    private ElementReference optionsMenu;
+
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
 
-    private async Task OpenDeleteConfirmation(Guid paymentId)
+    private void OpenDeleteConfirmation(Guid paymentId)
     {
+
         isDeleteModalVisible = true;
+		deletePaymentId = paymentId;
     }
 
     private async Task HandleModalClose(bool result)
     {
-		if (result)
+		var payment = payments.FirstOrDefault(p => p.Id == deletePaymentId);
+		if (result && payment != null)
 		{
-			
-            payments = await PaymentService.GetPaymentsAsync();
-            filteredPayments = payments;
+			await PaymentService.DeletePaymentAsync(payment.Id);
+			payments.Remove(payment);
+			filteredPayments = payments;
 		}
+		isDeleteModalVisible = false;
+    }
 
-
-		
+    private void ToggleOptions(Guid paymentId)
+    {
+		VisiblePaymentId = VisiblePaymentId == paymentId ? Guid.Empty : paymentId;
     }
 
     private void SearchPayments(ChangeEventArgs e)
@@ -95,6 +115,15 @@
         }
     }
 
+    private void HideOptions(MouseEventArgs e)
+    {
+        if (VisiblePaymentId != Guid.Empty && optionsMenu.Context != null)
+        {
+			VisiblePaymentId = Guid.Empty;
+
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         payments = await PaymentService.GetPaymentsAsync() ?? new List<PaymentViewModel>();
@@ -103,11 +132,16 @@
 
     private void NavigateToPaymentDetail(Guid id)
     {
-        NavigationManager.NavigateTo($"/platby/{id}");
+        NavigationManager.NavigateTo($"/platba/{id}");
     }
 
     private void NavigateToAddPayment()
     {
-        NavigationManager.NavigateTo("/pridat-platbu");
+		NavigationManager.NavigateTo("/spravovat-platbu");
+    }
+
+	private void NavigateToUpdatePayment(Guid id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-platbu/{id}");
     }
 }

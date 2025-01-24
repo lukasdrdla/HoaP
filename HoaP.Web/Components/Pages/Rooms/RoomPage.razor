@@ -54,6 +54,7 @@
                                     {
 										<div class="options-menu" @ref="optionsMenu">
                                             <button class="dropdown-item" @onmousedown="() => DeleteRoom(context.Id)">Smazat</button>
+											<button class="dropdown-item" @onmousedown="() => NavigateToUpdateRoom(context.Id)">Upravit</button>
                                         </div>
                                     }
                                 </div>
@@ -94,7 +95,7 @@
 
 
     private bool isModalVisible = false;
-    private int? deleteRoomId;
+    private int deleteRoomId;
     private string Title;
     private string modalMessage;
     private string ActionType;
@@ -107,7 +108,6 @@
 
     private void ToggleOptions(int roomId)
     {
-        // Pokud je již menu zobrazeno, zavře se, jinak se otevře
         VisibleRoomId = VisibleRoomId == roomId ? null : roomId;
     }
 
@@ -153,6 +153,7 @@
 
         if (result)
         {
+			await RoomService.DeleteRoomAsync(deleteRoomId);
             rooms.Remove(room);
             filteredRooms = rooms;
         }
@@ -197,6 +198,11 @@
     {
         NavigationManager.NavigateTo("/pridat-pokoj");
     }
+
+	private void NavigateToUpdateRoom(int id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-pokoj/{id}");
+	}
 
 
 }
