@@ -6,11 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HoaP.Domain.Entities;
+using HoaP.Application.ViewModels.Amenity;
 
 namespace HoaP.Application.ViewModels.Room
 {
-    public class CreateRoomViewModel
+    public class RoomFormViewModel
     {
+        public int? Id { get; set; }
 
         [Required(ErrorMessage = "Room number is required.")]
         [StringLength(50, ErrorMessage = "Room number cannot exceed 50 characters.")]
@@ -54,6 +56,9 @@ namespace HoaP.Application.ViewModels.Room
         public RoomType? RoomType { get; set; }
 
         public List<RoomStatusViewModel> RoomStatuses { get; set; } = new();
+
+        public List<AmenityViewModel> Amenities { get; set; } = new();
+
 
     }
 }
