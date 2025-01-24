@@ -4,11 +4,15 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Invoice;
 
 namespace HoaP.Application.ViewModels.Payment
 {
-    public class CreatePaymentViewModel
+    public class PaymentFormViewModel
     {
+
+        public Guid? Id { get; set; }
+
         [Required]
         public int InvoiceId { get; set; }
 
@@ -25,6 +29,7 @@ namespace HoaP.Application.ViewModels.Payment
         public int PaymentMethodId { get; set; }
 
         public List<PaymentMethodViewModel> PaymentMethods { get; set; } = new();
+
 
 
 

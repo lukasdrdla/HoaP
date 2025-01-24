@@ -9,6 +9,9 @@ namespace HoaP.Application.ViewModels.Payment
     public class DetailPaymentViewModel
     {
         public Guid Id { get; set; }
+        public int InvoiceId { get; set; }
+        public int PaymentMethodId { get; set; }
+        public int PaymentId { get; set; }
         public decimal TotalAmount { get; set; }
         public DateTime PaymentDate { get; set; }
         public string PaymentMethodName { get; set; } = string.Empty;
