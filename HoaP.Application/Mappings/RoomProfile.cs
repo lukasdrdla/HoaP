@@ -26,7 +26,11 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.RoomStatusName, opt => opt.MapFrom(src => src.RoomStatus.Name))
                 .ForMember(dest => dest.RoomTypeName, opt => opt.MapFrom(src => src.RoomType.Name));
 
-            CreateMap<CreateRoomViewModel, Room>();
+            CreateMap<RoomFormViewModel, Room>();
+
+            CreateMap<DetailRoomViewModel, RoomFormViewModel>();
+            CreateMap<RoomFormViewModel, DetailRoomViewModel>();
+                
 
 
 

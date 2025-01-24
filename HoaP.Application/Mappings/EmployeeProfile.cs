@@ -13,21 +13,20 @@ namespace HoaP.Application.Mappings
     {
         public EmployeeProfile()
         {
-            CreateMap<AppUser, EmployeeViewModel>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
-                .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
-                .ForMember(dest => dest.JobTitle, opt => opt.MapFrom(src => src.JobTitle))
-                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
-                .ForMember(dest => dest.Salary, opt => opt.MapFrom(src => src.Salary))
-                .ForMember(dest => dest.IsEmployed, opt => opt.MapFrom(src => src.IsEmployed));
+            CreateMap<AppUser, EmployeeViewModel>();
 
             CreateMap<AppUser, DetailEmployeeViewModel>()
-                .ForMember(dest => dest.InsuranceCompanyName, opt => opt.MapFrom(src => src.InsuranceCompany.Name));
+                .ForMember(dest => dest.InsuranceCompanyName, opt => opt.MapFrom(src => src.InsuranceCompany.Name))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
-            CreateMap<UpdateEmployeeViewModel, AppUser>();
+            CreateMap<DetailEmployeeViewModel, EmployeeFormViewModel>()
+                .ForMember(dest => dest.InsuranceCompanyId, opt => opt.MapFrom(src => src.InsuranceCompanyId));
 
-            CreateMap<CreateEmployeeViewModel, AppUser>();
+            CreateMap<EmployeeFormViewModel, AppUser>();
+
+            CreateMap<AppUser, UpdateEmployeeViewModel>();
+
+
         }
     }
 }

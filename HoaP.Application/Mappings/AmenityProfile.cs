@@ -17,6 +17,9 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Amenity.Name))
                 .ForMember(dest => dest.Icon, opt => opt.MapFrom(src => src.Amenity.Icon));
 
+            CreateMap<Amenity, AmenityViewModel>().ReverseMap();
+
+
 
 
         }
