@@ -1,22 +1,22 @@
-﻿<div>
+﻿@inject RoomTypeService roomTypeService
+
+<div>
     <h4>Room Types</h4>
     <table class="table table-bordered mt-3">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>Name</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var roomType in roomTypes)
+            @foreach (var type in roomTypes)
             {
                 <tr>
-                    <td>@roomType.Id</td>
-                    <td>@roomType.Name</td>
+                    <td>@type.Name</td>
                     <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditRoomType(roomType)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomType(roomType.Id)">Delete</button>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditRoomType(type)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomType(type.Id)">Delete</button>
                     </td>
                 </tr>
             }
@@ -39,40 +39,44 @@
 </div>
 
 @code {
-    private List<RoomType> roomTypes = new();
-    private RoomType currentRoomType = new();
+    private List<RoomTypeViewModel> roomTypes = new();
+    private RoomTypeViewModel currentRoomType = new();
     private bool editMode = false;
 
-    private async Task HandleRoomTypeSubmit()
+    protected override async Task OnInitializedAsync()
     {
-        if (editMode)
-        {
-            // Update logic
-        }
-        else
-        {
-            // Add new room type
-        }
-
         await LoadRoomTypes();
     }
 
     private async Task LoadRoomTypes()
     {
-        // Load room types from database or service
+        roomTypes = await roomTypeService.GetRoomTypesAsync();
     }
 
-    private void EditRoomType(RoomType roomType)
+    private async Task HandleRoomTypeSubmit()
     {
-        currentRoomType = roomType;
+        if (editMode)
+        {
+            await roomTypeService.UpdateRoomTypeAsync(currentRoomType);
+            editMode = false;
+        }
+        else
+        {
+            await roomTypeService.CreateRoomTypeAsync(currentRoomType);
+        }
+        currentRoomType = new RoomTypeViewModel();
+        await LoadRoomTypes();
+    }
+
+    private void EditRoomType(RoomTypeViewModel type)
+    {
+        currentRoomType = type;
         editMode = true;
     }
 
     private async Task DeleteRoomType(int id)
     {
-        // Delete room type logic
+        await roomTypeService.DeleteRoomTypeAsync(id);
         await LoadRoomTypes();
     }
 }
-
-

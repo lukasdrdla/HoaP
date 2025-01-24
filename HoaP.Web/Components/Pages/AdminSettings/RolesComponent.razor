@@ -1,5 +1,82 @@
-﻿<h3>RolesComponent</h3>
+﻿@inject RoleService roleService
+
+<div>
+    <h4>Roles</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var role in roles)
+            {
+                <tr>
+                    <td>@role.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditRole(role)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRole(role.Name)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Role" : "Add Role")</h5>
+        <EditForm Model="currentRole" OnValidSubmit="HandleRoleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentRole.Name" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private List<RoleViewModel> roles = new();
+    private RoleViewModel currentRole = new();
+    private bool editMode = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRoles();
+    }
+
+    private async Task LoadRoles()
+    {
+        roles = await roleService.GetRolesAsync();
+    }
+
+    private async Task HandleRoleSubmit()
+    {
+        if (editMode)
+        {
+            await roleService.UpdateRoleAsync(currentRole);
+            editMode = false;
+        }
+        else
+        {
+            await roleService.CreateRoleAsync(currentRole);
+        }
+        currentRole = new RoleViewModel();
+        await LoadRoles();
+    }
+
+    private void EditRole(RoleViewModel role)
+    {
+        currentRole = role;
+        editMode = true;
+    }
+
+    private async Task DeleteRole(string name)
+    {
+        await roleService.DeleteRoleAsync(name);
+        await LoadRoles();
+    }
 }

@@ -1,5 +1,96 @@
-﻿<h3>CurrenciesComponent</h3>
+﻿@inject CurrencyService currencyService
+
+<div>
+    <h4>Currencies</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Symbol</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var currency in currencies)
+            {
+                <tr>
+                    <td>@currency.Code</td>
+                    <td>@currency.Name</td>
+                    <td>@currency.Symbol</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditCurrency(currency)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCurrency(currency.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Currency" : "Add Currency")</h5>
+        <EditForm Model="currentCurrency" OnValidSubmit="HandleCurrencySubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="code" class="form-label">Code</label>
+                <InputText id="code" class="form-control" @bind-Value="currentCurrency.Code" />
+            </div>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentCurrency.Name" />
+            </div>
+            <div class="mb-3">
+                <label for="symbol" class="form-label">Symbol</label>
+                <InputText id="symbol" class="form-control" @bind-Value="currentCurrency.Symbol" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private List<CurrencyViewModel> currencies = new();
+    private CurrencyViewModel currentCurrency = new();
+    private bool editMode = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCurrencies();
+    }
+
+    private async Task LoadCurrencies()
+    {
+        currencies = await currencyService.GetCurrenciesAsync();
+    }
+
+    private async Task HandleCurrencySubmit()
+    {
+        if (editMode)
+        {
+            await currencyService.UpdateCurrencyAsync(currentCurrency);
+            currentCurrency = new CurrencyViewModel();
+            editMode = false;
+        }
+        else
+        {
+            await currencyService.CreateCurrencyAsync(currentCurrency);
+            currentCurrency = new CurrencyViewModel();
+        }
+
+        await LoadCurrencies();
+    }
+
+    private void EditCurrency(CurrencyViewModel currency)
+    {
+        currentCurrency = currency;
+        editMode = true;
+    }
+
+    private async Task DeleteCurrency(int id)
+    {
+        await currencyService.DeleteCurrencyAsync(id);
+		await LoadCurrencies();
+    }
 }

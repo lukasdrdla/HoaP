@@ -1,5 +1,82 @@
-﻿<h3>InsuranceCompaniesComponent</h3>
+﻿@inject InsuranceCompanyService insuranceCompanyService
+
+<div>
+    <h4>Insurance Companies</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var company in insuranceCompanies)
+            {
+                <tr>
+                    <td>@company.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditInsuranceCompany(company)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteInsuranceCompany(company.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Insurance Company" : "Add Insurance Company")</h5>
+        <EditForm Model="currentInsuranceCompany" OnValidSubmit="HandleInsuranceCompanySubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentInsuranceCompany.Name" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private List<InsuranceCompanyViewModel> insuranceCompanies = new();
+    private InsuranceCompanyViewModel currentInsuranceCompany = new();
+    private bool editMode = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInsuranceCompanies();
+    }
+
+    private async Task LoadInsuranceCompanies()
+    {
+        insuranceCompanies = await insuranceCompanyService.GetInsuranceCompaniesAsync();
+    }
+
+    private async Task HandleInsuranceCompanySubmit()
+    {
+        if (editMode)
+        {
+            await insuranceCompanyService.UpdateInsuranceCompanyAsync(currentInsuranceCompany);
+            editMode = false;
+        }
+        else
+        {
+            await insuranceCompanyService.CreateInsuranceCompanyAsync(currentInsuranceCompany);
+        }
+        currentInsuranceCompany = new InsuranceCompanyViewModel();
+        await LoadInsuranceCompanies();
+    }
+
+    private void EditInsuranceCompany(InsuranceCompanyViewModel company)
+    {
+        currentInsuranceCompany = company;
+        editMode = true;
+    }
+
+    private async Task DeleteInsuranceCompany(int id)
+    {
+		await insuranceCompanyService.DeleteInsuranceCompanyAsync(id);
+		await LoadInsuranceCompanies();
+    }
 }

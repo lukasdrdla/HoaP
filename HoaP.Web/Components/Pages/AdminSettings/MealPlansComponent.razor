@@ -53,16 +53,12 @@
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadMealPlans();
-
-		
 	}
 
     private async Task LoadMealPlans()
 	{
 		mealPlans = await mealPlanService.GetMealPlansAsync();
 	}
-
-
 
     private async Task HandleMealPlanSubmit()
     {
@@ -80,12 +76,8 @@
 			currentMealPlan = new MealPlanViewModel();
         }
 
-        await LoadMealPlans();
-
-        
+        await LoadMealPlans();        
     }
-
-
 
     private void EditMealPlan(MealPlanViewModel plan)
     {
@@ -95,13 +87,7 @@
 
     private async Task DeleteMealPlan(int id)
     {
-		var mealToDelete = mealPlans.FirstOrDefault(x => x.Id == id);
-        if (mealToDelete != null)
-        {
-            await mealPlanService.DeleteMealPlanAsync(id);
-            mealPlans.Remove(mealToDelete);
-        }
-
-        
+		await mealPlanService.DeleteMealPlanAsync(id);
+		await LoadMealPlans();
     }
 }

@@ -1,5 +1,82 @@
-﻿<h3>PaymentMethodsComponent</h3>
+﻿@inject PaymentMethodService paymentMethodService
+
+<div>
+    <h4>Payment Methods</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var method in paymentMethods)
+            {
+                <tr>
+                    <td>@method.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditPaymentMethod(method)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePaymentMethod(method.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Payment Method" : "Add Payment Method")</h5>
+        <EditForm Model="currentPaymentMethod" OnValidSubmit="HandlePaymentMethodSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentPaymentMethod.Name" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private List<PaymentMethodViewModel> paymentMethods = new();
+    private PaymentMethodViewModel currentPaymentMethod = new();
+    private bool editMode = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPaymentMethods();
+    }
+
+    private async Task LoadPaymentMethods()
+    {
+        paymentMethods = await paymentMethodService.GetPaymentMethodsAsync();
+    }
+
+    private async Task HandlePaymentMethodSubmit()
+    {
+        if (editMode)
+        {
+            await paymentMethodService.UpdatePaymentMethodAsync(currentPaymentMethod);
+            editMode = false;
+        }
+        else
+        {
+            await paymentMethodService.CreatePaymentMethodAsync(currentPaymentMethod);
+        }
+        currentPaymentMethod = new PaymentMethodViewModel();
+        await LoadPaymentMethods();
+    }
+
+    private void EditPaymentMethod(PaymentMethodViewModel method)
+    {
+        currentPaymentMethod = method;
+        editMode = true;
+    }
+
+    private async Task DeletePaymentMethod(int id)
+    {
+        await paymentMethodService.DeletePaymentMethodAsync(id);
+        await LoadPaymentMethods();
+    }
 }

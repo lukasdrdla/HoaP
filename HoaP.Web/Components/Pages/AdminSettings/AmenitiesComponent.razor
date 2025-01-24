@@ -75,10 +75,11 @@
         }
         else
         {
-			amenities.Add(currentAmenity);
 			await AmenityService.CreateAmenityAsync(currentAmenity);
 			currentAmenity = new AmenityViewModel();
         }
+
+		await LoadAmenities();
 
     }
 
@@ -95,10 +96,8 @@
 
     private async Task DeleteAmenity(int id)
     {
-		var amenity = amenities.FirstOrDefault(x => x.Id == id);
-		amenities.Remove(amenity);
 		await AmenityService.DeleteAmenityAsync(id);
-		
+		await LoadAmenities();	
     }
 }
 

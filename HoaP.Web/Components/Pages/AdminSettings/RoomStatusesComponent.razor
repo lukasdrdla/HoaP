@@ -1,5 +1,82 @@
-﻿<h3>RoomStatusesComponent</h3>
+﻿@inject ReservationStatusService reservationStatusService
+
+<div>
+    <h4>Reservation Statuses</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var status in reservationStatuses)
+            {
+                <tr>
+                    <td>@status.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditReservationStatus(status)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteReservationStatus(status.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Reservation Status" : "Add Reservation Status")</h5>
+        <EditForm Model="currentReservationStatus" OnValidSubmit="HandleReservationStatusSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentReservationStatus.Name" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
 
 @code {
+    private List<ReservationStatusViewModel> reservationStatuses = new();
+    private ReservationStatusViewModel currentReservationStatus = new();
+    private bool editMode = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReservationStatuses();
+    }
+
+    private async Task LoadReservationStatuses()
+    {
+        reservationStatuses = await reservationStatusService.GetReservationStatusesAsync();
+    }
+
+    private async Task HandleReservationStatusSubmit()
+    {
+        if (editMode)
+        {
+            await reservationStatusService.UpdateReservationStatusAsync(currentReservationStatus);
+            editMode = false;
+        }
+        else
+        {
+            await reservationStatusService.CreateReservationStatusAsync(currentReservationStatus);
+        }
+        currentReservationStatus = new ReservationStatusViewModel();
+        await LoadReservationStatuses();
+    }
+
+    private void EditReservationStatus(ReservationStatusViewModel status)
+    {
+        currentReservationStatus = status;
+        editMode = true;
+    }
+
+    private async Task DeleteReservationStatus(int id)
+    {
+        await reservationStatusService.DeleteReservationStatusAsync(id);
+        await LoadReservationStatuses();
+    }
 }
