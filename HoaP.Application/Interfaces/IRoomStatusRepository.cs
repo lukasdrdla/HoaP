@@ -11,5 +11,9 @@ namespace HoaP.Application.Interfaces
     public interface IRoomStatusRepository
     {
         Task<List<RoomStatusViewModel>> GetRoomStatusesAsync();
+        Task<RoomStatusViewModel> GetRoomStatusByIdAsync(int id);
+        Task CreateRoomStatusAsync(RoomStatusViewModel model);
+        Task UpdateRoomStatusAsync(RoomStatusViewModel model);
+        Task DeleteRoomStatusAsync(int id);
     }
 }

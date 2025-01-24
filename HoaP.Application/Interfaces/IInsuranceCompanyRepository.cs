@@ -11,6 +11,10 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<InsuranceCompanyViewModel>> GetInsuranceCompaniesAsync();
         Task<InsuranceCompanyViewModel> GetInsuranceCompanyByIdAsync(int id);
+        Task CreateInsuranceCompanyAsync(InsuranceCompanyViewModel model);
+        Task UpdateInsuranceCompanyAsync(InsuranceCompanyViewModel model);
+        Task DeleteInsuranceCompanyAsync(int id);
+
 
     }
 }
