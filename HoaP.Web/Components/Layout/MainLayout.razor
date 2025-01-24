@@ -9,30 +9,26 @@
                 <div class="sidebar">
                     <NavMenu />
                 </div>
-                
                 <main>
+                    
                     <article class="content px-4">
-                        <div>
-                            
-                        </div>
-                        <div>
-                            @Body
-                        </div>
+                        @Body
                     </article>
                 </main>
             </div>
         </Authorized>
         <NotAuthorized>
-             @if (!IsLoginPage)
+            @if (!IsLoginPage)
             {
                 <RedirectToLogin />
             }
             else
             {
-				@Body
+                @Body
             }
-        </NotAuthorized>
+	    </NotAuthorized>
     </AuthorizeView>
+
 
 </CascadingAuthenticationState>
 
