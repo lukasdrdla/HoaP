@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Task;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface ITaskRepository
     {
-        Task<List<TaskItem>> GetTasksForEmployeeAsync(string employeeId);
-        Task<List<TaskItem>> GetAllTasksAsync();
-        Task<TaskItem> GetTaskById(int id);
-        Task CreateTask(TaskItem task, string employeeId);
-        Task UpdateTask(TaskItem task);
+        Task<List<TaskViewModel>> GetTasksForEmployeeAsync(string employeeId);
+        Task<List<TaskViewModel>> GetAllTasksAsync();
+        Task<TaskViewModel> GetTaskById(int id);
+        Task CreateTask(TaskViewModel task, string employeeId);
+        Task UpdateTask(TaskViewModel task);
         Task DeleteTask(int id);
     }
 }
