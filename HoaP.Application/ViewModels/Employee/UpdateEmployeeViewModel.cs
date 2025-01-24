@@ -9,6 +9,9 @@ namespace HoaP.Application.ViewModels.Employee
 {
     public class UpdateEmployeeViewModel
     {
+        public string Id { get; set; } = string.Empty;
+        public string ProfilePicture { get; set; } = string.Empty;
+
         [Required]
         [StringLength(50, ErrorMessage = "First name must be between 2 and 50 characters.", MinimumLength = 2)]
         public string FirstName { get; set; } = string.Empty;
@@ -38,30 +41,12 @@ namespace HoaP.Application.ViewModels.Employee
         public string Country { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(15)]
-        public string PersonalIdentificationNumber { get; set; } = string.Empty;
+        [Phone]
+        public string PhoneNumber { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(50)]
-        public string PlaceOfBirth { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(50)]
-        public string JobTitle { get; set; } = string.Empty;
 
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime StartDate { get; set; }
 
-        [Required]
-        [Range(0, double.MaxValue, ErrorMessage = "Salary must be greater than or equal to 0.")]
-        public decimal Salary { get; set; }
-
-        [Required]
-        public bool IsEmployed { get; set; }
-
-        [Required]
-        public int InsuranceCompanyId { get; set; }
     }
 
 }

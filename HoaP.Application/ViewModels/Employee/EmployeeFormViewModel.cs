@@ -8,8 +8,10 @@ using HoaP.Application.ViewModels.InsuranceCompany;
 
 namespace HoaP.Application.ViewModels.Employee
 {
-    public class CreateEmployeeViewModel
+    public class EmployeeFormViewModel
     {
+
+        public string Id { get; set; } = string.Empty;
 
         [Required]
         public string ProfilePicture { get; set; } = string.Empty;
@@ -18,11 +20,9 @@ namespace HoaP.Application.ViewModels.Employee
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; } = string.Empty;
 
-        [Required]
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; } = string.Empty;
 
