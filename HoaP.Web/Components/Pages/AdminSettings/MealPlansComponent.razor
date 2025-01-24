@@ -1,0 +1,107 @@
+﻿@inject MealPlanService mealPlanService
+
+<div>
+    <h4>Meal Plans</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Název</th>
+                <th>Cena</th>
+                <th>Akce</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var plan in mealPlans)
+            {
+                <tr>
+                    <td>@plan.Name</td>
+                    <td>@plan.Price</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditMealPlan(plan)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteMealPlan(plan.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Upravit Meal Plan" : "Přidat Meal Plan")</h5>
+        <EditForm Model="currentMealPlan" OnValidSubmit="HandleMealPlanSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Název</label>
+                <InputText id="name" class="form-control" @bind-Value="currentMealPlan.Name" />
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Cena</label>
+                <InputNumber id="description" class="form-control" @bind-Value="currentMealPlan.Price" />
+            </div>
+            <button class="btn btn-success" type="submit">Uložit</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private List<MealPlanViewModel> mealPlans = new();
+    private MealPlanViewModel currentMealPlan = new();
+    private bool editMode = false;
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadMealPlans();
+
+		
+	}
+
+    private async Task LoadMealPlans()
+	{
+		mealPlans = await mealPlanService.GetMealPlansAsync();
+	}
+
+
+
+    private async Task HandleMealPlanSubmit()
+    {
+        if (editMode)
+        {
+			await mealPlanService.UpdateMealPlanAsync(currentMealPlan);
+			currentMealPlan = new MealPlanViewModel();
+			editMode = false;
+            
+        }
+        else
+        {
+            
+			await mealPlanService.CreateMealPlanAsync(currentMealPlan);
+			currentMealPlan = new MealPlanViewModel();
+        }
+
+        await LoadMealPlans();
+
+        
+    }
+
+
+
+    private void EditMealPlan(MealPlanViewModel plan)
+    {
+        currentMealPlan = plan;
+        editMode = true;
+    }
+
+    private async Task DeleteMealPlan(int id)
+    {
+		var mealToDelete = mealPlans.FirstOrDefault(x => x.Id == id);
+        if (mealToDelete != null)
+        {
+            await mealPlanService.DeleteMealPlanAsync(id);
+            mealPlans.Remove(mealToDelete);
+        }
+
+        
+    }
+}

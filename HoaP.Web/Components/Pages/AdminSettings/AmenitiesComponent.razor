@@ -1,0 +1,104 @@
+﻿@inject AmenityService AmenityService
+<div>
+    <h4>Amenities</h4>
+
+    <QuickGrid Items=filteredAmenities.AsQueryable() Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+		<PropertyColumn Title="Name" Property="@(x => x.Name)" Sortable="true">
+            <ColumnOptions>
+                <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchAmenities" placeholder="Search Amenities..." />
+            </ColumnOptions>
+		</PropertyColumn>
+
+		<PropertyColumn Title="Icon" Property="@(x => x.Icon)" Sortable="true" />
+		<TemplateColumn Title="Actions">
+			<button class="btn btn-primary" @onclick="() => EditAmenity(context)">Edit</button>
+			<button class="btn btn-danger" @onclick="() => DeleteAmenity(context.Id)">Delete</button>
+		</TemplateColumn>
+	</QuickGrid>
+	<Paginator State="paginationState" />
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Amenity" : "Add Amenity")</h5>
+        <EditForm Model="currentAmenity" OnValidSubmit="HandleAmenitySubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentAmenity.Name" />
+            </div>
+            <div class="mb-3">
+                <label for="icon" class="form-label">Icon</label>
+                <InputText id="icon" class="form-control" @bind-Value="currentAmenity.Icon" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+	private List<AmenityViewModel> amenities = new();
+	private List<AmenityViewModel> filteredAmenities = new();
+	private AmenityViewModel currentAmenity = new();
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+    private bool editMode = false;
+	private string? searchTerm;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadAmenities();
+		filteredAmenities = amenities;
+	}
+
+	private void SearchAmenities(ChangeEventArgs e)
+    {
+		searchTerm = e.Value.ToString();
+
+        if (string.IsNullOrEmpty(searchTerm))
+		{
+			filteredAmenities = amenities;
+		}
+		else
+		{
+			filteredAmenities = amenities.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+	
+    }
+
+    private async Task HandleAmenitySubmit()
+    {
+        if (editMode)
+        {
+			await AmenityService.UpdateAmenityAsync(currentAmenity);
+			currentAmenity = new AmenityViewModel();
+            
+        }
+        else
+        {
+			amenities.Add(currentAmenity);
+			await AmenityService.CreateAmenityAsync(currentAmenity);
+			currentAmenity = new AmenityViewModel();
+        }
+
+    }
+
+    private async Task LoadAmenities()
+    {
+		amenities = await AmenityService.GetAmenitiesAsync();
+    }
+
+    private void EditAmenity(AmenityViewModel amenity)
+    {
+        currentAmenity = amenity;
+        editMode = true;
+    }
+
+    private async Task DeleteAmenity(int id)
+    {
+		var amenity = amenities.FirstOrDefault(x => x.Id == id);
+		amenities.Remove(amenity);
+		await AmenityService.DeleteAmenityAsync(id);
+		
+    }
+}
+

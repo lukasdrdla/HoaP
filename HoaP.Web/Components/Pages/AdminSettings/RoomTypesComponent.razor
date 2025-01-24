@@ -1,0 +1,78 @@
+﻿<div>
+    <h4>Room Types</h4>
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var roomType in roomTypes)
+            {
+                <tr>
+                    <td>@roomType.Id</td>
+                    <td>@roomType.Name</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" @onclick="() => EditRoomType(roomType)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomType(roomType.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        <h5>@(editMode ? "Edit Room Type" : "Add Room Type")</h5>
+        <EditForm Model="currentRoomType" OnValidSubmit="HandleRoomTypeSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <InputText id="name" class="form-control" @bind-Value="currentRoomType.Name" />
+            </div>
+            <button class="btn btn-success" type="submit">Save</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private List<RoomType> roomTypes = new();
+    private RoomType currentRoomType = new();
+    private bool editMode = false;
+
+    private async Task HandleRoomTypeSubmit()
+    {
+        if (editMode)
+        {
+            // Update logic
+        }
+        else
+        {
+            // Add new room type
+        }
+
+        await LoadRoomTypes();
+    }
+
+    private async Task LoadRoomTypes()
+    {
+        // Load room types from database or service
+    }
+
+    private void EditRoomType(RoomType roomType)
+    {
+        currentRoomType = roomType;
+        editMode = true;
+    }
+
+    private async Task DeleteRoomType(int id)
+    {
+        // Delete room type logic
+        await LoadRoomTypes();
+    }
+}
+
+
