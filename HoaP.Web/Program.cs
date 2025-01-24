@@ -25,6 +25,7 @@ builder.Services.AddAutoMapper(typeof(CurrencyProfile));
 builder.Services.AddAutoMapper(typeof(MealPlanProfile));
 builder.Services.AddAutoMapper(typeof(RoleProfile));
 builder.Services.AddAutoMapper(typeof(ReservationStatusProfile));
+builder.Services.AddAutoMapper(typeof(TaskProfile));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -98,6 +99,9 @@ builder.Services.AddScoped<RoleService>();
 
 builder.Services.AddScoped<IReservationStatusRepository, ReservationStatusRepository>();
 builder.Services.AddScoped<ReservationStatusService>();
+
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<TaskService>();
 
 
 
