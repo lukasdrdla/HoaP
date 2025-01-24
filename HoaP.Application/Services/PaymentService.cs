@@ -27,12 +27,12 @@ namespace HoaP.Application.Services
             return await _paymentRepository.GetPaymentByIdAsync(id);
         }
 
-        public async Task CreatePaymentAsync(CreatePaymentViewModel payment)
+        public async Task CreatePaymentAsync(PaymentFormViewModel payment)
         {
             await _paymentRepository.CreatePaymentAsync(payment);
         }
 
-        public async Task UpdatePaymentAsync(UpdatePaymentViewModel payment)
+        public async Task UpdatePaymentAsync(PaymentFormViewModel payment)
         {
             await _paymentRepository.UpdatePaymentAsync(payment);
         }

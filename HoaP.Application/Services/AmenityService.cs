@@ -21,5 +21,30 @@ namespace HoaP.Application.Services
         {
             return await _amenityRepository.GetAmenitiesByRoomIdAsync(roomId);
         }
+
+        public async Task<List<AmenityViewModel>> GetAmenitiesAsync()
+        {
+            return await _amenityRepository.GetAmenitiesAsync();
+        }
+
+        public async Task<AmenityViewModel> GetAmenityByIdAsync(int id)
+        {
+            return await _amenityRepository.GetAmenityByIdAsync(id);
+        }
+
+        public async Task CreateAmenityAsync(AmenityViewModel amenity)
+        {
+            await _amenityRepository.CreateAmenityAsync(amenity);
+        }
+
+        public async Task UpdateAmenityAsync(AmenityViewModel amenity)
+        {
+            await _amenityRepository.UpdateAmenityAsync(amenity);
+        }
+
+        public async Task DeleteAmenityAsync(int id)
+        {
+            await _amenityRepository.DeleteAmenityAsync(id);
+        }
     }
 }

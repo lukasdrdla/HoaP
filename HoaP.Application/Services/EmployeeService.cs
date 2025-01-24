@@ -17,6 +17,8 @@ namespace HoaP.Application.Services
             _employeeRepository = employeeRepository;
         }
 
+
+
         public async Task<List<EmployeeViewModel>> GetEmployeesAsync()
         {
             return await _employeeRepository.GetEmployeesAsync();
@@ -27,7 +29,7 @@ namespace HoaP.Application.Services
             return await _employeeRepository.GetEmployeeByIdAsync(id);
         }
 
-        public async Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee)
+        public async Task UpdateEmployeeAsync(EmployeeFormViewModel employee)
         {
             await _employeeRepository.UpdateEmployeeAsync(employee);
         }
@@ -37,9 +39,14 @@ namespace HoaP.Application.Services
             await _employeeRepository.DeleteEmployeeAsync(id);
         }
 
-        public async Task CreateEmployeeAsync(CreateEmployeeViewModel employee)
+        public async Task CreateEmployeeAsync(EmployeeFormViewModel employee)
         {
             await _employeeRepository.CreateEmployeeAsync(employee);
+        }
+
+        public async Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email)
+        {
+            return await _employeeRepository.GetEmployeeByEmail(email);
         }
 
     }

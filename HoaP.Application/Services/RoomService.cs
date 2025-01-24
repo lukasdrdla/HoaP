@@ -27,12 +27,12 @@ namespace HoaP.Application.Services
             return await _roomRepository.GetRoomByIdAsync(id);
         }
 
-        public async Task CreateRoomAsync(CreateRoomViewModel room)
+        public async Task CreateRoomAsync(RoomFormViewModel room)
         {
             await _roomRepository.CreateRoomAsync(room);
         }
 
-        public async Task UpdateRoomAsync(UpdateRoomViewModel room)
+        public async Task UpdateRoomAsync(RoomFormViewModel room)
         {
             await _roomRepository.UpdateRoomAsync(room);
         }

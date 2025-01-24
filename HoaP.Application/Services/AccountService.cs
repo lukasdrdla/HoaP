@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.AppUser;
+using HoaP.Application.ViewModels.Employee;
 using HoaP.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -27,6 +28,11 @@ namespace HoaP.Application.Services
         public async Task<AppUser> GetCurrentUserAsync()
         {
             return await _accountRepository.GetCurrentUserAsync();
+        }
+
+        public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
+        {
+            await _accountRepository.UpdateUserAsync(model);
         }
     }
 }
