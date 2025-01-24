@@ -13,11 +13,7 @@ namespace HoaP.Application.Mappings
     {
         public CurrencyProfile()
         {
-            CreateMap<Currency, CurrencyViewModel>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
-                .ForMember(dest => dest.Symbol, opt => opt.MapFrom(src => src.Symbol));
+            CreateMap<Currency, CurrencyViewModel>().ReverseMap();
         }
     }
 }

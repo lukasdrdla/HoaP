@@ -4,19 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using HoaP.Application.ViewModels.Room;
+using HoaP.Application.ViewModels;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Mappings
 {
-    public class RoomStatusProfile : Profile
+    public class ReservationStatusProfile : Profile
     {
-        public RoomStatusProfile()
+        public ReservationStatusProfile()
         {
-
-            CreateMap<RoomStatus, RoomStatusViewModel>().ReverseMap();
-
-
+            CreateMap<ReservationStatus, ReservationStatusViewModel>().ReverseMap();
 
         }
     }
