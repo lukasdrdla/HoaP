@@ -1,5 +1,7 @@
 ﻿@page "/ukoly"
+@using HoaP.Application.ViewModels.Task
 @inject AccountService AccountService
+@inject TaskService TaskService
 @rendermode InteractiveServer
 
 <div class="container mt-5">
@@ -40,31 +42,35 @@
 
 @code {
     private string newTask;
-    private List<TaskItem> tasks = new List<TaskItem>();
+    private List<TaskViewModel> tasks = new List<TaskViewModel>();
     private AppUser user;
 
     protected override async Task OnInitializedAsync()
     {
         user = await AccountService.GetCurrentUserAsync();
+        tasks = await TaskService.GetTasksForEmployeeAsync(user.Id);
     }
 
     private async Task AddTask()
     {
         if (!string.IsNullOrWhiteSpace(newTask))
         {
-            var task = new TaskItem { Title = newTask, IsCompleted = false };
+            var task = new TaskViewModel { Title = newTask, IsCompleted = false };
+            await TaskService.CreateTask(task, user.Id);
             tasks.Add(task);
             newTask = string.Empty;
         }
     }
 
-    private async Task ToggleTaskCompletion(TaskItem task)
+    private async void ToggleTaskCompletion(TaskViewModel task)
     {
         task.IsCompleted = !task.IsCompleted;
+        await TaskService.UpdateTask(task);
     }
 
-    private async Task DeleteTask(TaskItem task)
+    private async Task DeleteTask(TaskViewModel task)
     {
         tasks.Remove(task);
+		await TaskService.DeleteTask(task.Id);
     }
 }
