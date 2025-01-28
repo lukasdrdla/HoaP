@@ -22,9 +22,11 @@ namespace HoaP.Infrastructure.Repositories
             _context = context;
             _mapper = mapper;
         }
-        public Task CreateReservationAsync(Reservation reservation)
+        public async Task CreateReservationAsync(ReservationFormViewModel reservation)
         {
-            throw new NotImplementedException();
+            var newReservation = _mapper.Map<Reservation>(reservation);
+            await _context.Reservations.AddAsync(newReservation);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteReservationAsync(int id)
@@ -40,8 +42,8 @@ namespace HoaP.Infrastructure.Repositories
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
+                .ThenInclude(r => r.RoomType)
                 .Include(r => r.Guests)
-                .Include(r=> r.Room.RoomType)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             return _mapper.Map<DetailReservationViewModel>(reservation);
@@ -79,9 +81,16 @@ namespace HoaP.Infrastructure.Repositories
 
         }
 
-        public Task UpdateReservationAsync(Reservation reservation)
+        public async Task UpdateReservationAsync(ReservationFormViewModel reservation)
         {
-            throw new NotImplementedException();
+            var existingReservation = await _context.Reservations.FindAsync(reservation.Id);
+
+            if (existingReservation != null)
+            {
+                _mapper.Map(reservation, existingReservation);
+                _context.Reservations.Update(existingReservation);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
