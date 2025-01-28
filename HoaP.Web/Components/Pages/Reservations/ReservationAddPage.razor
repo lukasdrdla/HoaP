@@ -1,1 +1,571 @@
-﻿
+﻿@page "/spravovat-rezervaci/{reservationId:int?}"
+@using HoaP.Application.ViewModels.Guest
+@inject ReservationService ReservationService
+@inject NavigationManager NavigationManager
+@inject RoomService RoomService
+@inject CustomerService CustomerService
+@inject MealPlanService MealPlanService
+@inject ReservationStatusService ReservationStatusService
+@inject IMapper Mapper
+
+@rendermode InteractiveServer
+
+<div class="container mt-2">
+	<div class="card border-0 shadow-sm mx-auto">
+		<div class="card-body">
+			<h3 class="card-title text-center  page-title">@(reservationId == null ? "Vytvořit rezervaci" : "Upravit rezervaci")</h3>
+			@if (reservationId != null)
+			{
+				<p class="text-center">Rezervace č. @reservationId</p>
+			}
+
+			@if (reservationId == null)
+			{
+				<div class="d-flex justify-content-center mb-3">
+					<button class="btn btn-outline-primary me-2" @onclick="() => SwitchMode(ReservationMode.ByDate)"
+							disabled="@(mode == ReservationMode.ByDate)">
+						Zadat datum
+					</button>
+					<button class="btn btn-outline-primary" @onclick="() => SwitchMode(ReservationMode.ByRoom)"
+							disabled="@(mode == ReservationMode.ByRoom)">
+						Vybrat pokoj
+					</button>
+				</div>
+			}
+
+
+			<EditForm Model="reservation" OnValidSubmit="HandleValidSubmit">
+				<DataAnnotationsValidator />
+				<ValidationSummary />
+				<div class="form-group mb-3">
+					<div class="form-group mb-3">
+						<div class="d-flex justify-content-end">
+							<a href="/zakaznici/vytvorit" class="btn btn-primary">Přidat zákazníka</a>
+						</div>
+						<label for="CustomerId" class="form-label">Zákazník</label>
+						<div class="form-group position-relative">
+							<input type="text" class="form-control" placeholder="Hledat zákazníka" @bind="searchCustomerTerm" @bind:event="oninput" @bind:after="FilterCustomers" @onblur="HideCustomerList" />
+							@if (filteredCustomers.Any())
+							{
+								<ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+									@foreach (var customer in filteredCustomers)
+									{
+										<li class="list-group-item list-group-item-action" @onmousedown="() => SelectCustomer(customer)">
+											<div>
+												<strong> Jméno:</strong> @customer.FirstName @customer.LastName
+											</div>
+											<div>
+												<strong> Kontaktní údaje:</strong> @customer.Email, @customer.Phone
+											</div>
+											<div>
+												<strong> Adresa:</strong> @customer.Address, @customer.City, @customer.PostalCode, @customer.Country
+											</div>
+											<div>
+												<strong> Číslo dokladu:</strong> @customer.DocumentNumber
+											</div>
+
+
+										</li>
+									}
+								</ul>
+							}
+						</div>
+					</div>
+				</div>
+
+
+				<div class="d-flex justify-content-between">
+					<label for="Guests" class="form-label">Hosté</label>
+					<button type="button" class="btn btn-primary mb-3" @onclick="AddGuest">Přidat hosta</button>
+				</div>
+				<div class="form-group mb-3">
+					@foreach (var guest in reservation.Guests)
+					{
+						<div class="d-flex mb-2">
+							<input type="text" class="form-control me-2" placeholder="Jméno hosta" @bind="guest.FirstName" />
+							<input type="text" class="form-control me-2" placeholder="Příjmení hosta" @bind="guest.LastName" />
+							<input type="date" class="form-control me-2" placeholder="Datum narození hosta" @bind="guest.DateOfBirth" />
+							<input type="number" class="form-control" placeholder="Rodné číslo hosta" @bind="guest.DocumentNumber" />
+
+							<button type="button" class="btn btn-danger ms-2" @onclick="() => reservation.Guests.Remove(guest)">
+								<i class="bi bi-trash"></i>
+							</button>
+
+						</div>
+					}
+				</div>
+
+				@if (mode == ReservationMode.ByDate)
+				{
+					<div class="form-group mb-3">
+						<div class="form-group mb-3">
+							<label for="RoomId" class="form-label">Pokoj</label>
+							<div class="form-group position-relative">
+								<input type="text" class="form-control" placeholder="Hledat pokoj" @bind="searchRoomTerm" @bind:event="oninput" @bind:after="FilterRooms" @onblur="HideRoomList" />
+
+								@if (filteredRooms.Any())
+								{
+									<ul class="list-group btn-secondary mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+										@foreach (var room in filteredRooms)
+										{
+											<li class="list-group-item list-group-item-action" @onmousedown="() => SelectRoom(room)">
+												<div>
+													<strong> Číslo pokoje:</strong> @room.RoomNumber
+												</div>
+												<div>
+													<strong> Typ pokoje:</strong> @room.RoomTypeName
+												</div>
+												<div>
+													<strong> Kapacita:</strong> @room.MaxAdults dospělí, @room.MaxChildren děti
+												</div>
+												<div>
+													<strong> Cena:</strong> @room.Price Kč za noc
+												</div>
+											</li>
+										}
+									</ul>
+								}
+
+							</div>
+						</div>
+					</div>
+
+					<div class="mb-4 row">
+						<div class="col-md-6">
+							<label for="CheckIn" class="form-label">Check In</label>
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="Vyberte datum"
+									   value="@reservation.CheckIn.ToShortDateString()" @onclick="OpenCheckInCalendar" readonly style="cursor: pointer;" />
+							</div>
+							@if (isCheckInCalendarVisible)
+							{
+								<div class="calendar-container">
+									<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectIn" />
+								</div>
+							}
+						</div>
+
+						<div class="col-md-6">
+							<label for="CheckOut" class="form-label">Check Out</label>
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="Vyberte datum"
+									   value="@reservation.CheckOut.ToShortDateString()" @onclick="OpenCheckOutCalendar" readonly style="cursor: pointer;" />
+							</div>
+							@if (isCheckOutCalendarVisible)
+							{
+								<div class="calendar-container">
+									<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectOut" />
+								</div>
+							}
+						</div>
+					</div>
+
+
+				}
+
+				@if (mode == ReservationMode.ByRoom)
+				{
+					<div class="mb-4 row">
+						<div class="col-md-6">
+							<label for="CheckIn" class="form-label">Check In</label>
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="Vyberte datum"
+									   value="@reservation.CheckIn.ToShortDateString()" @onclick="OpenCheckInCalendarFromDateFirst" readonly style="cursor: pointer;" />
+							</div>
+							@if (isCheckInCalendarVisibleFromDateFirst)
+							{
+								<div class="calendar-container">
+									<Picker  OnDateSelected="OnDateSelectIn" />
+								</div>
+							}
+						</div>
+
+						<div class="col-md-6">
+							<label for="CheckOut" class="form-label">Check Out</label>
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="Vyberte datum"
+									   value="@reservation.CheckOut.ToShortDateString()" @onclick="OpenCheckOutCalendarFromDateFirst" readonly style="cursor: pointer;" />
+							</div>
+							@if (isCheckOutCalendarVisibleFromDateFirst)
+							{
+								<div class="calendar-container">
+									<Picker OnDateSelected="OnDateSelectOut" />
+								</div>
+							}
+						</div>
+
+						<button type="button" class="btn btn-primary mt-3" @onclick="LoadAvailableRooms">Zobrazit dostupné pokoje</button>
+
+					</div>
+
+					<input type="text" placeholder="Vyhledat pokoj" class="form-control" @bind="searchRoomTermByDate" @bind:event="oninput" @bind:after="FilterRoomsByDate" @onblur="HideRoomList" />
+
+					@if (availableRooms.Any())
+					{
+						<div class="form-group">
+							<ul class="list-group mt-1" style="max-height: 400px; overflow-y: auto;">
+							@foreach (var room in availableRooms)
+							{
+								<li class="list-group-item list-group-item-action d-flex justify-content-between">
+									<div>
+										<strong>Pokoj:</strong> @room.RoomNumber<br />
+										<strong>Typ:</strong> @room.RoomTypeName<br />
+										<strong>Cena:</strong> @room.Price Kč za noc
+									</div>
+									<a class="btn btn-outline-primary d-flex align-items-center justify-content-center" @onclick="() => SelectRoomByRoom(room)">
+										Vybrat
+									</a>
+								</li>
+							}
+						</ul>
+						</div>
+					}
+					@if (selectedRoom != null)
+					{
+						<div class="mt-4">
+							<h5>Vybraný pokoj:</h5>
+							<p><strong>Pokoj:</strong> @selectedRoom.RoomNumber</p>
+							<p><strong>Typ:</strong> @selectedRoom.RoomTypeName</p>
+							<p><strong>Cena:</strong> @selectedRoom.Price Kč za noc</p>
+						</div>
+					}
+				}
+
+				<div class="mb-3 row">
+					<div class="col-md-6">
+						<label for="Adults" class="form-label">Dospělí</label>
+						<select id="Adults" class="form-control" @onchange="OnAdultsSelect" value="@reservation.Adults">
+							@for (int i = 0; i <= selectedRoom?.MaxAdults; i++)
+							{
+								<option value="@i">@i</option>
+							}
+						</select>
+					</div>
+
+					<div class="col-md-6">
+						<label for="Children" class="form-label">Děti</label>
+						<select id="Children" class="form-control" @onchange="OnChildrenSelect" value="@reservation.Children">
+							@for (int i = 0; i <= selectedRoom?.MaxChildren; i++)
+							{
+								<option value="@i">@i</option>
+							}
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="Total" class="form-label">Cena</label>
+					<InputNumber id="Total" class="form-control" @bind-Value="reservation.TotalPrice" />
+				</div>
+
+				<div class="mb-3 row">
+					<div class="col-md-6">
+
+						<label for="MealPlanId" class="form-label">Stravování</label>
+						<select id="MealPlanId" class="form-control" @onchange="OnMealSelect" value="@reservation.MealPlanId">
+							<option value="">Vyber stravování</option>
+							@foreach (var mealPlan in mealPlans)
+							{
+								<option value="@mealPlan.Id">@mealPlan.Name</option>
+
+
+							}
+						</select>
+					</div>
+
+					<div class="col-md-6">
+						<label for="ReservationStatusId" class="form-label">Status</label>
+						<InputSelect id="ReservationStatusId" class="form-control" @bind-Value="reservation.ReservationStatusId">
+							<option value="">Vyber status</option>
+							@foreach (var reservationStatus in reservationStatuses)
+							{
+								<option value="@reservationStatus.Id">@reservationStatus.Name</option>
+							}
+						</InputSelect>
+					</div>
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="SpecialRequest" class="form-label">Speciální Požadavky</label>
+					<InputTextArea id="SpecialRequest" class="form-control" @bind-Value="reservation.SpecialRequest" />
+				</div>
+
+				<div class="form-group mb-3">
+					<label for="adminNote" class="form-label">Poznámka Zaměstnance</label>
+					<InputTextArea id="adminNote" class="form-control" @bind-Value="reservation.AdminNote" />
+				</div>
+
+
+				<div class="text-center mt-4">
+					<button type="submit" class="btn btn-primary">@(reservationId == null ? "Vytvořit rezervaci" : "Uložit rezervaci")</button>
+					<a href="/rezervace" class="btn btn-outline-secondary ml-2">Zpět na seznam</a>
+				</div>
+			</EditForm>
+		</div>
+	</div>
+</div>
+
+
+<style>
+</style>
+
+
+
+@code {
+	[Parameter]
+	public int? reservationId { get; set; }
+
+	private ReservationFormViewModel reservation = new ReservationFormViewModel();
+	private List<CustomerViewModel> customers = new();
+	private List<CustomerViewModel> filteredCustomers = new();
+
+	private List<RoomViewModel> rooms = new();
+	private List<RoomViewModel> filteredRooms = new();
+	private List<RoomViewModel> availableRooms = new();
+
+	private string? searchCustomerTerm;
+	private string? searchRoomTerm;
+	private string? searchRoomTermByDate;
+
+	private List<MealPlanViewModel> mealPlans = new();
+	private List<ReservationStatusViewModel> reservationStatuses = new();
+	private RoomViewModel selectedRoom = new RoomViewModel();
+
+	private ReservationMode mode = ReservationMode.ByDate;
+
+	private DateTime currentMonth = DateTime.Now;
+	private List<DateTime> disabledDates = new();
+	private List<DateTime> unavailableDates = new List<DateTime>();
+
+	int numberOfNights;
+	private bool isCheckInCalendarVisible = false;
+	private bool isCheckOutCalendarVisible = false;
+
+	private bool isCheckInCalendarVisibleFromDateFirst = false;
+	private bool isCheckOutCalendarVisibleFromDateFirst = false;
+
+	protected override async Task OnInitializedAsync()
+	{
+		reservation.CheckIn = DateTime.Now;
+		reservation.CheckOut = DateTime.Now.AddDays(1);
+
+		customers = await CustomerService.GetCustomersAsync();
+		filteredCustomers = new List<CustomerViewModel>();
+
+		rooms = await RoomService.GetRoomsAsync();
+		filteredRooms = new List<RoomViewModel>();
+
+		mealPlans = await MealPlanService.GetMealPlansAsync();
+		reservationStatuses = await ReservationStatusService.GetReservationStatusesAsync();
+
+		if (reservationId != null)
+		{
+			reservation = Mapper.Map<ReservationFormViewModel>(await ReservationService.GetReservationByIdAsync(reservationId.Value));
+
+			searchCustomerTerm = $"{reservation.CustomerName}";
+			searchRoomTerm = $"{reservation.RoomTypeName} - {reservation.RoomNumber}";
+			selectedRoom = rooms.FirstOrDefault(x => x.Id == reservation.RoomId);
+			reservation.RoomId = selectedRoom.Id;
+			unavailableDates = await RoomService.GetUnavaibleDatesAsync(reservation.RoomId);
+		}
+
+	}
+
+	private void SwitchMode(ReservationMode mode)
+	{
+		this.mode = mode;
+	}
+
+	private void OpenCheckInCalendar()
+	{
+		isCheckInCalendarVisible = !isCheckInCalendarVisible;
+	}
+
+	private void OpenCheckOutCalendar()
+	{
+		isCheckOutCalendarVisible = !isCheckOutCalendarVisible;
+	}
+
+	private void OpenCheckInCalendarFromDateFirst()
+	{
+		isCheckInCalendarVisibleFromDateFirst = !isCheckInCalendarVisibleFromDateFirst;
+	}
+
+	private void OpenCheckOutCalendarFromDateFirst()
+	{
+		isCheckOutCalendarVisibleFromDateFirst = !isCheckOutCalendarVisibleFromDateFirst;
+	}
+
+	private void SelectCustomer(CustomerViewModel customer)
+	{
+		reservation.CustomerId = customer.Id;
+		searchCustomerTerm = $"{customer.FirstName} {customer.LastName}";
+		filteredCustomers = new List<CustomerViewModel>();
+	}
+
+	private async void SelectRoom(RoomViewModel room)
+	{
+		reservation.RoomId = room.Id;
+		searchRoomTerm = $"{room.RoomTypeName} - {room.RoomNumber}";
+		filteredRooms.Clear();
+
+		selectedRoom = room;
+		await OnRoomSelected();
+	}
+
+	private void SelectRoomByRoom(RoomViewModel room)
+	{
+		selectedRoom = room;
+		reservation.RoomId = room.Id;
+		searchRoomTerm = $"{room.RoomNumber}";
+		filteredRooms.Clear();
+		CalculateTotalPrice();
+	}
+
+	private void CalculateTotalPrice()
+	{
+		if (selectedRoom == null || reservation.CheckIn >= reservation.CheckOut)
+		{
+			reservation.TotalPrice = 0;
+			return;
+		}
+
+		numberOfNights = (int)(reservation.CheckOut - reservation.CheckIn).TotalDays;
+		reservation.TotalPrice = selectedRoom.Price * numberOfNights;
+
+		if (reservation.MealPlanId != 0)
+		{
+			var mealPlan = mealPlans.FirstOrDefault(x => x.Id == reservation.MealPlanId);
+			reservation.TotalPrice += mealPlan.Price * numberOfNights;
+		}
+
+
+	}
+
+	private void OnAdultsSelect(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value.ToString(), out int adults))
+		{
+			reservation.Adults = adults;
+		}
+		CalculateTotalPrice();
+	}
+
+	private void OnChildrenSelect(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value.ToString(), out int children))
+		{
+			reservation.Children = children;
+		}
+		CalculateTotalPrice();
+	}
+
+	private void OnMealSelect(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value.ToString(), out int selectedMealPlanId))
+		{
+			reservation.MealPlanId = selectedMealPlanId;
+
+		}
+		CalculateTotalPrice();
+	}
+
+	private void OnDateSelectIn(DateTime? date)
+	{
+		reservation.CheckIn = date.Value;
+		isCheckInCalendarVisible = false;
+		isCheckInCalendarVisibleFromDateFirst = false;
+	}
+
+	private void OnDateSelectOut(DateTime? date)
+	{
+		reservation.CheckOut = date.Value;
+		isCheckOutCalendarVisible = false;
+		isCheckOutCalendarVisibleFromDateFirst = false;
+	}
+
+	private async Task LoadAvailableRooms()
+	{
+		if (reservation.CheckIn >= reservation.CheckOut)
+		{
+			availableRooms = new List<RoomViewModel>();
+			return;
+		}
+		availableRooms = await RoomService.GetAvailableRoomsAsync(reservation.CheckIn, reservation.CheckOut);
+	}
+
+
+
+
+	private async Task OnRoomSelected()
+	{
+		if (selectedRoom == null)
+		{
+			reservation.RoomId = 0;
+			unavailableDates.Clear();
+			return;
+		}
+
+		reservation.RoomId = selectedRoom.Id;
+		unavailableDates = await RoomService.GetUnavaibleDatesAsync(selectedRoom.Id);
+		CalculateTotalPrice();
+	}
+
+
+	private async Task HandleValidSubmit()
+	{
+
+		await ReservationService.CreateReservationAsync(reservation);
+
+		//await RoomService.UpdateRoomStatusAsync(reservation.RoomId, 2);
+
+		NavigationManager.NavigateTo("/rezervace");
+	}
+
+
+
+	private void AddGuest()
+	{
+		reservation.Guests.Add(new GuestViewModel());
+	}
+
+	private void FilterCustomers()
+	{
+		filteredCustomers = customers.Where(x => x.FirstName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.LastName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+	}
+
+	private void HideCustomerList()
+	{
+		filteredCustomers.Clear();
+	}
+
+	private void FilterRooms()
+	{
+		filteredRooms = rooms.Where(x => x.RoomNumber.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+	}
+
+	private void FilterRoomsByDate()
+	{
+		if (availableRooms.Any())
+		{
+			availableRooms = availableRooms.Where(x => x.RoomNumber.Contains(searchRoomTermByDate, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+		else
+		{
+			availableRooms = new List<RoomViewModel>();
+		}
+	}
+
+	private void HideRoomList()
+	{
+		filteredRooms.Clear();
+		availableRooms.Clear();
+	}
+
+	private enum ReservationMode
+	{
+		ByDate,
+		ByRoom
+	}
+
+}

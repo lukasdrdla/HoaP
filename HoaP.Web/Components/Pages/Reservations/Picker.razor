@@ -1,0 +1,104 @@
+﻿@rendermode InteractiveServer
+<div class="calendar">
+    <div class="header">
+        <button type="button" class="btn btn-primary mx-4" @onclick="PreviousMonth">&lt;</button>
+        <span class="fw-bold">@currentMonth.ToString("MMMM yyyy")</span>
+        <button type="button" class="btn btn-primary mx-4" @onclick="NextMonth">&gt;</button>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                @foreach (var day in new[] { "Po", "Út", "St", "Čt", "Pá", "So", "Ne" })
+                {
+                    <th>@day</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var week in GenerateCalendar(currentMonth.Year, currentMonth.Month))
+            {
+                <tr>
+                    @foreach (var day in week)
+                    {
+                        var isDisabled = DisableDates.Contains(day);
+                        var cellClass = isDisabled ? "disabled" : "enabled";
+                        <td class="@cellClass" @onclick="() => OnDateClick(day)" title="@(isDisabled ? "Zakázáno" : "")">
+                            @if (day != DateTime.MinValue)
+                            {
+                                <span>@day.Day</span>
+                            }
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public EventCallback<DateTime?> OnDateSelected { get; set; }
+    [Parameter] public List<DateTime>? DisableDates { get; set; } = new List<DateTime>();
+
+    private DateTime? selectedDate;
+    private DateTime currentMonth = DateTime.Now;
+
+
+
+    private List<List<DateTime>> GenerateCalendar(int year, int month)
+    {
+        var daysInMonth = DateTime.DaysInMonth(year, month);
+        var firstDay = new DateTime(year, month, 1);
+        var weeks = new List<List<DateTime>>();
+
+        // Fill weeks with empty days
+        var week = new List<DateTime>();
+        for (int i = 0; i < (int)firstDay.DayOfWeek; i++)
+        {
+            week.Add(DateTime.MinValue); // Empty placeholder
+        }
+
+        // Fill days in month
+        for (int day = 1; day <= daysInMonth; day++)
+        {
+            week.Add(new DateTime(year, month, day));
+            if (week.Count == 7)
+            {
+                weeks.Add(week);
+                week = new List<DateTime>();
+            }
+        }
+
+        // Add any remaining days to the last week
+        if (week.Count > 0)
+        {
+            while (week.Count < 7)
+            {
+                week.Add(DateTime.MinValue); // Empty placeholder
+            }
+            weeks.Add(week);
+        }
+
+        return weeks;
+    }
+
+    private void OnDateClick(DateTime date)
+    {
+        if (!DisableDates.Contains(date))
+        {
+            selectedDate = date;
+            OnDateSelected.InvokeAsync(selectedDate); // Volej událost pro výběr data
+        }
+    }
+
+    private void PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+    }
+
+    private void NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+    }
+
+
+}

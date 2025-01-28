@@ -42,6 +42,7 @@
                                 {
                                     <div class="options-menu" @ref="optionsMenu">
                                         <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                        <button class="dropdown-item" @onmousedown="() => NavigateToUpdateReservation(context.Id)">Upravit</button>
                                     </div>
                                 }
                             </div>
@@ -61,7 +62,7 @@
 
 @code {
 
-    private List<ReservationViewModel> reservations;
+	private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
     private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
     private string? searchTerm;
     private int reservationIdToDelete;
@@ -140,7 +141,12 @@
 
     private void NavigateToAddReservation()
     {
-        NavigationManager.NavigateTo("/pridat-rezervaci");
+        NavigationManager.NavigateTo("/spravovat-rezervaci");
     }
+
+	private void NavigateToUpdateReservation(int id)
+	{
+		NavigationManager.NavigateTo($"/spravovat-rezervaci/{id}");
+	}
 
 }
