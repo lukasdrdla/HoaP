@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Guest;
+using HoaP.Application.ViewModels.MealPlan;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels
@@ -12,6 +14,9 @@ namespace HoaP.Application.ViewModels
         public int Id { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
         public string RoomTypeName { get; set; } = string.Empty;
+        public int RoomTypeId { get; set; }
+        public int ReservationStatusId { get; set; }
+        public int MealPlanId { get; set; }
         public int RoomId { get; set; }
         public string RoomImage { get; set; } = string.Empty;
         public int GuestCount { get; set; }
@@ -28,6 +33,7 @@ namespace HoaP.Application.ViewModels
         public string AdminNote { get; set; } = "";
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
-        public ICollection<Guest> Guests { get; set; } = null!;
+        public ICollection<GuestViewModel> Guests { get; set; } = null!;
+
     }
 }

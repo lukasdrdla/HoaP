@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Review;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels.Room
@@ -23,8 +24,6 @@ namespace HoaP.Application.ViewModels.Room
 
         public int RoomStatusId { get; set; }
         public int RoomTypeId { get; set; }
-
-
-        public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<Review.ReviewViewModel> Reviews { get; set; } = new List<Review.ReviewViewModel>();
     }
 }
