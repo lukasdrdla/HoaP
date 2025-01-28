@@ -1,24 +1,25 @@
 ﻿@inject AmenityService AmenityService
 <div>
-    <h4>Amenities</h4>
-
+	<h4>Vybavení pokoje</h4>
+    <div class="table-responsive-lg">
     <QuickGrid Items=filteredAmenities.AsQueryable() Pagination="paginationState" Class="w-100 table table-bordered mt-3">
-		<PropertyColumn Title="Name" Property="@(x => x.Name)" Sortable="true">
+		<PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
             <ColumnOptions>
                 <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchAmenities" placeholder="Search Amenities..." />
             </ColumnOptions>
 		</PropertyColumn>
 
-		<PropertyColumn Title="Icon" Property="@(x => x.Icon)" Sortable="true" />
-		<TemplateColumn Title="Actions">
-			<button class="btn btn-primary" @onclick="() => EditAmenity(context)">Edit</button>
-			<button class="btn btn-danger" @onclick="() => DeleteAmenity(context.Id)">Delete</button>
+		<PropertyColumn Title="Ikona" Property="@(x => x.Icon)" Sortable="true" />
+        <TemplateColumn Title="Actions" Class="column-actions">
+				<button class="btn btn-primary btn-sm" @onclick="() => EditAmenity(context)"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-danger btn-sm" @onclick="() => DeleteAmenity(context.Id)"><i class="bi bi-trash"></i></button>
 		</TemplateColumn>
 	</QuickGrid>
+    
 	<Paginator State="paginationState" />
-
+    </div>
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Amenity" : "Add Amenity")</h5>
+		<h5>@(editMode ? "Upravit vybavení pokoje" : "Přidat vybavení pokoje")</h5>
         <EditForm Model="currentAmenity" OnValidSubmit="HandleAmenitySubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -35,6 +36,7 @@
         </EditForm>
     </div>
 </div>
+
 
 @code {
 	private List<AmenityViewModel> amenities = new();
@@ -76,11 +78,9 @@
         else
         {
 			await AmenityService.CreateAmenityAsync(currentAmenity);
-			currentAmenity = new AmenityViewModel();
+			filteredAmenities.Add(currentAmenity);
+            currentAmenity = new AmenityViewModel();
         }
-
-		await LoadAmenities();
-
     }
 
     private async Task LoadAmenities()
@@ -96,8 +96,11 @@
 
     private async Task DeleteAmenity(int id)
     {
-		await AmenityService.DeleteAmenityAsync(id);
-		await LoadAmenities();	
+		var amenity = amenities.FirstOrDefault(x => x.Id == id);
+        await AmenityService.DeleteAmenityAsync(id);
+		amenities.Remove(amenity);
+		filteredAmenities = amenities;
+
     }
 }
 

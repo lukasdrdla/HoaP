@@ -1,30 +1,31 @@
 ﻿@inject RoleService roleService
 
 <div>
-    <h4>Roles</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var role in roles)
-            {
-                <tr>
-                    <td>@role.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditRole(role)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRole(role.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Role uživatelů</h4>
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredRoles.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchRoles" placeholder="Vyhledat roli..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditRole(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteRole(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Role" : "Add Role")</h5>
+		<h5>@(editMode ? "Upravit roli" : "Přidat roli")</h5>
         <EditForm Model="currentRole" OnValidSubmit="HandleRoleSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -40,18 +41,32 @@
 
 @code {
     private List<RoleViewModel> roles = new();
+	private List<RoleViewModel> filteredRoles = new();
     private RoleViewModel currentRole = new();
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+	private string? searchTerm;
     private bool editMode = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRoles();
+        roles = await roleService.GetRolesAsync();
+
+		filteredRoles = roles;
     }
 
-    private async Task LoadRoles()
-    {
-        roles = await roleService.GetRolesAsync();
+	private void SearchRoles(ChangeEventArgs e)
+	{
+        searchTerm = e.Value.ToString();
+		if (string.IsNullOrWhiteSpace(searchTerm))
+		{
+			filteredRoles = roles;
+		}
+		else
+		{
+			filteredRoles = roles.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
     }
+
 
     private async Task HandleRoleSubmit()
     {
@@ -63,9 +78,9 @@
         else
         {
             await roleService.CreateRoleAsync(currentRole);
+			filteredRoles.Add(currentRole);
         }
         currentRole = new RoleViewModel();
-        await LoadRoles();
     }
 
     private void EditRole(RoleViewModel role)
@@ -74,9 +89,13 @@
         editMode = true;
     }
 
-    private async Task DeleteRole(string name)
+    private async Task DeleteRole(string id)
     {
-        await roleService.DeleteRoleAsync(name);
-        await LoadRoles();
+		var role = roles.FirstOrDefault(x => x.Id == id);
+        if (role != null)
+        {
+            await roleService.DeleteRoleAsync(role.Id);
+			filteredRoles.Remove(role);
+        }
     }
 }

@@ -1,30 +1,31 @@
 ﻿@inject RoomTypeService roomTypeService
 
 <div>
-    <h4>Room Types</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var type in roomTypes)
-            {
-                <tr>
-                    <td>@type.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditRoomType(type)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomType(type.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Typy pokojů</h4>
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredRoomTypes.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchRoomTypes" placeholder="Vyhledat typ pokoje..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditRoomType(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomType(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Room Type" : "Add Room Type")</h5>
+		<h5>@(editMode ? "Upravit typ pokoje" : "Přidat typ pokoje")</h5>
         <EditForm Model="currentRoomType" OnValidSubmit="HandleRoomTypeSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -40,18 +41,32 @@
 
 @code {
     private List<RoomTypeViewModel> roomTypes = new();
+	private List<RoomTypeViewModel> filteredRoomTypes = new();
     private RoomTypeViewModel currentRoomType = new();
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+	private string? searchTerm;
     private bool editMode = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadRoomTypes();
+        roomTypes = await roomTypeService.GetRoomTypesAsync();
+
+		filteredRoomTypes = roomTypes;
     }
 
-    private async Task LoadRoomTypes()
-    {
-        roomTypes = await roomTypeService.GetRoomTypesAsync();
-    }
+	private void SearchRoomTypes(ChangeEventArgs e)
+	{
+		searchTerm = e.Value.ToString();
+		if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+			filteredRoomTypes = roomTypes;
+		}
+		else
+		{
+			filteredRoomTypes = roomTypes.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+	}
+
 
     private async Task HandleRoomTypeSubmit()
     {
@@ -63,9 +78,9 @@
         else
         {
             await roomTypeService.CreateRoomTypeAsync(currentRoomType);
+			filteredRoomTypes.Add(currentRoomType);
         }
         currentRoomType = new RoomTypeViewModel();
-        await LoadRoomTypes();
     }
 
     private void EditRoomType(RoomTypeViewModel type)
@@ -76,7 +91,13 @@
 
     private async Task DeleteRoomType(int id)
     {
-        await roomTypeService.DeleteRoomTypeAsync(id);
-        await LoadRoomTypes();
+		var roomType = roomTypes.FirstOrDefault(x => x.Id == id);
+
+		if (roomType != null)
+		{
+            await roomTypeService.DeleteRoomTypeAsync(id);
+			roomTypes.Remove(roomType);
+		}
+
     }
 }

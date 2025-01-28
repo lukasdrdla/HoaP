@@ -1,32 +1,32 @@
 ﻿@inject MealPlanService mealPlanService
 
 <div>
-    <h4>Meal Plans</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Název</th>
-                <th>Cena</th>
-                <th>Akce</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var plan in mealPlans)
-            {
-                <tr>
-                    <td>@plan.Name</td>
-                    <td>@plan.Price</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditMealPlan(plan)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteMealPlan(plan.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Jídelní plány</h4>
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredMealPlans.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchMealPlans" placeholder="Vyhledat plán stravování..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <PropertyColumn Title="Cena" Property="@(x => x.Price)" Sortable="true" />
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditMealPlan(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteMealPlan(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Upravit Meal Plan" : "Přidat Meal Plan")</h5>
+		<h5>@(editMode ? "Upravit jídelní plán" : "Přidat jídelní plán")</h5>
         <EditForm Model="currentMealPlan" OnValidSubmit="HandleMealPlanSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -46,8 +46,11 @@
 
 @code {
     private List<MealPlanViewModel> mealPlans = new();
+	private List<MealPlanViewModel> filteredMealPlans = new();
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
     private MealPlanViewModel currentMealPlan = new();
     private bool editMode = false;
+	private string? searchTerm;
 
 
 	protected override async Task OnInitializedAsync()
@@ -58,6 +61,20 @@
     private async Task LoadMealPlans()
 	{
 		mealPlans = await mealPlanService.GetMealPlansAsync();
+		filteredMealPlans = mealPlans;
+	}
+
+	private void SearchMealPlans(ChangeEventArgs e)
+	{
+        searchTerm = e.Value.ToString();
+        if (string.IsNullOrEmpty(searchTerm))
+		{
+			filteredMealPlans = mealPlans;
+            }
+		else
+		{
+            filteredMealPlans = mealPlans.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
 	}
 
     private async Task HandleMealPlanSubmit()
@@ -73,10 +90,10 @@
         {
             
 			await mealPlanService.CreateMealPlanAsync(currentMealPlan);
+			filteredMealPlans.Add(currentMealPlan);
 			currentMealPlan = new MealPlanViewModel();
         }
 
-        await LoadMealPlans();        
     }
 
     private void EditMealPlan(MealPlanViewModel plan)
@@ -87,7 +104,11 @@
 
     private async Task DeleteMealPlan(int id)
     {
+		var mealPlan = mealPlans.FirstOrDefault(r => r.Id == id);
 		await mealPlanService.DeleteMealPlanAsync(id);
-		await LoadMealPlans();
+		filteredMealPlans.Remove(mealPlan);
+		filteredMealPlans = mealPlans;
+
+		
     }
 }

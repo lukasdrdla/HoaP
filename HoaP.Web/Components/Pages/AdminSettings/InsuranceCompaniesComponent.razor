@@ -1,82 +1,103 @@
 ﻿@inject InsuranceCompanyService insuranceCompanyService
 
 <div>
-    <h4>Insurance Companies</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var company in insuranceCompanies)
-            {
-                <tr>
-                    <td>@company.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditInsuranceCompany(company)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteInsuranceCompany(company.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Pojišťovny</h4>
+	<div class="table-responsive-lg">
+		<QuickGrid Items="filteredInsuranceCompanies.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+			<!-- Sloupec pro název pojišťovny -->
+			<PropertyColumn Title="Name" Property="@(x => x.Name)" Sortable="true">
+				<ColumnOptions>
+					<input type="search" class="form-control" @bind="searchTerm" @oninput="SearchInsuranceCompanies" placeholder="Search Insurance Companies..." />
+				</ColumnOptions>
+			</PropertyColumn>
 
-    <div class="mt-4">
-        <h5>@(editMode ? "Edit Insurance Company" : "Add Insurance Company")</h5>
-        <EditForm Model="currentInsuranceCompany" OnValidSubmit="HandleInsuranceCompanySubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+			<!-- Sloupec pro akce -->
+			<TemplateColumn Title="Actions" Class="column-actions">
+				<div class="d-flex gap-2">
+					<button class="btn btn-sm btn-primary" @onclick="() => EditInsuranceCompany(context)">
+						<i class="bi bi-pencil"></i>
+					</button>
+					<button class="btn btn-sm btn-danger" @onclick="() => DeleteInsuranceCompany(context.Id)">
+						<i class="bi bi-trash"></i>
+					</button>
+				</div>
+			</TemplateColumn>
+		</QuickGrid>
 
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <InputText id="name" class="form-control" @bind-Value="currentInsuranceCompany.Name" />
-            </div>
-            <button class="btn btn-success" type="submit">Save</button>
-        </EditForm>
-    </div>
+		<Paginator State="paginationState" />
+	</div>
+
+	<div class="mt-4">
+		<h5>@(editMode ? "Upravit pojišťovnu" : "Přidat pojišťovnu")</h5>
+		<EditForm Model="currentInsuranceCompany" OnValidSubmit="HandleInsuranceCompanySubmit">
+			<DataAnnotationsValidator />
+			<ValidationSummary />
+
+			<div class="mb-3">
+				<label for="name" class="form-label">Name</label>
+				<InputText id="name" class="form-control" @bind-Value="currentInsuranceCompany.Name" />
+			</div>
+			<button class="btn btn-success" type="submit">Save</button>
+		</EditForm>
+	</div>
 </div>
 
 @code {
-    private List<InsuranceCompanyViewModel> insuranceCompanies = new();
-    private InsuranceCompanyViewModel currentInsuranceCompany = new();
-    private bool editMode = false;
+	private List<InsuranceCompanyViewModel> insuranceCompanies = new();
+	private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new();
+	private string? searchTerm;
+	private InsuranceCompanyViewModel currentInsuranceCompany = new();
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+	private bool editMode = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadInsuranceCompanies();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadInsuranceCompanies();
+	}
 
-    private async Task LoadInsuranceCompanies()
-    {
-        insuranceCompanies = await insuranceCompanyService.GetInsuranceCompaniesAsync();
-    }
+	private async Task LoadInsuranceCompanies()
+	{
+		insuranceCompanies = await insuranceCompanyService.GetInsuranceCompaniesAsync();
+		filteredInsuranceCompanies = insuranceCompanies;
+	}
 
-    private async Task HandleInsuranceCompanySubmit()
-    {
-        if (editMode)
-        {
-            await insuranceCompanyService.UpdateInsuranceCompanyAsync(currentInsuranceCompany);
-            editMode = false;
-        }
-        else
-        {
-            await insuranceCompanyService.CreateInsuranceCompanyAsync(currentInsuranceCompany);
-        }
-        currentInsuranceCompany = new InsuranceCompanyViewModel();
-        await LoadInsuranceCompanies();
-    }
+	private void SearchInsuranceCompanies(ChangeEventArgs e)
+	{
+		searchTerm = e.Value.ToString();
+		if (string.IsNullOrEmpty(searchTerm))
+		{
+			filteredInsuranceCompanies = insuranceCompanies;
+		}
+		else
+		{
+			filteredInsuranceCompanies = insuranceCompanies.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+	}
 
-    private void EditInsuranceCompany(InsuranceCompanyViewModel company)
-    {
-        currentInsuranceCompany = company;
-        editMode = true;
-    }
+	private async Task HandleInsuranceCompanySubmit()
+	{
+		if (editMode)
+		{
+			await insuranceCompanyService.UpdateInsuranceCompanyAsync(currentInsuranceCompany);
+			editMode = false;
+		}
+		else
+		{
+			await insuranceCompanyService.CreateInsuranceCompanyAsync(currentInsuranceCompany);
+		}
+		currentInsuranceCompany = new InsuranceCompanyViewModel();
+		await LoadInsuranceCompanies();
+	}
 
-    private async Task DeleteInsuranceCompany(int id)
-    {
+	private void EditInsuranceCompany(InsuranceCompanyViewModel company)
+	{
+		currentInsuranceCompany = company;
+		editMode = true;
+	}
+
+	private async Task DeleteInsuranceCompany(int id)
+	{
 		await insuranceCompanyService.DeleteInsuranceCompanyAsync(id);
 		await LoadInsuranceCompanies();
-    }
+	}
 }

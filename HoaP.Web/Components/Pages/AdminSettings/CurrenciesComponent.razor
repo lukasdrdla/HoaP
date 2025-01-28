@@ -1,96 +1,110 @@
 ﻿@inject CurrencyService currencyService
 
 <div>
-    <h4>Currencies</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Symbol</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var currency in currencies)
-            {
-                <tr>
-                    <td>@currency.Code</td>
-                    <td>@currency.Name</td>
-                    <td>@currency.Symbol</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditCurrency(currency)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCurrency(currency.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Měny</h4>
+	<div class="table-responsive-lg">
+		<QuickGrid Items=filteredCurrencies.AsQueryable() Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+			<PropertyColumn Title="Name" Property="@(x => x.Name)" Sortable="true">
+				<ColumnOptions>
+					<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCurrencies" placeholder="Vyhledat měnu..." />
+				</ColumnOptions>
+			</PropertyColumn>
 
-    <div class="mt-4">
-        <h5>@(editMode ? "Edit Currency" : "Add Currency")</h5>
-        <EditForm Model="currentCurrency" OnValidSubmit="HandleCurrencySubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
+			<PropertyColumn Title="Icon" Property="@(x => x.Symbol)" Sortable="true" />
+			<PropertyColumn Title="Code" Property="@(x => x.Code)" Sortable="true" />
+			<TemplateColumn Title="Actions" Class="column-actions">
+				<button class="btn btn-primary btn-sm" @onclick="() => EditCurrency(context)"><i class="bi bi-pencil"></i></button>
+				<button class="btn btn-danger btn-sm" @onclick="() => DeleteCurrency(context.Id)"><i class="bi bi-trash"></i></button>
+			</TemplateColumn>
+		</QuickGrid>
 
-            <div class="mb-3">
-                <label for="code" class="form-label">Code</label>
-                <InputText id="code" class="form-control" @bind-Value="currentCurrency.Code" />
-            </div>
-            <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <InputText id="name" class="form-control" @bind-Value="currentCurrency.Name" />
-            </div>
-            <div class="mb-3">
-                <label for="symbol" class="form-label">Symbol</label>
-                <InputText id="symbol" class="form-control" @bind-Value="currentCurrency.Symbol" />
-            </div>
-            <button class="btn btn-success" type="submit">Save</button>
-        </EditForm>
-    </div>
+		<Paginator State="paginationState" />
+	</div>
+	<div class="mt-4">
+		<h5>@(editMode ? "Upravit měnu" : "Přidat měnu")</h5>
+		<EditForm Model="currentCurrency" OnValidSubmit="HandleCurrencySubmit">
+			<DataAnnotationsValidator />
+			<ValidationSummary />
+
+			<div class="mb-3">
+				<label for="code" class="form-label">Code</label>
+				<InputText id="code" class="form-control" @bind-Value="currentCurrency.Code" />
+			</div>
+			<div class="mb-3">
+				<label for="name" class="form-label">Name</label>
+				<InputText id="name" class="form-control" @bind-Value="currentCurrency.Name" />
+			</div>
+			<div class="mb-3">
+				<label for="symbol" class="form-label">Symbol</label>
+				<InputText id="symbol" class="form-control" @bind-Value="currentCurrency.Symbol" />
+			</div>
+			<button class="btn btn-success" type="submit">Save</button>
+		</EditForm>
+	</div>
 </div>
 
 @code {
-    private List<CurrencyViewModel> currencies = new();
-    private CurrencyViewModel currentCurrency = new();
-    private bool editMode = false;
+	private List<CurrencyViewModel> currencies = new();
+	private List<CurrencyViewModel> filteredCurrencies = new();
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+	private CurrencyViewModel currentCurrency = new();
+	private string? searchTerm;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadCurrencies();
-    }
+	private bool editMode = false;
 
-    private async Task LoadCurrencies()
-    {
-        currencies = await currencyService.GetCurrenciesAsync();
-    }
-
-    private async Task HandleCurrencySubmit()
-    {
-        if (editMode)
-        {
-            await currencyService.UpdateCurrencyAsync(currentCurrency);
-            currentCurrency = new CurrencyViewModel();
-            editMode = false;
-        }
-        else
-        {
-            await currencyService.CreateCurrencyAsync(currentCurrency);
-            currentCurrency = new CurrencyViewModel();
-        }
-
-        await LoadCurrencies();
-    }
-
-    private void EditCurrency(CurrencyViewModel currency)
-    {
-        currentCurrency = currency;
-        editMode = true;
-    }
-
-    private async Task DeleteCurrency(int id)
-    {
-        await currencyService.DeleteCurrencyAsync(id);
+	protected override async Task OnInitializedAsync()
+	{
 		await LoadCurrencies();
-    }
+	}
+
+	private async Task LoadCurrencies()
+	{
+		currencies = await currencyService.GetCurrenciesAsync();
+		filteredCurrencies = currencies;
+	}
+
+	private async Task HandleCurrencySubmit()
+	{
+		if (editMode)
+		{
+			await currencyService.UpdateCurrencyAsync(currentCurrency);
+			currentCurrency = new CurrencyViewModel();
+			editMode = false;
+		}
+		else
+		{
+			await currencyService.CreateCurrencyAsync(currentCurrency);
+			filteredCurrencies.Add(currentCurrency);
+			currentCurrency = new CurrencyViewModel();
+		}
+
+	}
+
+	private void SearchCurrencies(ChangeEventArgs e)
+	{
+		searchTerm = e.Value.ToString();
+		if (string.IsNullOrEmpty(searchTerm))
+		{
+			filteredCurrencies = currencies;
+		}
+		else
+		{
+			filteredCurrencies = currencies.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+	}
+
+	private void EditCurrency(CurrencyViewModel currency)
+	{
+		currentCurrency = currency;
+		editMode = true;
+	}
+
+	private async Task DeleteCurrency(int id)
+	{
+		var currency = currencies.FirstOrDefault(x => x.Id == id);
+		await currencyService.DeleteCurrencyAsync(id);
+		filteredCurrencies.Remove(currency);
+		filteredCurrencies = currencies;
+
+	}
 }

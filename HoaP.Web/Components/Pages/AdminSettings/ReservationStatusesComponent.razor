@@ -1,30 +1,31 @@
 ﻿@inject ReservationStatusService reservationStatusService
 
 <div>
-    <h4>Reservation Statuses</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var status in reservationStatuses)
-            {
-                <tr>
-                    <td>@status.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditReservationStatus(status)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteReservationStatus(status.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <h4>Stavy rezervací</h4>  
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredReservationStatuses.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchReservationStatuses" placeholder="Vyhledat stav rezervace..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditReservationStatus(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteReservationStatus(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Reservation Status" : "Add Reservation Status")</h5>
+        <h5>@(editMode ? "Upravit stav rezervace" : "Přidat stav rezervace")</h5>
         <EditForm Model="currentReservationStatus" OnValidSubmit="HandleReservationStatusSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -40,17 +41,31 @@
 
 @code {
     private List<ReservationStatusViewModel> reservationStatuses = new();
+	private List<ReservationStatusViewModel> filteredReservationStatuses = new();
+	private string? searchTerm;
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
     private ReservationStatusViewModel currentReservationStatus = new();
     private bool editMode = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadReservationStatuses();
+        reservationStatuses = await reservationStatusService.GetReservationStatusesAsync();
+        filteredReservationStatuses = reservationStatuses;
+
     }
 
-    private async Task LoadReservationStatuses()
+    private void SearchReservationStatuses(ChangeEventArgs e)
     {
-        reservationStatuses = await reservationStatusService.GetReservationStatusesAsync();
+		searchTerm = e.Value.ToString();
+
+		if (string.IsNullOrWhiteSpace(searchTerm))
+		{
+			filteredReservationStatuses = reservationStatuses;
+		}
+		else
+		{
+			filteredReservationStatuses = reservationStatuses.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
     }
 
     private async Task HandleReservationStatusSubmit()
@@ -63,9 +78,9 @@
         else
         {
             await reservationStatusService.CreateReservationStatusAsync(currentReservationStatus);
+			filteredReservationStatuses.Add(currentReservationStatus);
         }
         currentReservationStatus = new ReservationStatusViewModel();
-        await LoadReservationStatuses();
     }
 
     private void EditReservationStatus(ReservationStatusViewModel status)

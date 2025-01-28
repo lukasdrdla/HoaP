@@ -1,37 +1,38 @@
-﻿@inject ReservationStatusService reservationStatusService
+﻿@inject RoomStatusService roomStatusService
 
 <div>
-    <h4>Reservation Statuses</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var status in reservationStatuses)
-            {
-                <tr>
-                    <td>@status.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditReservationStatus(status)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteReservationStatus(status.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Stavy pokojů </h4>
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredRoomStatuses.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchRoomStatuses" placeholder="Vyhledat stav pokoje..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditRoomStatus(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteRoomStatus(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Reservation Status" : "Add Reservation Status")</h5>
-        <EditForm Model="currentReservationStatus" OnValidSubmit="HandleReservationStatusSubmit">
+		<h5>@(editMode ? "Upravit stav pokoje" : "Přidat stav pokoje")</h5>
+        <EditForm Model="currentRoomStatus" OnValidSubmit="HandleReservationStatusSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
             <div class="mb-3">
                 <label for="name" class="form-label">Name</label>
-                <InputText id="name" class="form-control" @bind-Value="currentReservationStatus.Name" />
+                <InputText id="name" class="form-control" @bind-Value="currentRoomStatus.Name" />
             </div>
             <button class="btn btn-success" type="submit">Save</button>
         </EditForm>
@@ -39,44 +40,64 @@
 </div>
 
 @code {
-    private List<ReservationStatusViewModel> reservationStatuses = new();
-    private ReservationStatusViewModel currentReservationStatus = new();
+    private List<RoomStatusViewModel> roomStatuses = new();
+    private List<RoomStatusViewModel> filteredRoomStatuses = new();
+
+    private RoomStatusViewModel currentRoomStatus = new();
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+    private string? searchTerm;
     private bool editMode = false;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadReservationStatuses();
+        roomStatuses = await roomStatusService.GetRoomStatusesAsync();
+        filteredRoomStatuses = roomStatuses;
     }
 
-    private async Task LoadReservationStatuses()
+
+    private void SearchRoomStatuses(ChangeEventArgs e)
     {
-        reservationStatuses = await reservationStatusService.GetReservationStatusesAsync();
+        searchTerm = e.Value.ToString();
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredRoomStatuses = roomStatuses;
+        }
+        else
+        {
+            filteredRoomStatuses = roomStatuses.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    private void EditRoomStatus(RoomStatusViewModel status)
+    {
+		currentRoomStatus = status;
+		editMode = true;
+    }
+
+    private async Task DeleteRoomStatus(int id)
+    {
+        var status = roomStatuses.FirstOrDefault(x => x.Id == id);
+        if (status != null)
+        {
+            await roomStatusService.DeleteRoomStatusAsync(id);
+			roomStatuses.Remove(status);
+        }
     }
 
     private async Task HandleReservationStatusSubmit()
     {
         if (editMode)
         {
-            await reservationStatusService.UpdateReservationStatusAsync(currentReservationStatus);
-            editMode = false;
+            await roomStatusService.UpdateRoomStatusAsync(currentRoomStatus);
         }
         else
         {
-            await reservationStatusService.CreateReservationStatusAsync(currentReservationStatus);
+            await roomStatusService.CreateRoomStatusAsync(currentRoomStatus);
+			filteredRoomStatuses.Add(currentRoomStatus);
         }
-        currentReservationStatus = new ReservationStatusViewModel();
-        await LoadReservationStatuses();
-    }
 
-    private void EditReservationStatus(ReservationStatusViewModel status)
-    {
-        currentReservationStatus = status;
-        editMode = true;
-    }
-
-    private async Task DeleteReservationStatus(int id)
-    {
-        await reservationStatusService.DeleteReservationStatusAsync(id);
-        await LoadReservationStatuses();
+        editMode = false;
+        currentRoomStatus = new RoomStatusViewModel();
     }
 }

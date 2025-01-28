@@ -1,30 +1,31 @@
 ﻿@inject PaymentMethodService paymentMethodService
 
 <div>
-    <h4>Payment Methods</h4>
-    <table class="table table-bordered mt-3">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var method in paymentMethods)
-            {
-                <tr>
-                    <td>@method.Name</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" @onclick="() => EditPaymentMethod(method)">Edit</button>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeletePaymentMethod(method.Id)">Delete</button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+	<h4>Platební metody</h4>
+    <div class="table-responsive-lg">
+        <QuickGrid Items="filteredPaymentMethods.AsQueryable()" Pagination="paginationState" Class="w-100 table table-bordered mt-3">
+            <PropertyColumn Title="Název" Property="@(x => x.Name)" Sortable="true">
+                <ColumnOptions>
+                    <input type="search" class="form-control" @bind="searchTerm" @oninput="SearchPaymentMethods" placeholder="Vyhledat platební metodu..." />
+                </ColumnOptions>
+            </PropertyColumn>
+            <TemplateColumn Title="Akce" Class="column-actions">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-primary" @onclick="() => EditPaymentMethod(context)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeletePaymentMethod(context.Id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </TemplateColumn>
+        </QuickGrid>
+
+        <Paginator State="paginationState" />
+    </div>
 
     <div class="mt-4">
-        <h5>@(editMode ? "Edit Payment Method" : "Add Payment Method")</h5>
+		<h5>@(editMode ? "Upravit platební metodu" : "Přidat platební metodu")</h5>
         <EditForm Model="currentPaymentMethod" OnValidSubmit="HandlePaymentMethodSubmit">
             <DataAnnotationsValidator />
             <ValidationSummary />
@@ -40,7 +41,10 @@
 
 @code {
     private List<PaymentMethodViewModel> paymentMethods = new();
+	private List<PaymentMethodViewModel> filteredPaymentMethods = new();
     private PaymentMethodViewModel currentPaymentMethod = new();
+	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
+	private string? searchTerm;
     private bool editMode = false;
 
     protected override async Task OnInitializedAsync()
@@ -51,6 +55,7 @@
     private async Task LoadPaymentMethods()
     {
         paymentMethods = await paymentMethodService.GetPaymentMethodsAsync();
+		filteredPaymentMethods = paymentMethods;
     }
 
     private async Task HandlePaymentMethodSubmit()
@@ -63,10 +68,23 @@
         else
         {
             await paymentMethodService.CreatePaymentMethodAsync(currentPaymentMethod);
+			filteredPaymentMethods.Add(currentPaymentMethod);
         }
         currentPaymentMethod = new PaymentMethodViewModel();
-        await LoadPaymentMethods();
     }
+
+	private void SearchPaymentMethods(ChangeEventArgs e)
+	{
+		searchTerm = e.Value.ToString();
+		if (string.IsNullOrEmpty(searchTerm))
+		{
+			filteredPaymentMethods = paymentMethods;
+		}
+		else
+		{
+			filteredPaymentMethods = paymentMethods.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		}
+	}
 
     private void EditPaymentMethod(PaymentMethodViewModel method)
     {
@@ -76,7 +94,9 @@
 
     private async Task DeletePaymentMethod(int id)
     {
+		var paymentMethod = paymentMethods.FirstOrDefault(x => x.Id == id);
         await paymentMethodService.DeletePaymentMethodAsync(id);
-        await LoadPaymentMethods();
+		filteredPaymentMethods.Remove(paymentMethod);
+		filteredPaymentMethods = paymentMethods;
     }
 }
