@@ -84,7 +84,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await CustomerService.GetCustomers();
+        customers = await CustomerService.GetCustomersAsync();
         filteredCustomers = customers;
     }
 
