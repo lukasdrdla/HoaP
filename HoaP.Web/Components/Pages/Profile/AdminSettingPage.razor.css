@@ -33,3 +33,8 @@
 .nav-link {
     color: #023216;
 }
+
+.column-actions {
+    width: 200px;
+    text-align: center;
+}
