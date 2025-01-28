@@ -119,3 +119,23 @@ a, .btn-link {
         .options-menu button:hover {
             background-color: #f0f0f0;
         }
+
+
+.btn-outline-primary {
+    color: #14A872;
+    border-color: #14A872;
+}
+
+    .btn-outline-primary:hover {
+        color: #FFFFFF;
+        background-color: #14A872;
+        border-color: #14A872;
+    }
+
+    .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active, .btn-outline-primary:active:focus, .btn-outline-primary:active.active, .btn-outline-primary:active.active:focus, .btn-outline-primary:active:focus, .btn-outline-primary.active:focus, .btn-outline-primary:disabled {
+        color: #FFFFFF;
+        background-color: #14A872;
+        border-color: #14A872;
+        box-shadow: none;
+        outline: none;
+    }
