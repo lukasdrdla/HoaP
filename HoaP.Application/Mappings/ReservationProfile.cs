@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using HoaP.Application.ViewModels;
+using HoaP.Application.ViewModels.Guest;
+using HoaP.Application.ViewModels.Room;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Mappings
@@ -13,6 +15,9 @@ namespace HoaP.Application.Mappings
     {
         public ReservationProfile()
         {
+            CreateMap<DetailReservationViewModel, ReservationFormViewModel>().ReverseMap();
+
+            CreateMap<ReservationFormViewModel, Reservation>().ReverseMap();
 
             CreateMap<Reservation, ReservationViewModel>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
@@ -44,9 +49,13 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.AdminNote, opt => opt.MapFrom(src => src.AdminNote))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
-                .ForMember(dest => dest.Guests, opt => opt.MapFrom(src => src.Guests));
+                .ForMember(dest => dest.Guests, opt => opt.MapFrom(src => src.Guests))
+                .ForMember(dest => dest.MealPlanId, opt => opt.MapFrom(src => src.MealPlanId))
+                .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.Room.RoomTypeId));
 
+            CreateMap<Guest, GuestViewModel>();
 
+            CreateMap<GuestViewModel, Guest>();
 
 
 
