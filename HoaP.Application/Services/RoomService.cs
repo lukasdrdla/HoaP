@@ -42,6 +42,21 @@ namespace HoaP.Application.Services
             await _roomRepository.DeleteRoomAsync(id);
         }
 
+        public async Task<RoomViewModel> GetAvailableRoomsAsync(DateTime checkIn, DateTime checkOut, int adults, int children)
+        {
+            return await _roomRepository.GetAvailableRoomsAsync(checkIn, checkOut, adults, children);
+        }
+
+        public async Task<List<DateTime>> GetUnavaibleDatesAsync(int roomId)
+        {
+            return await _roomRepository.GetUnavaibleDatesAsync(roomId);
+        }
+
+        public async Task<List<RoomViewModel>> GetAvailableRoomsAsync(DateTime checkIn, DateTime checkOut)
+        {
+            return await _roomRepository.GetAvailableRoomsAsync(checkIn, checkOut);
+        }
+
 
 
     }

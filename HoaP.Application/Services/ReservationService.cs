@@ -42,6 +42,16 @@ namespace HoaP.Application.Services
             await _reservationRepository.DeleteReservationAsync(id);
         }
 
+        public async Task CreateReservationAsync(ReservationFormViewModel reservation)
+        {
+            await _reservationRepository.CreateReservationAsync(reservation);
+        }
+
+        public async Task UpdateReservationAsync(ReservationFormViewModel reservation)
+        {
+            await _reservationRepository.UpdateReservationAsync(reservation);
+        }
+
 
     }
 }

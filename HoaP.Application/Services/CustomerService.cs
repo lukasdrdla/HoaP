@@ -18,7 +18,7 @@ namespace HoaP.Application.Services
             _customerRepository = customerRepository;
         }
 
-        public async Task<List<CustomerViewModel>> GetCustomers()
+        public async Task<List<CustomerViewModel>> GetCustomersAsync()
         {
             return await _customerRepository.GetCustomersAsync();
         }
