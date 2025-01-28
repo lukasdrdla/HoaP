@@ -27,7 +27,11 @@
                         <PropertyColumn Title="Rezervace" Property="@(x => x.ReservationId)" Sortable="true" />
                         <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
-                        <PropertyColumn Title="Stav" Property="@(x => x.IsPaid ? "Zaplaceno" : "Nezaplaceno")" Sortable="true" />
+                        <TemplateColumn Title="Stav" Sortable="true">
+							<span class="badge bg-@(context.IsPaid ? "success" : "danger")">
+								@(context.IsPaid ? "Zaplaceno" : "Nezaplaceno")
+							</span>
+                        </TemplateColumn>
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">
                                 <button class="btn text-primary" @onclick="() => NavigateToInvoiceDetail(context.Id)">
