@@ -1,106 +1,160 @@
 ﻿@page "/pokoj/{roomId:int}"
 @using HoaP.Application.ViewModels.Amenity
 @using HoaP.Application.ViewModels
+@using HoaP.Application.ViewModels.Review
 @using HoaP.Application.ViewModels.Room
 @inject RoomService RoomService
 @inject AmenityService AmenityService
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
+@inject ReviewService ReviewService
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="container mt-2">
-    @if (room == null)
-    {
-        <div class="text-center">
-            <div class="spinner-border text-primary" role="status">
-                <span class="sr-only"></span>
-            </div>
-            <p class="mt-2">Načítám podrobnosti o pokoji...</p>
-        </div>
-    }
-    else
-    {
+	@if (room == null)
+	{
+		<div class="text-center">
+			<div class="spinner-border text-primary" role="status">
+				<span class="sr-only"></span>
+			</div>
+			<p class="mt-2">Načítám podrobnosti o pokoji...</p>
+		</div>
+	}
+	else
+	{
 		<div class="card border-0 shadow-sm mx-auto">
 			<div class="card-body">
 				<div class="container py-5">
-            <div class="room-header">
-                <h3>@room.RoomTypeName - @room.RoomNumber</h3>
-                <div class="d-flex gap-2">
-					<button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateRoom(room.Id)">Upravit pokoj</button>
-					<button class="btn btn-success" @onclick="NavigateToCreateRezervation">+ Vytvořit rezervaci</button>
-                </div>
-            </div>
-
-            <div class="row">
-                <!-- Room Image -->
-                <div class="col-md-6 room-image">
-                    <img src="@room.Image" alt="Room Image">
-                </div>
-
-                <!-- Room Details -->
-                <div class="col-md-6 mt-4">
-					<h1 class="room-price">@room.Price Kč/noc </h1>
-                    <div class="mb-3">
-						<div class="row mt-4">
-							<div class="col-6">
-								<p><strong>Číslo pokoje:</strong> @room.RoomNumber</p>
-								<p><strong>Typ pokoje:</strong> @room.RoomTypeName</p>
-								<p><strong>Status pokoje:</strong> @room.RoomStatusName</p>
-                            </div>
-							<div class="col-6">
-                                <p><strong>Max. Počet dosepělí:</strong> @room.MaxAdults</p>
-                                <p><strong>Max. Počet dětí:</strong> @room.MaxChildren</p>
-                                <p><strong>Popis pokoje</strong> @room.Description</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Room Amenities -->
-					<h5>Vybavení pokoje</h5>
-                    <div class="row room-amenities">
-						@foreach (var amenity in amenities)
-						{
-                            <div class="col-6"> <i class="@amenity.Icon"></i> @amenity.Name</div>
-
-						}
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Room Booking History -->
-            <div class="booking-history-table mt-5">
-				<h5>Historie rezervací</h5>
-                <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
-					<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
-						<ColumnOptions>
-							<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
-						</ColumnOptions>
-					</PropertyColumn>
-					<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
-					<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
-					<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-					<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
-					<TemplateColumn Title="Akce">
-						<div class="d-inline-flex">
-							<button class="btn text-primary">
-								<i class="bi bi-search"></i>
-							</button>
-							<button class="btn text-danger" >
-								<i class="bi bi-trash"></i>
-							</button>
+					<div class="room-header">
+						<h3>@room.RoomTypeName - @room.RoomNumber</h3>
+						<div class="d-flex gap-2">
+							<button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateRoom(room.Id)">Upravit pokoj</button>
+							<button class="btn btn-success" @onclick="NavigateToCreateRezervation">+ Vytvořit rezervaci</button>
 						</div>
-					</TemplateColumn>
-                </QuickGrid>
-				<Paginator State="paginationState" />
+					</div>
+
+					<div class="row">
+						<!-- Room Image -->
+						<div class="col-md-6 room-image">
+							<img src="@room.Image" alt="Room Image">
+						</div>
+
+						<!-- Room Details -->
+						<div class="col-md-6 mt-4">
+							<h1 class="room-price">@room.Price Kč/noc </h1>
+							<div class="mb-3">
+								<div class="row mt-4">
+									<div class="col-6">
+										<p><strong>Číslo pokoje:</strong> @room.RoomNumber</p>
+										<p><strong>Typ pokoje:</strong> @room.RoomTypeName</p>
+										<p><strong>Status pokoje:</strong> @room.RoomStatusName</p>
+									</div>
+									<div class="col-6">
+										<p><strong>Max. Počet dosepělí:</strong> @room.MaxAdults</p>
+										<p><strong>Max. Počet dětí:</strong> @room.MaxChildren</p>
+										<p><strong>Popis pokoje</strong> @room.Description</p>
+									</div>
+								</div>
+							</div>
+
+							<!-- Room Amenities -->
+							<h5>Vybavení pokoje</h5>
+							<div class="row room-amenities">
+								@foreach (var amenity in amenities)
+								{
+									<div class="col-6"> <i class="@amenity.Icon"></i> @amenity.Name</div>
+
+								}
+
+							</div>
+						</div>
+					</div>
+
+					<!-- Room Booking History -->
+					<div class="booking-history-table mt-5">
+						<h5>Historie rezervací</h5>
+						<div class="table-responsive-lg">
+						<QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
+							<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
+								<ColumnOptions>
+									<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
+								</ColumnOptions>
+							</PropertyColumn>
+							<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
+							<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+							<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+							<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+							<TemplateColumn Title="Akce">
+								<div class="d-inline-flex">
+									<button class="btn text-primary">
+										<i class="bi bi-search"></i>
+									</button>
+									<button class="btn text-danger">
+										<i class="bi bi-trash"></i>
+									</button>
+								</div>
+							</TemplateColumn>
+						</QuickGrid>
+						</div>
+						<Paginator State="paginationState" />
 
 
-            </div>
-        </div>
+					</div>
+				</div>
 			</div>
 		</div>
 
-    }
+		<!-- Hodnocení pokoje -->
+
+		<div class="review-section mt-5">
+			<h5 class="mb-4">Recenze pokoje</h5>
+
+			@if (filteredReviews == null || !filteredReviews.Any())
+			{
+				<p>Žádné recenze k dispozici.</p>
+			}
+			else
+			{
+				@foreach (var review in paginatedReviews)
+				{
+					<div class="card mb-3 border-0 shadow-sm">
+						<div class="card-body">
+							<div class="d-flex align-items-center mb-2">
+								<span class="text-warning me-2">
+									@for (int i = 0; i < review.Rating; i++)
+									{
+										<i class="bi bi-star-fill"></i>
+									}
+									@for (int i = 0; i < (5 - review.Rating); i++)
+									{
+										<i class="bi bi-star"></i>
+									}
+								</span>
+								<span class="text-muted">@review.CreatedAt.ToShortDateString()</span>
+							</div>
+							<p class="mb-0">@review.Comment</p>
+							<small class="text-muted">Hodnoceno uživatelem: @review.CustomerName</small>
+						</div>
+					</div>
+				}
+			}
+
+			<!-- Paginator -->
+			<div class="d-flex justify-content-between align-items-center mt-3">
+				<button class="btn btn-outline-secondary" @onclick="GoToPreviousPage" disabled="@IsFirstPage">Předchozí</button>
+				<span>Stránka @CurrentPage z @TotalPages</span>
+				<button class="btn btn-outline-secondary" @onclick="GoToNextPage" disabled="@IsLastPage">Další</button>
+			</div>
+		</div>
+
+
+		<hr />
+
+
+
+
+
+	}
 </div>
 
 
@@ -112,10 +166,22 @@
 
 	private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
 
-    private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
-    private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
+	private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
+	private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
 
-    private PaginationState paginationState = new PaginationState { ItemsPerPage = 20 };
+	private List<ReviewViewModel> filteredReviews = new();
+	private List<ReviewViewModel> paginatedReviews = new();
+
+	private int CurrentPage = 1;
+	private int ItemsPerPage = 2;
+
+	private int TotalPages => (int)Math.Ceiling((double)filteredReviews.Count / ItemsPerPage);
+
+	private bool IsFirstPage => CurrentPage == 1;
+	private bool IsLastPage => CurrentPage == TotalPages;
+
+	private PaginationState paginationState = new PaginationState { ItemsPerPage = 20 };
+
 
 	private string? searchTerm;
 
@@ -123,9 +189,37 @@
 	{
 		room = await RoomService.GetRoomByIdAsync(roomId);
 		amenities = await AmenityService.GetAmenitiesByRoomIdAsync(roomId);
-        reservations = await ReservationService.GetReservationsByRoomIdAsync(roomId);
+		reservations = await ReservationService.GetReservationsByRoomIdAsync(roomId);
 		filteredReservations = reservations;
+		filteredReviews = await ReviewService.GetRoomReviewsAsync(roomId);
+		UpdatePagination();
 
+	}
+
+	private void UpdatePagination()
+	{
+		paginatedReviews = filteredReviews
+			.Skip((CurrentPage - 1) * ItemsPerPage)
+			.Take(ItemsPerPage)
+			.ToList();
+	}
+
+	private void GoToPreviousPage()
+	{
+		if (!IsFirstPage)
+		{
+			CurrentPage--;
+			UpdatePagination();
+		}
+	}
+
+	private void GoToNextPage()
+	{
+		if (!IsLastPage)
+		{
+			CurrentPage++;
+			UpdatePagination();
+		}
 	}
 
 	private void NavigateToCreateRezervation()
@@ -145,7 +239,7 @@
 		{
 			filteredReservations = reservations;
 		}
-        
+
 	}
 
 	private void NavigateToUpdateRoom(int roomId)
@@ -155,6 +249,6 @@
 
 
 
-		
+
 
 }
