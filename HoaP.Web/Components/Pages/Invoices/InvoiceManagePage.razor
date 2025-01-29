@@ -159,7 +159,7 @@
     private async Task SearchReservation(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
-		filteredReservations = reservations.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		filteredReservations = reservations.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
 
     }
 

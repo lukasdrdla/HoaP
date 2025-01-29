@@ -4,152 +4,97 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-
-<div class="container mt-2">
+<div class="container mt-4">
     @if (customer == null)
     {
-        <div class="text-center">
+        <div class="text-center mt-5">
             <div class="spinner-border text-primary" role="status">
                 <span class="sr-only"></span>
             </div>
-            <p class="mt-2">Načítám podrobnosti o zákazníkovi...</p>
+            <p class="mt-3">Načítám podrobnosti o zákazníkovi...</p>
         </div>
     }
     else
     {
-        <div class="row">
-            <div class="card border-0 shadow-sm mx-auto">
-                <div class="card-body">
-                    <div class="container py-5">
-						<div class="d-flex justify-content-between mb-3">
-                            <h3>@customer.FirstName @customer.LastName - #@customer.Id</h3>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateCustomer(Id)">Upravit zákazníka</button>
-                                <button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci </button>
-
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <!-- Customer Information -->
-                            <div class="col-md-12">
-                                <div class="customer-detail">
-                                    <h5>Customer Information</h5>
-                                    <div class="detail-item">
-                                        <span><strong>Jméno:</strong></span>
-                                        <span>@customer.FirstName @customer.LastName</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>Document Number:</strong></span>
-                                        <span>@customer.DocumentNumber</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>Place of Birth:</strong></span>
-                                        <span>@customer.PlaceOfBirth</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>Date of Birth:</strong></span>
-                                        <span>@customer.DateOfBirth</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Date of Issue:</strong></span>
-                                        <span>@customer.DateOfIssue</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Date of Expiry:</strong></span>
-                                        <span>@customer.DateOfExpiry</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Personal Identification Number:</strong></span>
-                                        <span>@customer.PersonalIdentificationNumber</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Nationality :</strong></span>
-                                        <span>@customer.Nationality</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>Phone:</strong></span>
-                                        <span>@customer.Phone</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Email:</strong></span>
-                                        <span>@customer.Email</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Address:</strong></span>
-                                        <span>@customer.Address</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>City:</strong></span>
-                                        <span>@customer.City</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Postal Code:</strong></span>
-                                        <span>@customer.PostalCode</span>
-                                    </div>
-
-                                    <div class="detail-item">
-                                        <span><strong>Country:</strong></span>
-                                        <span>@customer.Country</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Created At:</strong></span>
-                                        <span>@customer.CreatedAt</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span><strong>Updated At:</strong></span>
-                                        <span>@customer.UpdatedAt</span>
-                                    </div>
-
-                                </div>
-
-                                <div class="d-flex gap-3 mt-4">
-                                    <button class="btn btn-danger flex-grow-1" @onclick="OpenDeleteConfirmation">Smazat</button>
-									<button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToCustomers">Zpět na seznam</button>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Customer Details Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>@customer.FirstName @customer.LastName <small class="text-muted">#@customer.Id</small></h3>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateCustomer(Id)">Upravit zákazníka</button>
+                        <button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci</button>
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Osobní informace</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Jméno:</strong> @customer.FirstName @customer.LastName</li>
+                            <li><strong>Číslo dokumentu:</strong> @customer.DocumentNumber</li>
+                            <li><strong>Místo narození:</strong> @customer.PlaceOfBirth</li>
+							<li><strong>Datum narození:</strong> @customer.DateOfBirth.ToShortDateString()</li>
+							<li><strong>Datum vydání:</strong> @customer.DateOfIssue.ToShortDateString()</li>
+							<li><strong>Datum expirace:</strong> @customer.DateOfExpiry.ToShortDateString()</li>
+                            <li><strong>Rodné číslo:</strong> @customer.PersonalIdentificationNumber</li>
+                        </ul>
+                    </div>
 
+                    <div class="col-md-6">
+                        <h5>Kontaktní informace</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Národnost:</strong> @customer.Nationality</li>
+                            <li><strong>Telefon:</strong> @customer.Phone</li>
+                            <li><strong>Email:</strong> @customer.Email</li>
+                            <li><strong>Adresa:</strong> @customer.Address</li>
+                            <li><strong>Město:</strong> @customer.City</li>
+                            <li><strong>PSČ:</strong> @customer.PostalCode</li>
+                            <li><strong>Země:</strong> @customer.Country</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <p><strong>Vytvořeno:</strong> @customer.CreatedAt</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Aktualizováno:</strong> @customer.UpdatedAt</p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button class="btn btn-danger flex-grow-1" @onclick="OpenDeleteConfirmation">Smazat zákazníka</button>
+                    <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToCustomers">Zpět na seznam</button>
+                </div>
             </div>
-
         </div>
 
+        <!-- Reservations Table -->
         <div class="mt-5">
-            <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class=" w-100">
+            <h4>Rezervace</h4>
+            <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="table table-bordered">
                 <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
-                <PropertyColumn Title="CheckIn" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
-                <PropertyColumn Title="CheckOut" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
+                <PropertyColumn Title="Check-In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+                <PropertyColumn Title="Check-Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                 <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
                 <PropertyColumn Title="Cena" Property="@(x => x.TotalPrice)" Sortable="true" />
                 <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
                 <TemplateColumn Title="Akce">
-                    <div class="d-inline-flex">
-                        <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
+                    <div class="d-inline-flex gap-2">
+                        <button class="btn btn-sm btn-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
                             <i class="bi bi-search"></i>
                         </button>
                     </div>
                 </TemplateColumn>
-
             </QuickGrid>
             <Paginator State="paginationState" />
-		</div>
-
-
-
+        </div>
     }
 </div>
 
-
 <DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteCustomer" Title="Smazání zákazníka" />
-
 
 @code {
     [Parameter]
@@ -157,13 +102,12 @@
 
     [SupplyParameterFromForm]
     private DetailCustomerViewModel customer { get; set; } = new DetailCustomerViewModel();
-	private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
-	private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
-	private string? searchTerm;
-	private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+    private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
+    private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
+    private string? searchTerm;
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 10 };
 
     private bool isDeleteModalVisible = false;
-
 
     private void OpenDeleteConfirmation()
     {
@@ -174,29 +118,28 @@
     {
         if (result)
         {
-			await DeleteCustomer();
+            await DeleteCustomer();
+        }
+        isDeleteModalVisible = false;
     }
-		isDeleteModalVisible = false;
-	}
 
     protected override async Task OnInitializedAsync()
     {
-		customer = await CustomerService.GetCustomerById(Id);
-		reservations = await ReservationService.GetReservationsByCustomerIdAsync(Id);
-		filteredReservations = reservations;
+        customer = await CustomerService.GetCustomerById(Id);
+        reservations = await ReservationService.GetReservationsByCustomerIdAsync(Id);
+        filteredReservations = reservations;
     }
 
-	private async Task DeleteCustomer()
-	{
-		await CustomerService.DeleteCustomer(Id);
-		NavigateToCustomers();
-	}
+    private async Task DeleteCustomer()
+    {
+        await CustomerService.DeleteCustomer(Id);
+        NavigateToCustomers();
+    }
 
-	private void NavigateToCustomers()
-	{
-		NavigationManager.NavigateTo("/zakaznici");
-	}
-
+    private void NavigateToCustomers()
+    {
+        NavigationManager.NavigateTo("/zakaznici");
+    }
 
     private void NavigateToReservationDetail(int id)
     {
@@ -205,15 +148,11 @@
 
     private void NavigateToAddReservation()
     {
-        NavigationManager.NavigateTo("/pridat-rezervaci");
+		NavigationManager.NavigateTo("/spravovat-rezervaci");
     }
 
-	private void NavigateToUpdateCustomer(int id)
-	{
-		NavigationManager.NavigateTo($"/spravovat-zakaznika/{id}");
-	}
-
-
- 
-
+    private void NavigateToUpdateCustomer(int id)
+    {
+        NavigationManager.NavigateTo($"/spravovat-zakaznika/{id}");
+    }
 }

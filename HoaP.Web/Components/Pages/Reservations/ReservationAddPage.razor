@@ -40,7 +40,7 @@
 				<div class="form-group mb-3">
 					<div class="form-group mb-3">
 						<div class="d-flex justify-content-end">
-							<a href="/zakaznici/vytvorit" class="btn btn-primary">Přidat zákazníka</a>
+							<a href="/spravovat-zakaznika" class="btn btn-primary">Přidat zákazníka</a>
 						</div>
 						<label for="CustomerId" class="form-label">Zákazník</label>
 						<div class="form-group position-relative">
@@ -514,10 +514,14 @@
 
 	private async Task HandleValidSubmit()
 	{
-
-		await ReservationService.CreateReservationAsync(reservation);
-
-		//await RoomService.UpdateRoomStatusAsync(reservation.RoomId, 2);
+		if (reservationId == null)
+		{
+			await ReservationService.CreateReservationAsync(reservation);
+		}
+		else
+		{
+			await ReservationService.UpdateReservationAsync(reservation);
+		}
 
 		NavigationManager.NavigateTo("/rezervace");
 	}
@@ -531,7 +535,7 @@
 
 	private void FilterCustomers()
 	{
-		filteredCustomers = customers.Where(x => x.FirstName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.LastName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		filteredCustomers = customers.Where(x => x.FirstName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.LastName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.Email.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.Phone.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.DocumentNumber.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase)).ToList();
 	}
 
 	private void HideCustomerList()
@@ -541,7 +545,7 @@
 
 	private void FilterRooms()
 	{
-		filteredRooms = rooms.Where(x => x.RoomNumber.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		filteredRooms = rooms.Where(x => x.RoomNumber.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) || x.RoomTypeName.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) || x.Price.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) || x.MaxAdults.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) || x.MaxChildren.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) || x.MaxChildren.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase)).ToList();
 	}
 
 	private void FilterRoomsByDate()
