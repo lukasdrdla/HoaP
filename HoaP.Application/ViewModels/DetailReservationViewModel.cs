@@ -14,6 +14,7 @@ namespace HoaP.Application.ViewModels
         public int Id { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
         public string RoomTypeName { get; set; } = string.Empty;
+        public int CustomerId { get; set; }
         public int RoomTypeId { get; set; }
         public int ReservationStatusId { get; set; }
         public int MealPlanId { get; set; }
