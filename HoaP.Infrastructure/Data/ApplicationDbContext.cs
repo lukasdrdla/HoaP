@@ -55,6 +55,39 @@ namespace HoaP.Infrastructure.Data
 
             modelBuilder.Entity<AppRole>().HasData(adminRole, managerRole, receptionistRole);
 
+            var admin = new AppUser
+            {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = "admin@admin.com",
+                    NormalizedUserName = "ADMIN@ADMIN.COM",
+                    Email = "admin@admin.com",
+                    NormalizedEmail = "ADMIN@ADMIN.COM",
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString(),
+                    ProfilePicture = "default.jpg",
+                    FirstName = "Admin",
+                    LastName = "Admin",
+                    Address = "Hlavní 123",
+                    City = "Praha",
+                    PostalCode = "11000",
+                    Country = "Česká republika",
+                    PersonalIdentificationNumber = "CZ1234567890",
+                    PlaceOfBirth = "Praha",
+                    JobTitle = "Admin",
+                    StartDate = DateTime.Now,
+                    Salary = 50000,
+                    IsEmployed = true,
+                    InsuranceCompanyId = 1
+            };
+
+            var passwordHasher = new PasswordHasher<AppUser>();
+            admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123456789!");
+
+            modelBuilder.Entity<AppUser>().HasData(admin);
+
+
+
+
             modelBuilder.Entity<Currency>().HasData(
                 new Currency { Id = 1, Name = "USD", Symbol = "$" },
                 new Currency { Id = 2, Name = "EUR", Symbol = "€" },
