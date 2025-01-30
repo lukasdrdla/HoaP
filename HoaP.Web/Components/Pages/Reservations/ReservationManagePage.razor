@@ -1,4 +1,8 @@
-﻿@page "/spravovat-rezervaci/{reservationId:int?}"
+﻿@page "/spravovat-rezervaci/{reservationId:int}"
+@page "/vytvorit-rezervaci"
+@page "/vytvorit-rezervaci/zakaznik/{customerId:int}"
+@page "/vytvorit-rezervaci/pokoj/{roomId:int}"
+
 @using HoaP.Application.ViewModels.Guest
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
@@ -19,7 +23,7 @@
 				<p class="text-center">Rezervace č. @reservationId</p>
 			}
 
-			@if (reservationId == null)
+			@if (reservationId == null && roomId == null)
 			{
 				<div class="d-flex justify-content-center mb-3">
 					<button class="btn btn-outline-primary me-2" @onclick="() => SwitchMode(ReservationMode.ByDate)"
@@ -32,6 +36,8 @@
 					</button>
 				</div>
 			}
+
+
 
 
 			<EditForm Model="reservation" OnValidSubmit="HandleValidSubmit">
@@ -314,6 +320,10 @@
 @code {
 	[Parameter]
 	public int? reservationId { get; set; }
+	[Parameter]
+	public int? customerId { get; set; }
+	[Parameter]
+	public int? roomId { get; set; }
 
 	private ReservationFormViewModel reservation = new ReservationFormViewModel();
 	private List<CustomerViewModel> customers = new();
@@ -367,6 +377,20 @@
 			selectedRoom = rooms.FirstOrDefault(x => x.Id == reservation.RoomId);
 			reservation.RoomId = selectedRoom.Id;
 			unavailableDates = await RoomService.GetUnavaibleDatesAsync(reservation.RoomId);
+		}
+		else if (customerId != null)
+		{
+			reservation.CustomerId = customerId.Value;
+			var customer = await CustomerService.GetCustomerById(customerId.Value);
+			searchCustomerTerm = $"{customer.FirstName} {customer.LastName}";
+		}
+		else if (roomId != null)
+		{
+			reservation.RoomId = roomId.Value;
+			var room = Mapper.Map<RoomViewModel>(await RoomService.GetRoomByIdAsync(roomId.Value));
+			searchRoomTerm = $"{room.RoomTypeName} - {room.RoomNumber}";
+			selectedRoom = room;
+			unavailableDates = await RoomService.GetUnavaibleDatesAsync(roomId.Value);
 		}
 
 	}

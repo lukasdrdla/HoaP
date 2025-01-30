@@ -7,7 +7,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Detail rezervace #@reservation.Id</h2>
         <div class="d-flex gap-2">
-            <button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateReservation(reservation.Id)">Upravit rezervaci</button>
+            <button class="btn btn-outline-primary" @onclick="() => NavigateToUpdateReservation(reservation.Id)">Upravit rezervaci</button>
             <button class="btn btn-success" @onclick="NavigateToAddInvoice">+ Vytvořit fakturu</button>
         </div>
     </div>
@@ -157,6 +157,6 @@
 
     private void NavigateToAddInvoice()
     {
-        NavigationManager.NavigateTo($"/spravovat-fakturu/");
+		NavigationManager.NavigateTo($"/vytvorit-fakturu/rezervace/{reservation.Id}");
     }
 }

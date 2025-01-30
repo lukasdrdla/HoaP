@@ -7,6 +7,7 @@ using HoaP.Infrastructure.Repositories;
 using HoaP.Web.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,5 +131,8 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 app.Run();

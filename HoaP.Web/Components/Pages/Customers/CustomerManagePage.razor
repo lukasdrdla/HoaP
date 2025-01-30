@@ -1,4 +1,5 @@
-﻿@page "/spravovat-zakaznika/{customerId:int?}"
+﻿@page "/spravovat-zakaznika/{customerId:int}"
+@page "/vytvorit-zakaznika"
 @inject CustomerService CustomerService
 @inject NavigationManager NavigationManager
 @inject IMapper Mapper
@@ -120,7 +121,7 @@
                 </div>
 
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">@(customerId.HasValue ? "Uložit změny" : "Vytvořit zákazníka")</button>
+					<button type="submit" class="btn btn-primary">@(customerId.HasValue ? "Uložit" : "Vytvořit")</button>
                     <a href="/zakaznici" class="btn btn-outline-secondary ml-2">Zpět na seznam</a>
                 </div>
             </EditForm>
@@ -138,7 +139,7 @@
 
     private async Task HandleValidSubmit()
     {
-        if (customerId.HasValue)
+		if (customerId.HasValue)
         {
             await CustomerService.UpdateCustomer(customer);
         }

@@ -1,4 +1,6 @@
-﻿@page "/spravovat-fakturu/{invoiceId:int?}"
+﻿@page "/spravovat-fakturu/{invoiceId:int}"
+@page "/vytvorit-fakturu"
+@page "/vytvorit-fakturu/rezervace/{reservationId:int}"
 @using HoaP.Application.ViewModels.Currency
 @using HoaP.Application.ViewModels.Invoice
 @using HoaP.Application.ViewModels.Payment
@@ -111,6 +113,8 @@
 
 	[Parameter]
 	public int? invoiceId { get; set; }
+	[Parameter]
+	public int? reservationId { get; set; }
 
     private InvoiceFormViewModel invoice { get; set; } = new InvoiceFormViewModel();
 
@@ -131,8 +135,15 @@
             var reservation = await ReservationService.GetReservationByIdAsync(invoice.ReservationId);
 			searchTerm = $"{reservation.CustomerName} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
             currencies = await CurrencyService.GetCurrenciesAsync();
-
-
+		}
+        else if (reservationId != null)
+		{
+			var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
+			invoice.ReservationId = reservation.Id;
+			invoice.Price = reservation.TotalPrice;
+			OriginalPrice = reservation.TotalPrice;
+			searchTerm = $"{reservation.CustomerName} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+			currencies = await CurrencyService.GetCurrenciesAsync();
 		}
 
         reservations = await ReservationService.GetReservationsAsync();

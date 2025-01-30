@@ -2,59 +2,127 @@
 @using HoaP.Application.ViewModels.Invoice
 @inject InvoiceService InvoiceService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
 
 <div class="invoice-detail-container mt-5">
     <div class="invoice-header">
 		<h2>Faktura #@invoice.Id</h2>
-		<button class="btn btn-primary">Stáhnout PDF</button>
+        <div class="d-flex gap-2 justify-content-end align-items-center">
+			<a href="/spravovat-fakturu/@InvoiceId" class="btn btn-outline-primary">Upravit</a>
+            <button class="btn btn-outline-primary" @onclick="DownloadPDF">Stáhnout fakturu</button>
+            <button class="btn btn-primary" @onclick="NavigateToPayment">Přidat platbu</button>
+        </div>
     </div>
 
     <div class="invoice-summary">
         <div class="summary-item">
-            <span class="label">Invoice ID:</span>
-			<span class="value">#@invoice.Id</span>
+            <span class="label">Číslo faktury:</span>
+            <span class="value">#@invoice.Id</span>
         </div>
         <div class="summary-item">
-            <span class="label">Customer:</span>
-			<span class="value">@invoice.CustomerName</span>
+            <span class="label">Zákazník:</span>
+            <span class="value">@invoice.CustomerName</span>
         </div>
         <div class="summary-item">
-            <span class="label">Date Issued:</span>
-			<span class="value">@invoice.IssueDate.ToShortDateString()</span>
+            <span class="label">Datum vystavení:</span>
+            <span class="value">@invoice.IssueDate.ToShortDateString()</span>
         </div>
         <div class="summary-item">
-            <span class="label">Due Date:</span>
-			<span class="value">@invoice.DueDate.ToShortDateString()</span>
+            <span class="label">Datum splatnosti:</span>
+            <span class="value">@invoice.DueDate.ToShortDateString()</span>
         </div>
         <div class="summary-item">
-            <span class="label">Total Amount:</span>
-			<span class="value">@invoice.Price.ToString("C")</span>
+            <span class="label">Celková částka:</span>
+            <span class="value">@invoice.Price.ToString("C")</span>
         </div>
         <div class="summary-item">
-            <span class="label">Status:</span>
+            <span class="label">Stav:</span>
             <span class="value @(invoice.IsPaid ? "status-paid" : "status-unpaid")">
-                @(invoice.IsPaid ? "Paid" : "Unpaid")
+                @(invoice.IsPaid ? "Zaplaceno" : "Nezaplaceno")
             </span>
         </div>
+        <div class="summary-item">
+            <span class="label">Sleva:</span>
+            <span class="value">@invoice.Discount.ToString("C")</span>
+        </div>
+        <div class="summary-item">
+            <span class="label">Předplatba:</span>
+            <span class="value">@invoice.Prepayment.ToString("C")</span>
+        </div>
     </div>
 
-    <h3>Items</h3>
-    <table class="invoice-table">
-    </table>
-
-    <div class="invoice-footer">
-        <p>If you have any questions about this invoice, please contact us at support@company.com.</p>
+    <div class="d-flex gap-3">
+		<button class="btn btn-danger flex-grow-1" @onclick="() => OpenDeleteConfirmation(invoice.Id)">Smazat fakturu</button>
+        <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToInvoices">Zpět na seznam rezervací</button>
     </div>
 </div>
+
+<DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteInvoice" Title="Smazání faktury" />
 
 @code{
 	[Parameter]
 	public int InvoiceId { get; set; }
 
     private DetailInvoiceViewModel invoice = new DetailInvoiceViewModel();
+    private bool isDeleteModalVisible = false;
+	private int invoiceIdToDelete;
+
 
 	protected override async Task OnInitializedAsync()
 	{
 		invoice = await InvoiceService.GetInvoiceByIdAsync(InvoiceId);
 	}
+
+	private void OpenDeleteConfirmation(int invoiceId)
+	{
+		invoiceIdToDelete = invoiceId;
+		isDeleteModalVisible = true;
+	}
+
+	private void HandleModalClose(bool result)
+	{
+		if (result)
+		{
+			InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
+			NavigateToInvoices();
+		}
+		isDeleteModalVisible = false;
+	}
+
+    private async Task DownloadPDF()
+    {
+        var pdfData = new InvoicePdfGenerator().GeneratePdf(invoice);
+        var fileName = $"Faktura_{invoice.Id}.pdf";
+
+        using var stream = new MemoryStream(pdfData);
+        using var streamRef = new DotNetStreamReference(stream: stream);
+        await JSRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+
+	private void NavigateToInvoices()
+	{
+		NavigationManager.NavigateTo("/faktury");
+	}
+
+	private void NavigateToPayment()
+	{
+        NavigationManager.NavigateTo($"/vytvorit-platbu/{invoice.Id}");
+	}
 }
+
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName || 'download.pdf';
+        anchorElement.click();
+        anchorElement.remove();
+        URL.revokeObjectURL(url);
+    };
+</script>

@@ -22,7 +22,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3>@customer.FirstName @customer.LastName <small class="text-muted">#@customer.Id</small></h3>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateCustomer(Id)">Upravit zákazníka</button>
+                        <button class="btn btn-outline-primary" @onclick="() => NavigateToUpdateCustomer(Id)">Upravit zákazníka</button>
                         <button class="btn btn-success" @onclick="NavigateToAddReservation">+ Přidat rezervaci</button>
                     </div>
                 </div>
@@ -148,8 +148,9 @@
 
     private void NavigateToAddReservation()
     {
-		NavigationManager.NavigateTo("/spravovat-rezervaci");
-    }
+        NavigationManager.NavigateTo($"/vytvorit-rezervaci/zakaznik/{Id}");
+	}
+
 
     private void NavigateToUpdateCustomer(int id)
     {

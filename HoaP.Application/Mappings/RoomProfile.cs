@@ -28,6 +28,8 @@ namespace HoaP.Application.Mappings
 
             CreateMap<RoomFormViewModel, Room>();
 
+            CreateMap<DetailRoomViewModel, RoomViewModel>().ReverseMap();
+
             CreateMap<DetailRoomViewModel, RoomFormViewModel>();
             CreateMap<RoomFormViewModel, DetailRoomViewModel>();
                 
