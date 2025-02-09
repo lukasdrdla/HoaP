@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Reservation
+    public class Reservation : AuditableEntity
     {
         public int Id { get; set; }
         public int RoomId { get; set; }
@@ -21,8 +21,7 @@ namespace HoaP.Domain.Entities
         public int MealPlanId { get; set; }
         public string SpecialRequest { get; set; } = "";
         public string AdminNote { get; set; } = "";
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
+        
 
         public Room? Room { get; set; }
         public ReservationStatus? ReservationStatus { get; set; }

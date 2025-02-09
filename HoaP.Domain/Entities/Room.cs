@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Room
+    public class Room : AuditableEntity
     {
         public int Id { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
@@ -17,8 +17,6 @@ namespace HoaP.Domain.Entities
         public string Image { get; set; } = string.Empty;
         public int MaxAdults { get; set; }
         public int MaxChildren { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public RoomStatus? RoomStatus { get; set; }
         public RoomType? RoomType { get; set; }
 

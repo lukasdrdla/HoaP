@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Invoice
+    public class Invoice : AuditableEntity
     {
         public int Id { get; set; }
         public int ReservationId { get; set; }
@@ -18,8 +18,6 @@ namespace HoaP.Domain.Entities
         public string Description { get; set; } = string.Empty;
         public decimal Discount { get; set; } = 0.0m;
         public decimal Prepayment { get; set; } = 0.0m;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public Reservation? Reservation { get; set; }
         public Currency? Currency { get; set; }
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();

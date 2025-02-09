@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Customer
+    public class Customer : AuditableEntity
     {
         public int Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
@@ -24,8 +24,6 @@ namespace HoaP.Domain.Entities
         public string City { get; set; } = string.Empty;
         public string PostalCode { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
     }
 }
