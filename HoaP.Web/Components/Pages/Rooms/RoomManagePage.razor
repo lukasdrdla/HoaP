@@ -6,6 +6,7 @@
 @inject AmenityService AmenityService
 @inject RoomStatusService RoomStatusService
 @inject NavigationManager NavigationManager
+@inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @rendermode InteractiveServer
 
@@ -24,7 +25,8 @@
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="RoomImg" class="form-label">Obrázek</label>
-                        <InputText id="RoomImg" class="form-control" @bind-Value="room.Image" />
+                        <InputFile id="RoomImg" class="form-control" OnChange="HandleFileSelected" />
+						<p>@message</p>
                     </div>
 
                     <div class="col-md-6">
@@ -81,7 +83,7 @@
 
                 <h3>Select Amenities</h3>
                 <div>
-					@foreach (var amenity in amenities)
+                    @foreach (var amenity in amenities)
                     {
                         <div>
                             <input type="checkbox" @bind="@amenity.isSelected" />
@@ -126,6 +128,25 @@
     private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
 
     private List<RoomStatusViewModel> roomStatuses = new List<RoomStatusViewModel>();
+
+	private byte[] imageBytes;
+    private string message;
+
+	private async void HandleFileSelected(InputFileChangeEventArgs e)
+	{
+		var file = e.File;
+        try
+        {
+            imageBytes = await FileUploadService.HandleFileUploadAsync(file);
+			room.Image = imageBytes;
+
+            message = "Soubor byl úspěšně nahrán!";
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+	}
 
     protected override async Task OnInitializedAsync()
     {

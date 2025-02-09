@@ -2,6 +2,7 @@
 @page "/vytvorit-zamestnance"
 @inject NavigationManager NavigationManager
 @inject InsuranceCompanyService InsuranceCompanyService
+@inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @inject EmployeeService EmployeeService
 @rendermode InteractiveServer
@@ -18,7 +19,8 @@
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="profilePicture" class="form-label">Profilový obrázek</label>
-                        <InputText id="profilePicture" class="form-control" @bind-Value="employee.ProfilePicture" />
+                        <InputFile id="profilePicture" class="form-control" OnChange="HandleFileSelected" />
+						<p>@message</p>
                     </div>
 
                     <div class="col-md-6">
@@ -44,6 +46,12 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+						<label for="role" class="form-label">Role</label>
+                    </div>
+               </div>
 
 
                 @if(Id == null)
@@ -170,6 +178,25 @@
     private List<InsuranceCompanyViewModel> insuranceCompanies = new List<InsuranceCompanyViewModel>();
     private string searchTerm = string.Empty;
     private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
+
+    private byte[] profilePictureBytes;
+	private string message;
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+		var file = e.File;
+        try {
+			profilePictureBytes = await FileUploadService.HandleFileUploadAsync(file);
+			employee.ProfilePicture = profilePictureBytes;
+
+			message = "Obrázek byl úspěšně nahrán.";
+        }
+		catch (Exception ex)
+		{
+			message = "Nahrání obrázku selhalo.";
+        }
+
+    }
 
 
     protected override async Task OnInitializedAsync()

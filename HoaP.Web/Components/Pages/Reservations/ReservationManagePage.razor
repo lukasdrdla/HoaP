@@ -499,6 +499,7 @@
 		reservation.CheckIn = date.Value;
 		isCheckInCalendarVisible = false;
 		isCheckInCalendarVisibleFromDateFirst = false;
+		CalculateTotalPrice();
 	}
 
 	private void OnDateSelectOut(DateTime? date)
@@ -506,6 +507,7 @@
 		reservation.CheckOut = date.Value;
 		isCheckOutCalendarVisible = false;
 		isCheckOutCalendarVisibleFromDateFirst = false;
+		CalculateTotalPrice();
 	}
 
 	private async Task LoadAvailableRooms()

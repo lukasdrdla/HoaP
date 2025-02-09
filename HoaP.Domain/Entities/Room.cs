@@ -14,7 +14,7 @@ namespace HoaP.Domain.Entities
         public int RoomStatusId { get; set; }
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
-        public string Image { get; set; } = string.Empty;
+        public byte[]? Image { get; set; }
         public int MaxAdults { get; set; }
         public int MaxChildren { get; set; }
         public RoomStatus? RoomStatus { get; set; }

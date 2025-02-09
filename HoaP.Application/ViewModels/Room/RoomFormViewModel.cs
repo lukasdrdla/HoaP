@@ -32,8 +32,8 @@ namespace HoaP.Application.ViewModels.Room
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        [StringLength(255, ErrorMessage = "Image path cannot exceed 255 characters.")]
-        public string Image { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Image is required.")]
+        public byte[] Image { get; set; } = null!;
 
         [Required(ErrorMessage = "Max adults value is required.")]
         [Range(1, 10, ErrorMessage = "Max adults must be between 1 and 10.")]

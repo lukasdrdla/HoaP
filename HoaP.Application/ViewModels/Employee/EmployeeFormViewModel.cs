@@ -14,8 +14,8 @@ namespace HoaP.Application.ViewModels.Employee
         public string Id { get; set; } = string.Empty;
 
         [Required]
-        public string ProfilePicture { get; set; } = string.Empty;
-        
+        public byte[] ProfilePicture { get; set; } = null!;
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = string.Empty;

@@ -36,7 +36,14 @@
 					<div class="row">
 						<!-- Room Image -->
 						<div class="col-md-6 room-image">
-							<img src="@room.Image" alt="Room Image">
+							@if (roomImageBase64 != null)
+							{
+								<img src="data:image/jpeg;base64,@roomImageBase64" alt="Room Image" class="img-fluid" />
+							}
+							else
+							{
+								<p>Obrázek pokoje není k dispozici.</p>
+							}
 						</div>
 
 						<!-- Room Details -->
@@ -182,6 +189,8 @@
 
 	private PaginationState paginationState = new PaginationState { ItemsPerPage = 20 };
 
+	private string roomImageBase64;
+
 
 	private string? searchTerm;
 
@@ -192,6 +201,12 @@
 		reservations = await ReservationService.GetReservationsByRoomIdAsync(roomId);
 		filteredReservations = reservations;
 		filteredReviews = await ReviewService.GetRoomReviewsAsync(roomId);
+
+		if (room.Image != null)
+		{
+			roomImageBase64 = Convert.ToBase64String(room.Image);
+		}
+
 		UpdatePagination();
 
 	}

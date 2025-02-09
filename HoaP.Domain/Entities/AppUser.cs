@@ -9,7 +9,7 @@ namespace HoaP.Domain.Entities
 {
     public class AppUser : IdentityUser
     {
-        public string ProfilePicture { get; set; } = string.Empty;
+        public byte[]? ProfilePicture { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
