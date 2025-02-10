@@ -10,7 +10,7 @@ namespace HoaP.Application.ViewModels.Employee
     public class UpdateEmployeeViewModel
     {
         public string Id { get; set; } = string.Empty;
-        public string ProfilePicture { get; set; } = string.Empty;
+        public byte[]? ProfilePicture { get; set; }
 
         [Required]
         [StringLength(50, ErrorMessage = "First name must be between 2 and 50 characters.", MinimumLength = 2)]

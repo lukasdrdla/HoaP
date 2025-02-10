@@ -13,6 +13,7 @@ namespace HoaP.Application.Interfaces
     public interface IAccountRepository
     {
         Task<SignInResult> LoginAsync(LoginViewModel model);
+        Task LogoutAsync();
         Task<AppUser> GetCurrentUserAsync();
         Task UpdateUserAsync(UpdateEmployeeViewModel model);
 

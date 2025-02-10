@@ -41,6 +41,11 @@ namespace HoaP.Infrastructure.Repositories
             return result;
         }
 
+        public async Task LogoutAsync()
+        {
+            await _signInManager.SignOutAsync();
+        }
+
         public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
         {
             var existingUser = await _context.Users.FindAsync(model.Id);

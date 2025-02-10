@@ -28,11 +28,11 @@
 				<div class="d-flex justify-content-center mb-3">
 					<button class="btn btn-outline-primary me-2" @onclick="() => SwitchMode(ReservationMode.ByDate)"
 							disabled="@(mode == ReservationMode.ByDate)">
-						Zadat datum
+						Pokoj - datum
 					</button>
 					<button class="btn btn-outline-primary" @onclick="() => SwitchMode(ReservationMode.ByRoom)"
 							disabled="@(mode == ReservationMode.ByRoom)">
-						Vybrat pokoj
+						Datum - pokoj
 					</button>
 				</div>
 			}

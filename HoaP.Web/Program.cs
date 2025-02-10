@@ -107,6 +107,8 @@ builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ReviewService>();
 
+builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+
 
 
 

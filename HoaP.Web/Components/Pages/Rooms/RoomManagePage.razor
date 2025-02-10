@@ -69,7 +69,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="mb-3 row">
+                <div class="mb-4 row">
                     <div class="col-md-6">
                         <label for="MaxAdults" class="form-label">Max Dospělí</label>
                         <InputNumber id="MaxAdults" class="form-control" @bind-Value="room.MaxAdults" />
@@ -81,16 +81,17 @@
 
                 </div>
 
-                <h3>Select Amenities</h3>
-                <div>
+                <h3>Vybavení pokoje</h3>
+                <div class="d-flex flex-wrap mb-4">
                     @foreach (var amenity in amenities)
                     {
-                        <div>
+                        <div class="amenity-item">
                             <input type="checkbox" @bind="@amenity.isSelected" />
                             <label>@amenity.Name</label>
                         </div>
                     }
                 </div>
+
 
                 <div class="form-group mb-3">
                     <label for="Price" class="form-label">Cena</label>
@@ -111,7 +112,6 @@
         </div>
     </div>
 </div>
-
 
 
 

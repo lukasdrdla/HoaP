@@ -1,0 +1,10 @@
+﻿.amenity-item {
+    margin-right: 20px; /* Mezery mezi položkami */
+    margin-bottom: 10px; /* Mezery mezi řádky */
+    display: flex;
+    align-items: center;
+}
+
+    .amenity-item input {
+        margin-right: 10px; /* Mezery mezi zaškrtávacím políčkem a textem */
+    }

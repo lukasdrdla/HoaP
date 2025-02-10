@@ -34,5 +34,10 @@ namespace HoaP.Application.Services
         {
             await _accountRepository.UpdateUserAsync(model);
         }
+
+        public async Task LogoutAsync()
+        {
+            await _accountRepository.LogoutAsync();
+        }
     }
 }
