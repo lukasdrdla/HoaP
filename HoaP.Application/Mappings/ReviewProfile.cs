@@ -16,7 +16,7 @@ namespace HoaP.Application.Mappings
             
             CreateMap<Review, ReviewViewModel>()
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.FirstName + " " + src.Customer.LastName))
-                .ForMember(dest => dest.RoomId, opt => opt.MapFrom(src => src.Room.Id))
+                .ForMember(dest => dest.RoomNumber, opt => opt.MapFrom(src => src.Room.RoomNumber))
                 .ReverseMap();
 
         }

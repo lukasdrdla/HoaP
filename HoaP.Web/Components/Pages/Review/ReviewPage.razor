@@ -1,0 +1,145 @@
+﻿@page "/recenze"
+@using HoaP.Application.ViewModels.Review
+@inject ReviewService ReviewService
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
+
+<div class="container mt-5" @onmousedown="HideOptions">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="text-center mb-4 page-title">Recenze</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchReviews" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+                <div></div>
+                <button class="btn btn-primary" @onclick="NavigateToAddReview">
+                    <i class="bi bi-plus"></i> Přidat recenzi
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="w-100">
+                    <QuickGrid Items="filteredReviews.AsQueryable()" Pagination="paginationState" Class="w-100">
+                        <PropertyColumn Title="ID recenze" Property="@(x => x.Id)" Sortable="true" />
+                        <PropertyColumn Title="Číslo pokoje" Property="@(x => x.RoomNumber)" Sortable="true" />
+                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+                        <PropertyColumn Title="Hodnocení" Property="@(x => x.Rating)" Sortable="true" />
+                        <PropertyColumn Title="Komentář" Property="@(x => x.Comment)" Sortable="true" />
+                        <PropertyColumn Title="Datum" Property="@(x => x.CreatedAt.ToShortDateString())" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex">
+                                <button class="btn text-primary" @onclick="() => NavigateToReviewDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+
+                                <button class="btn text-muted" @onclick="() => ToggleOptions(context.Id)">
+                                    <i class="bi bi-three-dots-vertical"></i>
+                                </button>
+
+                                @if (VisibleReviewId == context.Id)
+                                {
+                                    <div class="options-menu" @ref="optionsMenu">
+                                        <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+                                        <button class="dropdown-item" @onmousedown="() => NavigateToUpdateReview(context.Id)">Upravit</button>
+                                    </div>
+                                }
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteModal Title="Smazání recenze" ActionType="DeleteReview" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
+
+@code {
+    private List<ReviewViewModel> reviews;
+    private List<ReviewViewModel> filteredReviews = new List<ReviewViewModel>();
+    private string? searchTerm;
+
+    private bool isDeleteModalVisible = false;
+
+    private int deleteReviewId;
+    private int VisibleReviewId { get; set; }
+    private ElementReference optionsMenu;
+
+    private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+    private void OpenDeleteConfirmation(int reviewId)
+    {
+        isDeleteModalVisible = true;
+        deleteReviewId = reviewId;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+        var review = reviews.FirstOrDefault(r => r.Id == deleteReviewId);
+        if (result && review != null)
+        {
+            await ReviewService.DeleteReviewAsync(review.Id);
+            reviews.Remove(review);
+            filteredReviews = reviews;
+        }
+        isDeleteModalVisible = false;
+    }
+
+    private void ToggleOptions(int reviewId)
+    {
+        VisibleReviewId = VisibleReviewId == reviewId ? 0 : reviewId;
+    }
+
+    private void SearchReviews(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredReviews = reviews.Where(
+                r => r.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.Rating.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.Comment.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || r.CreatedAt.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        else
+        {
+            filteredReviews = reviews;
+        }
+    }
+
+    private void HideOptions(MouseEventArgs e)
+    {
+        if (VisibleReviewId != 0 && optionsMenu.Context != null)
+        {
+            VisibleReviewId = 0;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        reviews = await ReviewService.GetReviewsAsync() ?? new List<ReviewViewModel>();
+        filteredReviews = reviews;
+    }
+
+    private void NavigateToReviewDetail(int id)
+    {
+        NavigationManager.NavigateTo($"/recenze/{id}");
+    }
+
+    private void NavigateToAddReview()
+    {
+        NavigationManager.NavigateTo("/vytvorit-recenzu");
+    }
+
+    private void NavigateToUpdateReview(int id)
+    {
+        NavigationManager.NavigateTo($"/spravovat-recenzu/{id}");
+    }
+}
