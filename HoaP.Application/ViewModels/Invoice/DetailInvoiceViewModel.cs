@@ -19,6 +19,7 @@ namespace HoaP.Application.ViewModels.Invoice
         public string Description { get; set; } = string.Empty;
         public decimal Discount { get; set; }
         public decimal Prepayment { get; set; }
+        public bool IsCanceled { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 

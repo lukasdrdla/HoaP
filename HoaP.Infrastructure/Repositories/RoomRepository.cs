@@ -22,18 +22,29 @@ namespace HoaP.Infrastructure.Repositories
             _context = context;
             _mapper = mapper;
         }
+
+        public async Task EnableRoom(int id)
+        {
+            var existingRoom = await _context.Rooms.FindAsync(id);
+            if (existingRoom != null)
+            {
+                existingRoom.IsDisable = false;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         public async Task CreateRoomAsync(RoomFormViewModel room)
         {
             await _context.Rooms.AddAsync(_mapper.Map<Room>(room));
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteRoomAsync(int id)
+        public async Task DisableRoom(int id)
         {
             var existingRoom = await _context.Rooms.FindAsync(id);
             if (existingRoom != null)
             {
-                _context.Rooms.Remove(existingRoom);
+                existingRoom.IsDisable = true;
                 await _context.SaveChangesAsync();
             }
         }

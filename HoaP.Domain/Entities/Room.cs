@@ -17,6 +17,7 @@ namespace HoaP.Domain.Entities
         public byte[]? Image { get; set; }
         public int MaxAdults { get; set; }
         public int MaxChildren { get; set; }
+        public bool IsDisable { get; set; } = false;
         public RoomStatus? RoomStatus { get; set; }
         public RoomType? RoomType { get; set; }
 

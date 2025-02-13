@@ -17,6 +17,7 @@ namespace HoaP.Application.ViewModels.Room
         public string Description { get; set; } = string.Empty;
         public decimal Price { get; set; }
         public byte[]? Image { get; set; }
+        public bool IsDisable { get; set; } = false;
         public int MaxAdults { get; set; }
         public int MaxChildren { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;

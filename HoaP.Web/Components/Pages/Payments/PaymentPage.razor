@@ -26,7 +26,7 @@
                         <PropertyColumn Title="ID faktury" Property="@(x => x.InvoiceNumber)" Sortable="true" />
                         <PropertyColumn Title="Částka" Property="@(x => x.TotalAmount.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Metoda" Property="@(x => x.PaymentMethodName)" Sortable="true" />
-						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
                         <PropertyColumn Title="Datum" Property="@(x => x.PaymentDate.ToShortDateString())" Sortable="true" />
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">

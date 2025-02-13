@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Customer;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels
@@ -17,6 +18,8 @@ namespace HoaP.Application.ViewModels
         public string ReservationStatusName { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public int Guests { get; set; }
+
+        public CustomerViewModel Customer { get; set; } = new();
 
     }
 }

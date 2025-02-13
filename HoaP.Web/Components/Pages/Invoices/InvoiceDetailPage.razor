@@ -8,7 +8,7 @@
 
 <div class="invoice-detail-container mt-5">
     <div class="invoice-header">
-		<h2>Faktura #@invoice.Id</h2>
+        <h2>Faktura #@invoice.Id <span style="color: red;">@(invoice.IsCanceled ? "(STORNOVÁNO)" : "")</span></h2>
         <div class="d-flex gap-2 justify-content-end align-items-center">
 			<a href="/spravovat-fakturu/@InvoiceId" class="btn btn-outline-primary">Upravit</a>
             <button class="btn btn-outline-primary" @onclick="DownloadPDF">Stáhnout fakturu</button>
@@ -23,7 +23,7 @@
         </div>
         <div class="summary-item">
             <span class="label">Zákazník:</span>
-            <span class="value">@invoice.CustomerName</span>
+			<span class="value">@(invoice.CustomerName ?? "Neznámý zákazník")</span>
         </div>
         <div class="summary-item">
             <span class="label">Datum vystavení:</span>
@@ -54,20 +54,18 @@
     </div>
 
     <div class="d-flex gap-3">
-		<button class="btn btn-danger flex-grow-1" @onclick="() => OpenDeleteConfirmation(invoice.Id)">Smazat fakturu</button>
+		<button class="btn btn-danger flex-grow-1" @onclick="() => CancleInvoice(invoice.Id)">Stornovat fakturu</button>
         <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToInvoices">Zpět na seznam rezervací</button>
     </div>
 </div>
 
-<DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteInvoice" Title="Smazání faktury" />
 
 @code{
 	[Parameter]
 	public int InvoiceId { get; set; }
 
     private DetailInvoiceViewModel invoice = new DetailInvoiceViewModel();
-    private bool isDeleteModalVisible = false;
-	private int invoiceIdToDelete;
+
 
 
 	protected override async Task OnInitializedAsync()
@@ -75,21 +73,18 @@
 		invoice = await InvoiceService.GetInvoiceByIdAsync(InvoiceId);
 	}
 
-	private void OpenDeleteConfirmation(int invoiceId)
+	private async Task CancleInvoice(int invoiceId)
 	{
-		invoiceIdToDelete = invoiceId;
-		isDeleteModalVisible = true;
-	}
-
-	private void HandleModalClose(bool result)
-	{
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete stornovat fakturu?");
 		if (result)
 		{
-			InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
-			NavigateToInvoices();
+			await InvoiceService.CancelInvoiceAsync(invoiceId);
+			NavigationManager.NavigateTo("/faktury");
 		}
-		isDeleteModalVisible = false;
 	}
+
+
+
 
     private async Task DownloadPDF()
     {

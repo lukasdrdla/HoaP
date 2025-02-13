@@ -21,7 +21,7 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-6 text-muted">Zákazník:</div>
-					<div class="col-6">@($"{payment.CustomerName}")</div>
+					<div class="col-6">@(payment.CustomerName ?? "Neznámý zákazník")</div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-6 text-muted">Částka:</div>

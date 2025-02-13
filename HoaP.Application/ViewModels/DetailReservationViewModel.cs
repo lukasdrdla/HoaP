@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Customer;
 using HoaP.Application.ViewModels.Guest;
 using HoaP.Application.ViewModels.MealPlan;
 using HoaP.Domain.Entities;
@@ -35,6 +36,9 @@ namespace HoaP.Application.ViewModels
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public ICollection<GuestViewModel> Guests { get; set; } = null!;
+
+        public CustomerViewModel Customer { get; set; } = new();
+
 
     }
 }

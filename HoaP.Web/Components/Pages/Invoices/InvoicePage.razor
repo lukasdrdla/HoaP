@@ -2,6 +2,7 @@
 @using HoaP.Application.ViewModels.Invoice
 @inject InvoiceService InvoiceService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="container mt-5" @onmousedown="HideOptions">
@@ -23,14 +24,22 @@
                 <table class="w-100">
                     <QuickGrid Items="filteredInvoices.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Číslo faktury" Property="@(x => x.Id)" Sortable="true" />
-						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
                         <PropertyColumn Title="Rezervace" Property="@(x => x.ReservationId)" Sortable="true" />
                         <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("C"))" Sortable="true" />
                         <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
                         <TemplateColumn Title="Stav" Sortable="true">
-							<span class="badge bg-@(context.IsPaid ? "success" : "danger")">
-								@(context.IsPaid ? "Zaplaceno" : "Nezaplaceno")
-							</span>
+
+							@if (context.IsCanceled)
+							{
+								<span class="badge bg-danger">Stornováno</span>
+							}
+							else
+							{
+								<span class="badge bg-@(context.IsPaid ? "success" : "danger")">
+									@(context.IsPaid ? "Zaplaceno" : "Nezaplaceno")
+								</span>
+							}
                         </TemplateColumn>
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">
@@ -45,7 +54,10 @@
                                 @if (VisibleInvoiceId == context.Id)
                                 {
                                     <div class="options-menu" @ref="optionsMenu">
-                                        <button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
+										@if (!context.IsCanceled)
+										{
+											<button class="dropdown-item" @onmousedown="() => CancleInvoice(context.Id)">Stornovat</button>
+										}
                                         <button class="dropdown-item" @onmousedown="() => NavigateToUpdateInvoice(context.Id)">Upravit</button>
                                     </div>
                                 }
@@ -59,24 +71,18 @@
     </div>
 </div>
 
-<DeleteModal Title="Smazání faktury" ActionType="DeleteInvoice" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
 
 @code {
     private List<InvoiceViewModel> invoices;
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
     private string? searchTerm;
-    private int invoiceIdToDelete;
-    private bool isDeleteModalVisible = false;
+
     private int? VisibleInvoiceId;
 	private ElementReference optionsMenu;
 
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
 
-    private void OpenDeleteConfirmation(int invoiceId)
-    {
-        invoiceIdToDelete = invoiceId;
-        isDeleteModalVisible = true;
-    }
+
 
     private void ToggleOptions(int invoiceId)
     {
@@ -92,18 +98,21 @@
         }
     }
 
-    private async Task HandleModalClose(bool result)
-    {
-        var invoice = invoices.FirstOrDefault(r => r.Id == invoiceIdToDelete);
-        isDeleteModalVisible = false;
 
-        if (result)
-        {
-			await InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
-            invoices.Remove(invoice);
+
+    private async Task CancleInvoice(int invoiceId)
+	{
+        var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete stornovat fakturu?");
+
+		if (result)
+       {
+            await InvoiceService.CancelInvoiceAsync(invoiceId);
+            invoices = await InvoiceService.GetInvoicesAsync();
             filteredInvoices = invoices;
-        }
-    }
+       }
+		
+	}
+
 
     private void SearchInvoices(ChangeEventArgs e)
     {

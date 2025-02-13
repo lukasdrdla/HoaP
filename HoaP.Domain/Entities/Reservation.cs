@@ -14,7 +14,7 @@ namespace HoaP.Domain.Entities
         public DateTime CheckOut { get; set; } = DateTime.Now.AddDays(3);
         public decimal TotalPrice { get; set; }
         public int ReservationStatusId { get; set; }
-        public int CustomerId { get; set; }
+        public int? CustomerId { get; set; }
         public Customer Customer { get; set; } = null!;
         public int Adults { get; set; }
         public int Children { get; set; }

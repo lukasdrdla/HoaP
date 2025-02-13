@@ -22,7 +22,7 @@
             <div class="table-responsive">
                 <table class="w-100">
                     <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class=" w-100">
-                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
                         <PropertyColumn Title="CheckIn" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="CheckOut" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />

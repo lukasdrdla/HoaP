@@ -40,7 +40,7 @@
                                             <strong>Pokoj:</strong> @reservation.RoomNumber
                                         </div>
                                         <div>
-                                            <strong>Zákazník:</strong> @reservation.CustomerName
+											<strong>Zákazník:</strong> @reservation.CustomerName (ID: @reservation.Customer.Id, @reservation.Customer.Email, RČ: @reservation.Customer.PersonalIdentificationNumber)
                                         </div>
 
                                     </li>
@@ -133,7 +133,14 @@
 			OriginalPrice = invoice.Price;
             
             var reservation = await ReservationService.GetReservationByIdAsync(invoice.ReservationId);
-			searchTerm = $"{reservation.CustomerName} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+            if (reservation.Customer != null)
+            {
+                searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+            }
+            else
+            {
+                searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+            }
             currencies = await CurrencyService.GetCurrenciesAsync();
 		}
         else if (reservationId != null)
@@ -142,8 +149,17 @@
 			invoice.ReservationId = reservation.Id;
 			invoice.Price = reservation.TotalPrice;
 			OriginalPrice = reservation.TotalPrice;
-			searchTerm = $"{reservation.CustomerName} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-			currencies = await CurrencyService.GetCurrenciesAsync();
+
+			if (reservation.Customer != null)
+			{
+                searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+            }
+            else
+            {
+				searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+			}
+
+            currencies = await CurrencyService.GetCurrenciesAsync();
 		}
 
         reservations = await ReservationService.GetReservationsAsync();
@@ -170,7 +186,16 @@
     private async Task SearchReservation(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
-		filteredReservations = reservations.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) || r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        filteredReservations = reservations
+        .Where(r => r.CustomerName != null &&
+                   (!string.IsNullOrEmpty(searchTerm) &&
+                   (r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (!string.IsNullOrEmpty(r.RoomNumber) && r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))))
+        .ToList();
+
+
 
     }
 
@@ -185,7 +210,7 @@
         invoice.ReservationId = reservation.Id;
         invoice.Price = reservation.TotalPrice;
         OriginalPrice = reservation.TotalPrice;
-        searchTerm = $"{reservation.CustomerName} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+        searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
         filteredReservations.Clear();
 
     }

@@ -23,7 +23,7 @@
                     <p>
                         <strong>Zákazník:</strong>
                         <a class="text-primary" style="cursor:pointer;" @onclick="() => NavigateToCustomerDetail(reservation.CustomerId)">
-                            @reservation.CustomerName
+                            @(reservation.CustomerName ?? "Neznámý zákazník")
                         </a>
                     </p>
                     <p><strong>Rezervace ID:</strong> #@reservation.Id</p>

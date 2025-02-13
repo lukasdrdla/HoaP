@@ -6,7 +6,12 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 
-
+<style>
+    .active-column {
+        width: 0px;
+        
+    }
+</style>
 
 <div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
@@ -35,7 +40,27 @@
                 <div class="table-responsive">
                     <table class="w-100">
                         <QuickGrid Items="filteredRooms.AsQueryable()" Pagination="pagginationState" Class="w-100">
-                            <PropertyColumn Title="Číslo pokoje" Property="@(r => r.RoomNumber)" Sortable="true" />
+
+							<TemplateColumn class="active-column">
+								
+								@if (context.IsDisable == true)
+								{
+                                    <span style="color: red; font-size: 13px;">
+                                        ●
+									</span>
+								}
+								else
+								{
+									<span style="color: green; font-size: 13px;">
+                                        ●
+									</span>
+								}
+                            </TemplateColumn>
+
+                            <PropertyColumn Title="Číslo pokoje" Property="@(r => r.RoomNumber)" Sortable="true" >
+                                
+
+                            </PropertyColumn>
                             <PropertyColumn Title="Typ pokoje" Property="@(r => r.RoomTypeName)" Sortable="true" />
                             <PropertyColumn Title="Status" Property="@(r => r.RoomStatusName)" Sortable="true" />
                             <PropertyColumn Title="Cena" Property="@(r => r.Price)" Sortable="true" />
@@ -153,7 +178,7 @@
 
         if (result)
         {
-			await RoomService.DeleteRoomAsync(deleteRoomId);
+			await RoomService.DisableRoomAsync(deleteRoomId);
             rooms.Remove(room);
             filteredRooms = rooms;
         }

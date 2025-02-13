@@ -35,6 +35,8 @@ namespace HoaP.Infrastructure.Repositories
         public async Task DeleteCustomerAsync(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
+
+
             if (customer != null)
             {
                 _context.Customers.Remove(customer);

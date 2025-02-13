@@ -28,8 +28,13 @@
 					<div class="room-header">
 						<h3>@room.RoomTypeName - @room.RoomNumber</h3>
 						<div class="d-flex gap-2">
+							<button class="btn @(room.IsDisable ? "btn-outline-success" : "btn-outline-danger")"
+									@onclick="() => ToggleRoomStatus(room.Id)">
+								@(room.IsDisable ? "Aktivovat pokoj" : "Deaktivovat pokoj")
+							</button>
 							<button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateRoom(room.Id)">Upravit pokoj</button>
 							<button class="btn btn-success" @onclick="NavigateToCreateRezervation">+ Vytvořit rezervaci</button>
+
 						</div>
 					</div>
 
@@ -81,27 +86,25 @@
 					<div class="booking-history-table mt-5">
 						<h5>Historie rezervací</h5>
 						<div class="table-responsive-lg">
-						<QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
-							<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
-								<ColumnOptions>
-									<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
-								</ColumnOptions>
-							</PropertyColumn>
-							<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
-							<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
-							<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-							<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
-							<TemplateColumn Title="Akce">
-								<div class="d-inline-flex">
-									<button class="btn text-primary">
-										<i class="bi bi-search"></i>
-									</button>
-									<button class="btn text-danger">
-										<i class="bi bi-trash"></i>
-									</button>
-								</div>
-							</TemplateColumn>
-						</QuickGrid>
+							<QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
+								<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
+									<ColumnOptions>
+										<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
+									</ColumnOptions>
+								</PropertyColumn>
+								<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
+								<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+								<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+								<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+								<TemplateColumn Title="Akce">
+									<div class="d-inline-flex">
+										<button class="btn text-primary" @onclick="() => NavigateToDetailRezervation(context.Id)">
+											<i class="bi bi-search"></i>
+										</button>
+
+									</div>
+								</TemplateColumn>
+							</QuickGrid>
 						</div>
 						<Paginator State="paginationState" />
 
@@ -126,23 +129,34 @@
 				{
 					<div class="card mb-3 border-0 shadow-sm">
 						<div class="card-body">
-							<div class="d-flex align-items-center mb-2">
-								<span class="text-warning me-2">
-									@for (int i = 0; i < review.Rating; i++)
-									{
-										<i class="bi bi-star-fill"></i>
-									}
-									@for (int i = 0; i < (5 - review.Rating); i++)
-									{
-										<i class="bi bi-star"></i>
-									}
-								</span>
-								<span class="text-muted">@review.CreatedAt.ToShortDateString()</span>
+							<div class="d-flex justify-content-between align-items-center mb-2">
+								<div class="d-flex align-items-center">
+									<span class="text-warning me-2">
+										@for (int i = 0; i < review.Rating; i++)
+										{
+											<i class="bi bi-star-fill"></i>
+										}
+										@for (int i = 0; i < (5 - review.Rating); i++)
+										{
+											<i class="bi bi-star"></i>
+										}
+									</span>
+									<span class="text-muted">@review.CreatedAt.ToShortDateString()</span>
+								</div>
+								<div>
+									<button class="btn btn-sm text-primary" @onclick="() => NavigateToUpdateReview(review.Id)">
+										<i class="bi bi-pencil"></i>
+									</button>
+									<button class="btn btn-sm text-danger" @onclick="() => DeleteReview(review.Id)">
+										<i class="bi bi-trash"></i>
+									</button>
+								</div>
 							</div>
 							<p class="mb-0">@review.Comment</p>
 							<small class="text-muted">Hodnoceno uživatelem: @review.CustomerName</small>
 						</div>
 					</div>
+
 				}
 			}
 
@@ -156,10 +170,6 @@
 
 
 		<hr />
-
-
-
-
 
 	}
 </div>
@@ -237,6 +247,20 @@
 		}
 	}
 
+	private async void ToggleRoomStatus(int roomId)
+	{
+		if (room.IsDisable)
+		{
+			await RoomService.EnableRoomAsync(roomId);
+		}
+		else
+		{
+			await RoomService.DisableRoomAsync(roomId);
+		}
+
+		room = await RoomService.GetRoomByIdAsync(roomId);
+		StateHasChanged();
+	}
 	
 
 	private void SearchCustomers(ChangeEventArgs e)
@@ -254,6 +278,13 @@
 
 	}
 
+	private void DeleteReview(int reviewId)
+	{
+		ReviewService.DeleteReviewAsync(reviewId);
+		filteredReviews = ReviewService.GetRoomReviewsAsync(roomId).Result;
+		UpdatePagination();
+	}
+
 	private void NavigateToUpdateRoom(int roomId)
 	{
 		NavigationManager.NavigateTo($"/spravovat-pokoj/{roomId}");
@@ -262,6 +293,16 @@
 	private void NavigateToCreateRezervation()
 	{
 		NavigationManager.NavigateTo($"/vytvorit-rezervaci/pokoj/{roomId}");
+	}
+
+	private void NavigateToUpdateReview(int reviewId)
+	{
+		NavigationManager.NavigateTo($"/spravovat-recenzi/{reviewId}");
+	}
+
+	private void NavigateToDetailRezervation(int reservationId)
+	{
+		NavigationManager.NavigateTo($"/rezervace/{reservationId}");
 	}
 
 

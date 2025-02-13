@@ -37,9 +37,9 @@ namespace HoaP.Application.Services
             await _invoiceRepository.UpdateInvoiceAsync(invoice);
         }
 
-        public async Task DeleteInvoiceAsync(int id)
+        public async Task CancelInvoiceAsync(int id)
         {
-            await _invoiceRepository.DeleteInvoiceAsync(id);
+            await _invoiceRepository.CancelInvoiceAsync(id);
         }
 
         public async Task<bool> CheckIfInvoiceExistsForReservation(int reservationId)

@@ -51,7 +51,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(src => src.UpdatedAt))
                 .ForMember(dest => dest.Guests, opt => opt.MapFrom(src => src.Guests))
                 .ForMember(dest => dest.MealPlanId, opt => opt.MapFrom(src => src.MealPlanId))
-                .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.Room.RoomTypeId));
+                .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.Room.RoomTypeId))
+                .ForMember(dest => dest.Customer, opt => opt.MapFrom(src => src.Customer));
 
             CreateMap<Guest, GuestViewModel>();
 

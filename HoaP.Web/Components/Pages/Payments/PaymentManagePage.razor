@@ -32,7 +32,7 @@
                                             <strong>Číslo faktury:</strong> #@invoice.Id
                                         </div>
                                         <div>
-                                            <strong>Zákazník:</strong> @invoice.CustomerName
+											<strong>Zákazník:</strong> @(invoice.CustomerName ?? "Neznámý zákazník")
                                         </div>
                                         <div>
 											<strong>Termín:</strong> @invoice.IssueDate.ToShortDateString() - @invoice.DueDate.ToShortDateString()
@@ -102,17 +102,14 @@
 		if (paymentId != null)
 		{
             payment = Mapper.Map<PaymentFormViewModel>(await PaymentService.GetPaymentByIdAsync(paymentIdGuid.Value));
-
-			// Load invoice for search term
-
 			var invoice = await InvoiceService.GetInvoiceByIdAsync(payment.InvoiceId);
-			searchTerm = $"#{invoice.Id} - {invoice.CustomerName}";
+			searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
 		}
 		else if (invoiceId != null)
 		{
 			payment.InvoiceId = invoiceId.Value;
 			var invoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value);
-            searchTerm = $"#{invoice.Id} - {invoice.CustomerName}";
+			searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
 			payment.TotalAmount = invoice.Price;
 		}
 
@@ -125,13 +122,20 @@
     {
         searchTerm = e.Value?.ToString() ?? string.Empty;
         filteredInvoices = invoices
-		.Where(i => i.Id.ToString().Contains(searchTerm) || i.CustomerName.Contains(searchTerm) || i.Price.ToString().Contains(searchTerm) || i.IssueDate.ToShortDateString().Contains(searchTerm) || i.DueDate.ToShortDateString().Contains(searchTerm))
-			.ToList();
+        .Where(i =>
+                   (string.IsNullOrEmpty(searchTerm) ||
+                    i.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    i.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    i.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    i.DueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+                   (i.CustomerName == null || i.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+        .ToList();
+
     }
 
     private void SelectInvoice(InvoiceViewModel invoice)
     {
-		searchTerm = $"#{invoice.Id} - {invoice.CustomerName}";
+		searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
         payment.InvoiceId = invoice.Id;
         payment.TotalAmount = invoice.Price;
         filteredInvoices.Clear();
