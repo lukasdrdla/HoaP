@@ -29,6 +29,7 @@ namespace HoaP.Infrastructure.Repositories
             if (existingRoom != null)
             {
                 existingRoom.IsDisable = false;
+                existingRoom.RoomStatusId = 1;
                 await _context.SaveChangesAsync();
             }
         }
@@ -45,6 +46,7 @@ namespace HoaP.Infrastructure.Repositories
             if (existingRoom != null)
             {
                 existingRoom.IsDisable = true;
+                existingRoom.RoomStatusId = 3;
                 await _context.SaveChangesAsync();
             }
         }

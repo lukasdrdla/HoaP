@@ -49,6 +49,11 @@
     font-weight: bold;
 }
 
+.status-canceled {
+    color: #6c757d;
+    font-weight: bold;
+}
+
 .invoice-table {
     width: 100%;
     border-collapse: collapse;

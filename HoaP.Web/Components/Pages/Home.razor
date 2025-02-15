@@ -180,7 +180,7 @@
 
 		if (result)
         {
-			await ReservationService.DeleteReservationAsync(reservationIdToDelete);
+			await ReservationService.CancelReservationAsync(reservationIdToDelete);
             bookings.Remove(reservation);
 			UpdateSelectedDayBookings();
         }

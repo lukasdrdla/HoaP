@@ -29,11 +29,15 @@ namespace HoaP.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteReservationAsync(int id)
+        public async Task CancelReservationAsync(int id)
         {
             var reservation = await _context.Reservations.FindAsync(id);
-            _context.Reservations.Remove(reservation);
-            await _context.SaveChangesAsync();
+            if (reservation != null)
+            {
+                reservation.IsCanceled = true;
+                reservation.ReservationStatusId = 2;
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<DetailReservationViewModel> GetReservationByIdAsync(int id)

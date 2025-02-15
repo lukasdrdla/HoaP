@@ -21,7 +21,8 @@ namespace HoaP.Domain.Entities
         public int MealPlanId { get; set; }
         public string SpecialRequest { get; set; } = "";
         public string AdminNote { get; set; } = "";
-        
+        public bool IsCanceled { get; set; } = false;
+
 
         public Room? Room { get; set; }
         public ReservationStatus? ReservationStatus { get; set; }

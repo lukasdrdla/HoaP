@@ -26,6 +26,15 @@ namespace HoaP.Infrastructure.Repositories
         public async Task CreatePaymentAsync(PaymentFormViewModel payment)
         {
             await _context.Payments.AddAsync(_mapper.Map<Payment>(payment));
+
+            var invoice = await _context.Invoices.FindAsync(payment.InvoiceId);
+            if (invoice != null)
+            {
+                invoice.IsPaid = true;
+                _context.Invoices.Update(invoice);
+            }
+
+
             await _context.SaveChangesAsync();
         }
 

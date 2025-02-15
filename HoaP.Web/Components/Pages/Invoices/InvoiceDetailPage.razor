@@ -6,6 +6,11 @@
 @rendermode InteractiveServer
 
 
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="alert alert-danger">@ErrorMessage</p>
+}
+
 <div class="invoice-detail-container mt-5">
     <div class="invoice-header">
         <h2>Faktura #@invoice.Id <span style="color: red;">@(invoice.IsCanceled ? "(STORNOVÁNO)" : "")</span></h2>
@@ -39,8 +44,9 @@
         </div>
         <div class="summary-item">
             <span class="label">Stav:</span>
-            <span class="value @(invoice.IsPaid ? "status-paid" : "status-unpaid")">
-                @(invoice.IsPaid ? "Zaplaceno" : "Nezaplaceno")
+            <span class="value
+                @(invoice.IsCanceled ? "status-canceled" : invoice.IsPaid ? "status-paid" : "status-unpaid")">
+                @(invoice.IsCanceled ? "Stornováno" : invoice.IsPaid ? "Zaplaceno" : "Nezaplaceno")
             </span>
         </div>
         <div class="summary-item">
@@ -65,6 +71,7 @@
 	public int InvoiceId { get; set; }
 
     private DetailInvoiceViewModel invoice = new DetailInvoiceViewModel();
+	private string ErrorMessage = string.Empty;
 
 
 
@@ -78,8 +85,15 @@
 		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete stornovat fakturu?");
 		if (result)
 		{
-			await InvoiceService.CancelInvoiceAsync(invoiceId);
-			NavigationManager.NavigateTo("/faktury");
+			try 
+            {
+                await InvoiceService.CancelInvoiceAsync(invoiceId);
+                NavigationManager.NavigateTo("/faktury");
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = ex.Message;
+            }
 		}
 	}
 

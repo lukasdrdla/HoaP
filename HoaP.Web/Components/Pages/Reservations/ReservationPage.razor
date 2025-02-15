@@ -98,7 +98,7 @@
 
         if (result)
         {
-			await ReservationService.DeleteReservationAsync(reservationIdToDelete);
+			await ReservationService.CancelReservationAsync(reservationIdToDelete);
             reservations.Remove(reservation);
             filteredReservations = reservations;
         }

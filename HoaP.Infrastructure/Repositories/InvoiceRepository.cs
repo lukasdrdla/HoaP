@@ -39,6 +39,17 @@ namespace HoaP.Infrastructure.Repositories
             var existingInvoice = await _context.Invoices.FindAsync(id);
             if (existingInvoice != null)
             {
+                //check if invoice is already paid
+                if (existingInvoice.IsPaid)
+                {
+                    throw new Exception("Fakturu nelze stornovat, protože je již zaplacena.");
+                }
+
+                if (existingInvoice.IsCanceled)
+                {
+                    throw new Exception("Faktura je již stornována.");
+                }
+
                 existingInvoice.IsCanceled = true;
                 await _context.SaveChangesAsync();
             }

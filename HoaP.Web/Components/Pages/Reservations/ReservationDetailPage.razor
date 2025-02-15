@@ -1,6 +1,7 @@
 ﻿@page "/rezervace/{id:int}"
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 <div class="container py-5">
@@ -79,7 +80,7 @@
 
             <!-- Akce -->
             <div class="d-flex gap-3">
-                <button class="btn btn-danger flex-grow-1" @onclick="() => OpenDeleteConfirmation(reservation.Id)">Smazat rezervaci</button>
+				<button class="btn btn-danger flex-grow-1" @onclick="() => CancelReservation(reservation.Id)">Zrušit rezervaci</button>
                 <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToReservations">Zpět na seznam rezervací</button>
             </div>
         </div>
@@ -101,7 +102,6 @@
     </div>
 </div>
 
-<DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteReservation" Title="Smazání rezervace" />
 
 @code {
     [Parameter]
@@ -109,30 +109,27 @@
 
     private DetailReservationViewModel reservation = new DetailReservationViewModel();
 
-    private bool isDeleteModalVisible = false;
-    private int reservationIdToDelete;
 
-    private void OpenDeleteConfirmation(int reservationId)
-    {
-        reservationIdToDelete = reservationId;
-        isDeleteModalVisible = true;
-    }
 
-    private void HandleModalClose(bool result)
-    {
-        if (result)
-        {
-            ReservationService.DeleteReservationAsync(reservationIdToDelete);
-            NavigationManager.NavigateTo("/rezervace");
-        }
-        isDeleteModalVisible = false;
-    }
+
+
+
 
     protected override async Task OnInitializedAsync()
     {
         reservation = await ReservationService.GetReservationByIdAsync(Id);
     }
 
+
+    private async Task CancelReservation(int invoiceId)
+    {
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete zrušit rezervaci?");
+        if (result)
+        {
+			await ReservationService.CancelReservationAsync(invoiceId);
+			NavigationManager.NavigateTo("/rezervace");
+        }
+    }
 
 
     private void NavigateToReservations()
