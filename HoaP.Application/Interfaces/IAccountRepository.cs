@@ -15,9 +15,8 @@ namespace HoaP.Application.Interfaces
         Task<SignInResult> LoginAsync(LoginViewModel model);
         Task LogoutAsync();
         Task<AppUser> GetCurrentUserAsync();
-        Task UpdateUserAsync(UpdateEmployeeViewModel model);
-
-
+        Task UpdateUserProfileAsync(UpdateEmployeeViewModel model);
+        Task RegisterEmployeeAsync(EmployeeFormViewModel employee);
 
 
     }

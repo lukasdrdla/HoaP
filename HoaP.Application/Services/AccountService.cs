@@ -32,7 +32,13 @@ namespace HoaP.Application.Services
 
         public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
         {
-            await _accountRepository.UpdateUserAsync(model);
+            await _accountRepository.UpdateUserProfileAsync(model);
+        }
+
+
+        public async Task RegisterEmployeeAsync(EmployeeFormViewModel employee)
+        {
+            await _accountRepository.RegisterEmployeeAsync(employee);
         }
 
         public async Task LogoutAsync()
