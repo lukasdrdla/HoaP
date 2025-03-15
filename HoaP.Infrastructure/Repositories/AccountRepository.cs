@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.AppUser;
 using HoaP.Application.ViewModels.Employee;
@@ -19,14 +20,17 @@ namespace HoaP.Infrastructure.Repositories
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMapper _mapper;
 
 
-        public AccountRepository(ApplicationDbContext context, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IHttpContextAccessor httpContextAccessor)
+
+        public AccountRepository(ApplicationDbContext context, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IHttpContextAccessor httpContextAccessor, IMapper mapper)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
             _httpContextAccessor = httpContextAccessor;
+            _mapper = mapper;
         }
 
         public async Task<AppUser> GetCurrentUserAsync()
@@ -46,19 +50,29 @@ namespace HoaP.Infrastructure.Repositories
             await _signInManager.SignOutAsync();
         }
 
-        public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
+        public async Task RegisterEmployeeAsync(EmployeeFormViewModel employee)
+        {
+            var existingUser = await _userManager.FindByEmailAsync(employee.Email);
+            if (existingUser == null)
+            {
+                var user = new AppUser();
+                _mapper.Map(employee, user);
+                if (string.IsNullOrWhiteSpace(user.Id))
+                {
+                    user.Id = Guid.NewGuid().ToString();
+                }
+                await _userManager.CreateAsync(user, employee.Password);
+
+            }
+        }
+
+        public async Task UpdateUserProfileAsync(UpdateEmployeeViewModel model)
         {
             var existingUser = await _context.Users.FindAsync(model.Id);
 
             if (existingUser != null)
             {
-                existingUser.FirstName = model.FirstName;
-                existingUser.LastName = model.LastName;
-                existingUser.Address = model.Address;
-                existingUser.City = model.City;
-                existingUser.PostalCode = model.PostalCode;
-                existingUser.PhoneNumber = model.PhoneNumber;
-                existingUser.Country = model.Country;
+                _mapper.Map(model, existingUser);
                 await _userManager.UpdateAsync(existingUser);
                 await _context.SaveChangesAsync();
             }
