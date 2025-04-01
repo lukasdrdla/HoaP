@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Reservation : AuditableEntity
+    public class Reservation : AuditableEntity<int>
     {
-        public int Id { get; set; }
         public int RoomId { get; set; }
         public DateTime CheckIn { get; set; } = DateTime.Now;
         public DateTime CheckOut { get; set; } = DateTime.Now.AddDays(3);

@@ -12,12 +12,14 @@
 }
 
 <div class="invoice-detail-container mt-5">
+
     <div class="invoice-header">
         <h2>Faktura #@invoice.Id <span style="color: red;">@(invoice.IsCanceled ? "(STORNOVÁNO)" : "")</span></h2>
         <div class="d-flex gap-2 justify-content-end align-items-center">
 			<a href="/spravovat-fakturu/@InvoiceId" class="btn btn-outline-primary">Upravit</a>
             <button class="btn btn-outline-primary" @onclick="DownloadPDF">Stáhnout fakturu</button>
             <button class="btn btn-primary" @onclick="NavigateToPayment">Přidat platbu</button>
+			<button class="btn btn-danger" @onclick="() => DeleteInvoice(invoice.Id)">Odstranit fakturu</button>
         </div>
     </div>
 
@@ -97,6 +99,23 @@
 		}
 	}
 
+	private async Task DeleteInvoice(int invoiceId)
+    {
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete smazat fakturu?");
+		if (result)
+		{
+			try
+			{
+				await InvoiceService.DeleteInvoiceAsync(invoiceId);
+				NavigationManager.NavigateTo("/faktury");
+			}
+			catch (Exception ex)
+			{
+				ErrorMessage = ex.Message;
+			}
+		}
+	}
+
 
 
 
@@ -119,6 +138,8 @@
 	{
         NavigationManager.NavigateTo($"/vytvorit-platbu/{invoice.Id}");
 	}
+
+
 }
 
 <script>

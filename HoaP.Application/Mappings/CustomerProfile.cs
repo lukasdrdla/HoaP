@@ -14,25 +14,13 @@ namespace HoaP.Application.Mappings
         public CustomerProfile() {
 
             CreateMap<Customer, CustomerViewModel>();
-
+            
             CreateMap<CustomerFormViewModel, Customer>();
 
             CreateMap<DetailCustomerViewModel, CustomerFormViewModel>();
             CreateMap<CustomerFormViewModel, DetailCustomerViewModel>();
 
-
-
-
-
-
-
             CreateMap<Customer, DetailCustomerViewModel>();
-
-
-
-
-
         }
-
     }
 }

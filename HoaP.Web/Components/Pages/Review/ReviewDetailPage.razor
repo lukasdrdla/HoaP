@@ -1,0 +1,74 @@
+﻿@page "/recenze/{Id:int}"
+@inject ReviewService ReviewService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<div class="container mt-5">
+    <div class="card border-0 shadow-sm mx-auto w-75">
+        <div class="card-body">
+			<div class="d-flex justify-content-end gap-2 py-2 align-items-center">
+                <a href="/spravovat-review/@Id" class="btn btn-outline-primary">Upravit</a>
+				<button class="btn btn-danger" @onclick="() => DeleteReview(Id)">Odstranit recenzi</button>
+            </div>
+            <h3 class="text-center mb-4 page-title">Detail Recenze</h3>
+            @if (review is not null)
+            {
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">ID Recenze:</div>
+                    <div class="col-6">@review.Id</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Zákazník:</div>
+                    <div class="col-6">@(review.CustomerName ?? "Neznámý zákazník")</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Místnost:</div>
+                    <div class="col-6">@(review.RoomNumber ?? "Neznámá místnost")</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Hodnocení:</div>
+                    <div class="col-6">@review.Rating / 5</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Komentář:</div>
+                    <div class="col-6">@review.Comment</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted">Datum vytvoření:</div>
+                    <div class="col-6">@review.CreatedAt.ToString("dd.MM.yyyy")</div>
+                </div>
+            }
+            else
+            {
+                <p class="text-center text-muted">Recenze nebyla nalezena.</p>
+            }
+
+            <div class="text-center mt-4">
+                <a href="/reviews" class="btn btn-outline-secondary">Zpět na seznam recenzí</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private ReviewViewModel review { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        review = await ReviewService.GetReviewByIdAsync(Id);
+    }
+
+	private async Task DeleteReview(int id)
+	{
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete odstranit tuto recenzi?");
+        if (result)
+        {
+            await ReviewService.DeleteReviewAsync(id);
+            NavigationManager.NavigateTo("/reviews");
+        }
+    }
+}

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class AuditableEntity
+    public class AuditableEntity<TKey> : Entity<TKey>
     {
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;

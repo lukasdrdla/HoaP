@@ -1,0 +1,194 @@
+﻿@page "/spravovat-recenzi/{reviewId:int}"
+@page "/vytvorit-recenzi"
+@inject ReviewService ReviewService
+@inject RoomService RoomService
+@inject CustomerService CustomerService
+@inject NavigationManager NavigationManager
+@inject IMapper Mapper
+@rendermode InteractiveServer
+
+
+
+<div class="container mt-2">
+    <div class="card border-0 shadow-sm mx-auto">
+        <div class="card-body">
+            <h3 class="card-title text-center mb-4 page-title">@(reviewId.HasValue ? "Upravit recenzi" : "Vytvořit recenzi")</h3>
+            <EditForm Model="review" OnValidSubmit="HandleValidSubmit" FormName="AddReview">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3 row">
+                    <div class="form-group mb-3">
+                        <div class="form-group mb-3">
+                            <label for="RoomId" class="form-label">Pokoj</label>
+                            <div class="form-group position-relative">
+                                <input type="text" class="form-control" placeholder="Hledat pokoj" @bind="searchRoomTerm" @bind:event="oninput" @bind:after="FilterRooms" @onblur="HideRoomList" />
+
+                                @if (filteredRooms.Any())
+                                {
+                                    <ul class="list-group btn-secondary mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                        @foreach (var room in filteredRooms)
+                                        {
+                                            <li class="list-group-item list-group-item-action" @onmousedown="() => SelectRoom(room)">
+                                                <div>
+                                                    <strong> Číslo pokoje:</strong> @room.RoomNumber
+                                                </div>
+                                                <div>
+                                                    <strong> Typ pokoje:</strong> @room.RoomTypeName
+                                                </div>
+                                                <div>
+                                                    <strong> Kapacita:</strong> @room.MaxAdults dospělí, @room.MaxChildren děti
+                                                </div>
+                                                <div>
+                                                    <strong> Cena:</strong> @room.Price Kč za noc
+                                                </div>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="form-group mb-3">
+                            <label for="CustomerId" class="form-label">Zákazník</label>
+                            <div class="form-group position-relative">
+                                <input type="text" class="form-control" placeholder="Hledat zákazníka" @bind="searchCustomerTerm" @bind:event="oninput" @bind:after="FilterCustomers" @onblur="HideCustomerList" />
+                                @if (filteredCustomers.Any())
+                                {
+                                    <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                        @foreach (var customer in filteredCustomers)
+                                        {
+                                            <li class="list-group-item list-group-item-action" @onmousedown="() => SelectCustomer(customer)">
+                                                <div>
+                                                    <strong> Jméno:</strong> @customer.FirstName @customer.LastName
+                                                </div>
+                                                <div>
+                                                    <strong> Kontaktní údaje:</strong> @customer.Email, @customer.Phone
+                                                </div>
+                                                <div>
+                                                    <strong> Adresa:</strong> @customer.Address, @customer.City, @customer.PostalCode, @customer.Country
+                                                </div>
+                                                <div>
+                                                    <strong> Číslo dokladu:</strong> @customer.DocumentNumber
+                                                </div>
+
+
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+
+                    
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label for="Rating" class="form-label">Hodnocení</label>
+                    <InputNumber id="Rating" class="form-control" @bind-Value="review.Rating" min="1" max="5" />
+                </div>
+
+                <div class="mb-3 row">
+                    <div class="col-md-12">
+                        <label for="Comment" class="form-label">Komentář</label>
+                        <InputTextArea id="Comment" class="form-control" @bind-Value="review.Comment" />
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">@(reviewId.HasValue ? "Uložit změny" : "Vytvořit recenzi")</button>
+                    <a href="/recenze" class="btn btn-outline-secondary">Zpět na seznam</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? reviewId { get; set; }
+
+    [SupplyParameterFromForm]
+    private ReviewFormViewModel review { get; set; } = new ReviewFormViewModel();
+
+    private List<RoomViewModel> rooms = new List<RoomViewModel>();
+    private string searchRoomTerm;
+	private List<RoomViewModel> filteredRooms = new List<RoomViewModel>();
+	private List<CustomerViewModel> customers = new List<CustomerViewModel>();
+	private string searchCustomerTerm;
+	private List<CustomerViewModel> filteredCustomers = new List<CustomerViewModel>();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+		customers = await CustomerService.GetCustomersAsync();
+		filteredCustomers = new List<CustomerViewModel>();
+        rooms = await RoomService.GetRoomsAsync();
+		filteredRooms = new List<RoomViewModel>();
+
+        if (reviewId.HasValue)
+        {
+            review = Mapper.Map<ReviewFormViewModel>(await ReviewService.GetReviewByIdAsync(reviewId.Value));
+			searchCustomerTerm = $"{review.CustomerName}";
+			searchRoomTerm = $"{review.RoomNumber}";
+        }
+        else
+        {
+            review = new ReviewFormViewModel();
+        }
+    }
+
+	private void FilterCustomers()
+	{
+		filteredCustomers = customers.Where(c => c.FirstName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || c.LastName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+	}
+
+	private void FilterRooms()
+	{
+		filteredRooms = rooms.Where(r => r.RoomNumber.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+	}
+
+	private void HideCustomerList()
+    {
+        filteredCustomers.Clear();
+    }
+
+	private void HideRoomList()
+	{
+		filteredRooms.Clear();
+	}
+
+	private void SelectCustomer(CustomerViewModel customer)
+	{
+		review.CustomerId = customer.Id;
+		searchCustomerTerm = $"{customer.FirstName} {customer.LastName}";
+		filteredCustomers.Clear();
+	}
+
+    private void SelectRoom(RoomViewModel room)
+	{
+		review.RoomId = room.Id;
+		searchRoomTerm = room.RoomNumber;
+		filteredRooms.Clear();
+	}
+
+    private async void HandleValidSubmit()
+    {
+        if (reviewId.HasValue)
+        {
+            await ReviewService.UpdateReviewAsync(review);
+        }
+        else
+        {
+
+            await ReviewService.CreateReviewAsync(review);
+        }
+
+        NavigationManager.NavigateTo("/recenze");
+    }
+}

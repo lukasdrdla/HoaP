@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Invoice : AuditableEntity
+    public class Invoice : AuditableEntity<int>
     {
-        public int Id { get; set; }
         public int? ReservationId { get; set; }
         public int CurrencyId { get; set; }
         public DateTime IssueDate { get; set; } = DateTime.Now;

@@ -20,7 +20,7 @@ a, .btn-link {
 
 
 .content {
-    padding-top: 1.1rem;
+    padding-top: 3.3rem;
 }
 
 h1:focus {
@@ -139,3 +139,26 @@ a, .btn-link {
         box-shadow: none;
         outline: none;
     }
+
+
+
+
+.search-suggestions {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 1px solid #ccc;
+    max-width: 250px;
+    position: absolute;
+    z-index: 1000;
+}
+
+    .search-suggestions li {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+        .search-suggestions li:hover {
+            background-color: #f0f0f0;
+        }

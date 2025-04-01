@@ -28,37 +28,7 @@ namespace HoaP.Infrastructure.Repositories
         }
 
 
-        public async Task CreateEmployeeAsync(EmployeeFormViewModel employee)
-        {
-           var existingUser = await _userManager.FindByEmailAsync(employee.Email);
-            if (existingUser == null)
-            {
-                var user = new AppUser
-                {
-                    UserName = employee.Email,
-                    Email = employee.Email,
-                    FirstName = employee.FirstName,
-                    LastName = employee.LastName,
-                    PersonalIdentificationNumber = employee.PersonalIdentificationNumber,
-                    PlaceOfBirth = employee.PlaceOfBirth,
-                    InsuranceCompanyId = employee.InsuranceCompanyId,
-                    ProfilePicture = employee.ProfilePicture,
-                    Address = employee.Address,
-                    City = employee.City,
-                    PostalCode = employee.PostalCode,
-                    Country = employee.Country,
-                    JobTitle = employee.JobTitle,
-                    StartDate = employee.StartDate,
-                    Salary = employee.Salary,
-                    IsEmployed = employee.IsEmployed,
-                    PhoneNumber = employee.PhoneNumber
-                };
-
-                await _userManager.CreateAsync(user, employee.Password);
-
-            }
-
-        }
+        
 
         public async Task DeleteEmployeeAsync(string id)
         {

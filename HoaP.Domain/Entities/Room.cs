@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Room : AuditableEntity
+    public class Room : AuditableEntity<int>
     {
-        public int Id { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
         public int RoomTypeId { get; set; }
         public int RoomStatusId { get; set; }

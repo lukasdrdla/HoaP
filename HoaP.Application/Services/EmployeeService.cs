@@ -39,11 +39,6 @@ namespace HoaP.Application.Services
             await _employeeRepository.DeleteEmployeeAsync(id);
         }
 
-        public async Task CreateEmployeeAsync(EmployeeFormViewModel employee)
-        {
-            await _employeeRepository.CreateEmployeeAsync(employee);
-        }
-
         public async Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email)
         {
             return await _employeeRepository.GetEmployeeByEmail(email);

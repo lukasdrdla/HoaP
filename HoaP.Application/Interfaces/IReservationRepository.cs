@@ -14,6 +14,7 @@ namespace HoaP.Application.Interfaces
         Task<DetailReservationViewModel> GetReservationByIdAsync(int id);
         Task CreateReservationAsync(ReservationFormViewModel reservation);
         Task UpdateReservationAsync(ReservationFormViewModel reservation);
+        Task DeleteReservationAsync(int id);
         Task CancelReservationAsync(int id);
 
         Task<List<ReservationViewModel>> GetReservationsByCustomerIdAsync(int customerId);

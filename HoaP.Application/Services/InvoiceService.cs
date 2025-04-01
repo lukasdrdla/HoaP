@@ -37,6 +37,11 @@ namespace HoaP.Application.Services
             await _invoiceRepository.UpdateInvoiceAsync(invoice);
         }
 
+        public async Task DeleteInvoiceAsync(int id)
+        {
+            await _invoiceRepository.DeleteInvoiceAsync(id);
+        }
+
         public async Task CancelInvoiceAsync(int id)
         {
             await _invoiceRepository.CancelInvoiceAsync(id);

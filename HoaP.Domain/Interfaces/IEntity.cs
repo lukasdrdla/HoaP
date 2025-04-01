@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HoaP.Domain.Entities
+namespace HoaP.Domain.Interfaces
 {
-    public class RoomType : Entity<int>
+    public interface IEntity<TKey>
     {
-        public string Name { get; set; } = string.Empty;
+        TKey Id { get; set; }
     }
 }

@@ -4,15 +4,19 @@
 @inject EmployeeService EmployeeService
 @inject TaskService TaskService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <div class="container mt-4">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-				<h3 class="page-title">Zaměstnanec @employee?.FirstName @employee?.LastName</h3>
+
+            <div class="d-flex justify-content-end align-items-center mb-3 gap-2">
                 <button class="btn btn-outline-primary" @onclick=" () => NavigateToUpdateEmployee(employee.Id)">Upravit</button>
+				<button class="btn btn-danger" @onclick="() => DeleteEmployee(employee.Id)">Odstranit zaměstnance</button>
             </div>
+            <h3 class="page-title">Zaměstnanec @employee?.FirstName @employee?.LastName</h3>
+
             @if (employee is not null)
             {
                 <div class="text-center mb-5">
@@ -157,6 +161,18 @@
         task.IsCompleted = !task.IsCompleted;
         await TaskService.UpdateTask(task);
     }
+
+	private async Task DeleteEmployee(string employeeId)
+	{
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete odstranit tohoto zaměstnance?");
+		if (result)
+		{
+            await EmployeeService.DeleteEmployeeAsync(employeeId);
+			NavigationManager.NavigateTo("/zamestnanci");
+		}
+	}
+
+
 
 	private void NavigateToUpdateEmployee(string employeeId)
 	{

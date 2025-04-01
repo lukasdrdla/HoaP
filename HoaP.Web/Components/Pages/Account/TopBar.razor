@@ -1,12 +1,34 @@
 ﻿@page "/account/test"
 @inject AccountService AccountService
 @inject IServiceScopeFactory ServiceScopeFactory
+@inject NavigationManager NavigationManager
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @if (user != null)
 {
     <div class="topbar">
-        <div class="search-container">
-            <input type="text" placeholder="Search here" class="search-input" />
+        <div class="search-container" style="position: relative;">
+            <input @bind="SearchQuery"
+                   @bind:event="oninput"
+                   @onkeypress="HandleKeyPress"
+				   @onfocus="() => isFocused = true"
+				   @onblur="async () => { await Task.Delay(200); isFocused = false; }"
+                   type="text"
+                   placeholder="Hledat stránku..."
+                   class="search-input" />
+
+            @if (isFocused && filteredRoutes.Any())
+            {
+                <ul class="search-suggestions">
+                    @foreach (var route in filteredRoutes)
+                    {
+                        <li @onclick="() => NavigateTo(route.Url)">
+                            @route.Label
+                        </li>
+                    }
+                </ul>
+            }
+
         </div>
 
         <div class="topbar-icons">
@@ -27,15 +49,74 @@ else
 }
 
 @code {
+    private bool isFocused = false;
 
-    private AppUser user = new AppUser();
+    private AppUser user = new();
+    private string searchQuery = "";
+
+    private string SearchQuery
+    {
+        get => searchQuery;
+        set
+        {
+            searchQuery = value;
+            FilterRoutes();
+        }
+    }
+
+    public record RouteItem(string Label, string Url);
+
+    private List<RouteItem> routes = new()
+    {
+		new RouteItem("Rezervace", "/rezervace"),
+		new RouteItem("Zákazníci", "/zakaznici"),
+		new RouteItem("Pokoje", "/pokoje"),
+		new RouteItem("Faktury", "/faktury"),
+		new RouteItem("Platby", "/platby"),
+		new RouteItem("Zaměstnanci", "/zamestnanci"),
+		new RouteItem("Recenze", "/recenze"),
+		new RouteItem("Přidat rezervaci", "/vytvorit-rezervaci"),
+        new RouteItem("Přidat zákazníka", "/vytvorit-zakaznika"),
+        new RouteItem("Přidat pokoj", "/vytvorit-pokoj"),
+        new RouteItem("Přidat fakturu", "/vytvorit-fakturu"),
+        new RouteItem("Přidat platbu", "/vytvorit-platbu"),
+        new RouteItem("Přidat zaměstnance", "/vytvorit-zamestnance"),
+        new RouteItem("Přidat recenzi", "/vytvorit-recenzi"),
+		new RouteItem("Poznámky", "/ukoly"),
+		new RouteItem("Nastavení", "/admin-nastaveni"),
+		new RouteItem("Profil", "/muj-profil"),
+		new RouteItem("Kalkulačka", "/kalkulacka")
+
+    };
+
+    private List<RouteItem> filteredRoutes = new();
+
+    private void FilterRoutes()
+    {
+        filteredRoutes = routes
+            .Where(r => r.Label.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+
+    private void NavigateTo(string url)
+    {
+        searchQuery = "";
+        filteredRoutes.Clear();
+        NavigationManager.NavigateTo(url);
+    }
+
+    private void HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && filteredRoutes.Any())
+        {
+            NavigateTo(filteredRoutes.First().Url);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        using (var scope = ServiceScopeFactory.CreateScope())
-        {
-            var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
-            user = await accountService.GetCurrentUserAsync();
-        }
+        using var scope = ServiceScopeFactory.CreateScope();
+        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        user = await accountService.GetCurrentUserAsync();
     }
 }

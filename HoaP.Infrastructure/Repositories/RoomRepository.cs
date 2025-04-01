@@ -152,5 +152,15 @@ namespace HoaP.Infrastructure.Repositories
 
 
         }
+
+        public async Task DeleteRoomAsync(int id)
+        {
+            var existingRoom = await _context.Rooms.FindAsync(id);
+            if (existingRoom != null)
+            {
+                _context.Rooms.Remove(existingRoom);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

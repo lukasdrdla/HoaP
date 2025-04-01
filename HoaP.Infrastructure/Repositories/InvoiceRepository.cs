@@ -108,5 +108,15 @@ namespace HoaP.Infrastructure.Repositories
             _context.Invoices.Update(existingInvoice);
             await _context.SaveChangesAsync();
         }
+
+        public async Task DeleteInvoiceAsync(int id)
+        {
+            var invoice = await _context.Invoices.FindAsync(id);
+            if (invoice != null)
+            {
+                _context.Invoices.Remove(invoice);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

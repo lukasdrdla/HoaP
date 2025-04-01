@@ -8,6 +8,7 @@
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
 @inject ReviewService ReviewService
+@inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <div class="container mt-2">
@@ -24,7 +25,7 @@
 	{
 		<div class="card border-0 shadow-sm mx-auto">
 			<div class="card-body">
-				<div class="container py-5">
+				<div class="container py-1">
 					<div class="room-header">
 						<h3>@room.RoomTypeName - @room.RoomNumber</h3>
 						<div class="d-flex gap-2">
@@ -34,6 +35,7 @@
 							</button>
 							<button class="btn btn-outline-secondary" @onclick="() => NavigateToUpdateRoom(room.Id)">Upravit pokoj</button>
 							<button class="btn btn-success" @onclick="NavigateToCreateRezervation">+ Vytvořit rezervaci</button>
+							<button class="btn btn-danger" @onclick="() => DeleteRoom(room.Id)">Odstranit pokoj</button>
 
 						</div>
 					</div>
@@ -43,7 +45,9 @@
 						<div class="col-md-6 room-image">
 							@if (roomImageBase64 != null)
 							{
-								<img src="data:image/jpeg;base64,@roomImageBase64" alt="Room Image" class="img-fluid" />
+								//<img src="data:image/jpeg;base64,@roomImageBase64" alt="Room Image" class="img-fluid" />
+								<img src="https://placehold.co/600x400" alt="Room Image" class="img-fluid" />
+								
 							}
 							else
 							{
@@ -92,13 +96,13 @@
 										<input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Search Customer" />
 									</ColumnOptions>
 								</PropertyColumn>
-								<PropertyColumn Title="Check In" Property="@(x => x.CheckIn)" Sortable="true" />
-								<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut)" Sortable="true" />
+								<PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+								<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
 								<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-								<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+								<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice.ToString("C0"))" Sortable="true" />
 								<TemplateColumn Title="Akce">
 									<div class="d-inline-flex">
-										<button class="btn text-primary" @onclick="() => NavigateToDetailRezervation(context.Id)">
+										<button class="btn	y" @onclick="() => NavigateToDetailRezervation(context.Id)">
 											<i class="bi bi-search"></i>
 										</button>
 
@@ -221,6 +225,9 @@
 
 	}
 
+
+
+
 	private void UpdatePagination()
 	{
 		paginatedReviews = filteredReviews
@@ -276,6 +283,16 @@
 			filteredReservations = reservations;
 		}
 
+	}
+
+	private async Task DeleteRoom(int roomId)
+	{
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete odstranit pokoj?");
+		if (result)
+		{
+			await RoomService.DeleteRoomAsync(roomId);
+			NavigationManager.NavigateTo("/pokoje");
+		}
 	}
 
 	private void DeleteReview(int reviewId)

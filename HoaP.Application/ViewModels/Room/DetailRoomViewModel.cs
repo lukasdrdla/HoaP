@@ -25,6 +25,6 @@ namespace HoaP.Application.ViewModels.Room
 
         public int RoomStatusId { get; set; }
         public int RoomTypeId { get; set; }
-        public ICollection<Review.ReviewViewModel> Reviews { get; set; } = new List<Review.ReviewViewModel>();
+        public ICollection<ReviewViewModel> Reviews { get; set; } = new List<ReviewViewModel>();
     }
 }

@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class Guest
+    public class Guest : Entity<int>
     {
-        public int Id { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; } = DateTime.Now;

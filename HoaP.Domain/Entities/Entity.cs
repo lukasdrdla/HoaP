@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Domain.Interfaces;
 
 namespace HoaP.Domain.Entities
 {
-    public class ReservationStatus : Entity<int>
+    public class Entity<TKey> : IEntity<TKey>
     {
-        public string Name { get; set; } = string.Empty;
+        public TKey Id { get; set; }
     }
 }

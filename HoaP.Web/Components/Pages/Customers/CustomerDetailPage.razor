@@ -72,25 +72,29 @@
         </div>
 
         <!-- Reservations Table -->
-        <div class="mt-5">
-            <h4>Rezervace</h4>
-            <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="table table-bordered">
-                <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
-                <PropertyColumn Title="Check-In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
-                <PropertyColumn Title="Check-Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
-                <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
-                <PropertyColumn Title="Cena" Property="@(x => x.TotalPrice)" Sortable="true" />
-                <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-                <TemplateColumn Title="Akce">
-                    <div class="d-inline-flex gap-2">
-                        <button class="btn btn-sm btn-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
-                            <i class="bi bi-search"></i>
-                        </button>
-                    </div>
-                </TemplateColumn>
-            </QuickGrid>
-            <Paginator State="paginationState" />
-        </div>
+        <div class="card border-0 shadow-sm mt-5">
+            <div class="card-body">
+                <h4>Rezervace</h4>
+                <div class="table-responsive-lg">
+                    <QuickGrid Items="filteredReservations.AsQueryable()" Pagination="paginationState" Class="w-100">
+                        <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true" />
+                        <PropertyColumn Title="Check-In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
+                        <PropertyColumn Title="Check-Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
+                        <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
+						<PropertyColumn Title="Cena" Property="@(x => x.TotalPrice.ToString("C0"))" Sortable="true" />
+                        <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
+                        <TemplateColumn Title="Akce">
+                            <div class="d-inline-flex gap-2">
+                                <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                    <Paginator State="paginationState" />
+                </div>
+            </div>
+		</div>
     }
 </div>
 

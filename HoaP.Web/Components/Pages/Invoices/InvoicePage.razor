@@ -59,6 +59,7 @@
 											<button class="dropdown-item" @onmousedown="() => CancleInvoice(context.Id)">Stornovat</button>
 										}
                                         <button class="dropdown-item" @onmousedown="() => NavigateToUpdateInvoice(context.Id)">Upravit</button>
+										<button class="dropdown-item" @onmousedown="() => OpenDeleteConfirmation(context.Id)">Smazat</button>
                                     </div>
                                 }
                             </div>
@@ -71,16 +72,45 @@
     </div>
 </div>
 
+<DeleteModal IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" ActionType="DeleteInvoice" Title="Smazat fakturu" />
+
+
 
 @code {
     private List<InvoiceViewModel> invoices;
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
     private string? searchTerm;
 
+	private bool isDeleteModalVisible = false;
+	private int invoiceIdToDelete;
+
+
     private int? VisibleInvoiceId;
 	private ElementReference optionsMenu;
 
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
+
+
+	private void OpenDeleteConfirmation(int invoiceId)
+	{
+		invoiceIdToDelete = invoiceId;
+		isDeleteModalVisible = true;
+	}
+
+	private async Task HandleModalClose(bool isConfirmed)
+    {
+
+		var invoice = invoices.FirstOrDefault(x => x.Id == invoiceIdToDelete);
+
+		if (isConfirmed)
+		{
+			await InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
+			invoices = await InvoiceService.GetInvoicesAsync();
+			filteredInvoices = invoices;
+		}
+		
+		isDeleteModalVisible = false;
+	}
 
 
 

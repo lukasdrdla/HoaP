@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class RoomStatus
+    public class RoomStatus : Entity<int>
     {
-        public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }
 }

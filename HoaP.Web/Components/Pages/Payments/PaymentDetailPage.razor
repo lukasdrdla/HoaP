@@ -1,12 +1,15 @@
 ﻿@page "/platba/{Id:guid}"
 @using HoaP.Application.ViewModels.Payment
 @inject PaymentService PaymentService
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <div class="container mt-5">
     <div class="card border-0 shadow-sm mx-auto w-75">
         <div class="card-body">
-            <div class="d-flex justify-content-end">
+			<div class="d-flex justify-content-end gap-2 align-items-center">
 				<a href="/spravovat-platbu/@Id" class="btn btn-outline-primary">Upravit</a>
+				<button class="btn btn-danger" @onclick="() => DeletePayment(Id)">Odstranit platbu</button>
             </div>
             <h3 class="text-center mb-4 page-title">Detail Platby</h3>
             @if (payment is not null)
@@ -58,6 +61,16 @@
 	protected override async Task OnInitializedAsync()
 	{
 		payment = await PaymentService.GetPaymentByIdAsync(Id);
+	}
+
+	private async Task DeletePayment(Guid id)
+	{
+		var confirm = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete odstranit tuto platbu?");
+		if (confirm)
+		{
+			await PaymentService.DeletePaymentAsync(id);
+			NavigationManager.NavigateTo("/platby");
+		}
 	}
 
 }

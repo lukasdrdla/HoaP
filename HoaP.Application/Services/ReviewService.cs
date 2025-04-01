@@ -32,12 +32,12 @@ namespace HoaP.Application.Services
             return await _reviewRepository.GetReviewByIdAsync(id);
         }
 
-        public async Task CreateReviewAsync(ReviewViewModel review)
+        public async Task CreateReviewAsync(ReviewFormViewModel review)
         {
             await _reviewRepository.CreateReviewAsync(review);
         }
 
-        public async Task UpdateReviewAsync(ReviewViewModel review)
+        public async Task UpdateReviewAsync(ReviewFormViewModel review)
         {
             await _reviewRepository.UpdateReviewAsync(review);
         }

@@ -27,6 +27,9 @@ builder.Services.AddAutoMapper(typeof(MealPlanProfile));
 builder.Services.AddAutoMapper(typeof(RoleProfile));
 builder.Services.AddAutoMapper(typeof(ReservationStatusProfile));
 builder.Services.AddAutoMapper(typeof(TaskProfile));
+builder.Services.AddAutoMapper(typeof(AccountProfile));
+builder.Services.AddAutoMapper(typeof(ReviewProfile));
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

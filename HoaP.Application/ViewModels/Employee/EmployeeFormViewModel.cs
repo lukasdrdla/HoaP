@@ -13,8 +13,11 @@ namespace HoaP.Application.ViewModels.Employee
 
         public string Id { get; set; } = string.Empty;
 
+        public byte[] ProfilePicture { get; set; } = new byte[0];
+
+
         [Required]
-        public byte[] ProfilePicture { get; set; } = null!;
+        public string UserName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]

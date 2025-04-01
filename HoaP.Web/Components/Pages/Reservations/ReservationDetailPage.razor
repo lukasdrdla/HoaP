@@ -10,97 +10,88 @@
         <div class="d-flex gap-2">
             <button class="btn btn-outline-primary" @onclick="() => NavigateToUpdateReservation(reservation.Id)">Upravit rezervaci</button>
             <button class="btn btn-success" @onclick="NavigateToAddInvoice">+ Vytvořit fakturu</button>
+			<button class="btn btn-danger" @onclick="() => DeleteReservation(reservation.Id)">Odstranit rezervaci</button>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Informace o rezervaci -->
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Informace o rezervaci</h5>
-                </div>
-                <div class="card-body">
-                    <p>
-                        <strong>Zákazník:</strong>
-                        <a class="text-primary" style="cursor:pointer;" @onclick="() => NavigateToCustomerDetail(reservation.CustomerId)">
-                            @(reservation.CustomerName ?? "Neznámý zákazník")
-                        </a>
-                    </p>
-                    <p><strong>Rezervace ID:</strong> #@reservation.Id</p>
-                    <p><strong>Datum vytvoření:</strong> @reservation.CreatedAt.ToString("dd.MM.yyyy")</p>
-                    <p><strong>Check-in:</strong> @reservation.CheckIn.ToString("dd.MM.yyyy")</p>
-                    <p><strong>Check-out:</strong> @reservation.CheckOut.ToString("dd.MM.yyyy")</p>
-                    <p>
-                        <strong>Pokoj:</strong>
-                        <a class="text-primary" style="cursor:pointer;" @onclick="() => NavigateToRoomDetail(reservation.RoomId)">
-                            @reservation.RoomTypeName (Číslo pokoje: @reservation.RoomNumber)
-                        </a>
-                    </p>
-                    <p><strong>Počet hostů:</strong> @reservation.GuestCount</p>
-                    <p><strong>Speciální požadavky:</strong> @reservation.SpecialRequest</p>
-                </div>
+	<div class="card mb-4 border-0 shadow-sm">
+     
+            <h5>Informace o rezervaci & Shrnutí</h5>
+       
+        <div class="card-body row">
+            <!-- Levá část: Detaily -->
+            <div class="col-md-8">
+                <p>
+                    <strong>Zákazník:</strong>
+                    <a class="text-primary" style="cursor:pointer;" @onclick="() => NavigateToCustomerDetail(reservation.CustomerId)">
+                        @(reservation.CustomerName ?? "Neznámý zákazník")
+                    </a>
+                </p>
+                <p><strong>Rezervace ID:</strong> #@reservation.Id</p>
+                <p><strong>Datum vytvoření:</strong> @reservation.CreatedAt.ToString("dd.MM.yyyy")</p>
+                <p><strong>Check-in:</strong> @reservation.CheckIn.ToString("dd.MM.yyyy")</p>
+                <p><strong>Check-out:</strong> @reservation.CheckOut.ToString("dd.MM.yyyy")</p>
+                <p>
+                    <strong>Pokoj:</strong>
+                    <a class="text-primary" style="cursor:pointer;" @onclick="() => NavigateToRoomDetail(reservation.RoomId)">
+                        @reservation.RoomTypeName (Číslo pokoje: @reservation.RoomNumber)
+                    </a>
+                </p>
+                <p><strong>Počet hostů:</strong> @reservation.GuestCount</p>
+                <p><strong>Speciální požadavky:</strong> @reservation.SpecialRequest</p>
             </div>
 
-            <!-- Tabulka hostů -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>Hosté</h5>
-                </div>
-                <div class="card-body">
-                    @if (reservation.Guests != null && reservation.Guests.Any())
-                    {
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>Jméno</th>
-                                    <th>Číslo dokumentu</th>
-                                    <th>Datum narození</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var guest in reservation.Guests)
-                                {
-                                    <tr>
-                                        <td>@guest.FirstName @guest.LastName</td>
-                                        <td>@guest.DocumentNumber</td>
-                                        <td>@guest.DateOfBirth.ToShortDateString()</td>
-
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    }
-                    else
-                    {
-                        <p>Žádní hosté nejsou přidáni k této rezervaci.</p>
-                    }
-                </div>
-            </div>
-
-            <!-- Akce -->
-            <div class="d-flex gap-3">
-				<button class="btn btn-danger flex-grow-1" @onclick="() => CancelReservation(reservation.Id)">Zrušit rezervaci</button>
-                <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToReservations">Zpět na seznam rezervací</button>
+            <!-- Pravá část: Shrnutí -->
+            <div class="col-md-4 border-start">
+                <img src="https://placehold.co/600x400" alt="Pokoj obrázek" class="img-fluid rounded mb-3" style="cursor: pointer;" @onclick="() => NavigateToRoomDetail(reservation.RoomId)" />
+                <p><strong>Celková cena:</strong> @reservation.TotalPrice Kč</p>
+                <p><strong>Stav rezervace:</strong> @reservation.ReservationStatusName</p>
+                <a class="btn btn-primary w-100 mt-2" href="mailto:@reservation.CustomerEmail">Kontaktovat zákazníka</a>
             </div>
         </div>
+    </div>
 
-        <!-- Shrnutí objednávky -->
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Shrnutí rezervace</h5>
-                </div>
-                <div class="card-body">
-                    <img src="@reservation.RoomImage" alt="Pokoj obrázek" class="img-fluid rounded mb-3" style="cursor: pointer;" @onclick="() => NavigateToRoomDetail(reservation.RoomId)" />
-                    <p><strong>Celková cena:</strong> @reservation.TotalPrice Kč</p>
-                    <p><strong>Stav rezervace:</strong> @reservation.ReservationStatusName</p>
-                    <a class="btn btn-primary w-100 mt-3" href="mailto:@reservation.CustomerEmail">Kontaktovat zákazníka</a>
-                </div>
-            </div>
+    <!-- Hosté card -->
+    <div class="card mb-4 border-0 shadow-sm">
+     
+            <h5>Hosté</h5>
+        <div class="card-body">
+            @if (reservation.Guests != null && reservation.Guests.Any())
+            {
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Jméno</th>
+                            <th>Číslo dokumentu</th>
+                            <th>Datum narození</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var guest in reservation.Guests)
+                        {
+                            <tr>
+                                <td>@guest.FirstName @guest.LastName</td>
+                                <td>@guest.DocumentNumber</td>
+                                <td>@guest.DateOfBirth.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>Žádní hosté nejsou přidáni k této rezervaci.</p>
+            }
         </div>
+    </div>
+
+    <!-- Akce -->
+    <div class="d-flex gap-3">
+        <button class="btn btn-danger flex-grow-1" @onclick="() => CancelReservation(reservation.Id)">Zrušit rezervaci</button>
+        <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToReservations">Zpět na seznam rezervací</button>
     </div>
 </div>
+
 
 
 @code {
@@ -130,6 +121,17 @@
 			NavigationManager.NavigateTo("/rezervace");
         }
     }
+
+	private async Task DeleteReservation(int reservationId)
+	{
+		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete odstranit tuto rezervaci?");
+        if (result)
+        {
+            await ReservationService.DeleteReservationAsync(reservationId);
+            NavigationManager.NavigateTo("/rezervace");
+        }
+    }
+
 
 
     private void NavigateToReservations()

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.Review;
+using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,9 +23,19 @@ namespace HoaP.Infrastructure.Repositories
             _mapper = mapper;
         }
 
-        public Task CreateReviewAsync(ReviewViewModel review)
+        public async Task CreateReviewAsync(ReviewFormViewModel review)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await _context.Reviews.AddAsync(_mapper.Map<Review>(review));
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+
         }
 
         public async Task DeleteReviewAsync(int id)
@@ -78,7 +89,7 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<ReviewViewModel>>(reviews);
         }
 
-        public async Task UpdateReviewAsync(ReviewViewModel review)
+        public async Task UpdateReviewAsync(ReviewFormViewModel review)
         {
             var existingReview = await _context.Reviews.FindAsync(review.Id);
 

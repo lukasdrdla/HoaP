@@ -63,7 +63,7 @@
                             </PropertyColumn>
                             <PropertyColumn Title="Typ pokoje" Property="@(r => r.RoomTypeName)" Sortable="true" />
                             <PropertyColumn Title="Status" Property="@(r => r.RoomStatusName)" Sortable="true" />
-                            <PropertyColumn Title="Cena" Property="@(r => r.Price)" Sortable="true" />
+							<PropertyColumn Title="Cena" Property="@(r => r.Price.ToString("C0"))" Sortable="true" />
                             <PropertyColumn Title="Max Dospělí" Property="@(r => r.MaxAdults)" Sortable="true" />
                             <PropertyColumn Title="Max Děti" Property="@(r => r.MaxChildren)" Sortable="true" />
                             <TemplateColumn Title="Akce">
@@ -178,7 +178,7 @@
 
         if (result)
         {
-			await RoomService.DisableRoomAsync(deleteRoomId);
+			await RoomService.DeleteRoomAsync(deleteRoomId);
             rooms.Remove(room);
             filteredRooms = rooms;
         }

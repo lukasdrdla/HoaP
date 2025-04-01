@@ -11,8 +11,8 @@ namespace HoaP.Application.Interfaces
     {
         Task<List<ReviewViewModel>> GetReviewsAsync();
         Task<ReviewViewModel> GetReviewByIdAsync(int id);
-        Task CreateReviewAsync(ReviewViewModel review);
-        Task UpdateReviewAsync(ReviewViewModel review);
+        Task CreateReviewAsync(ReviewFormViewModel review);
+        Task UpdateReviewAsync(ReviewFormViewModel review);
         Task DeleteReviewAsync(int id);
 
         Task<List<ReviewViewModel>> GetReviewsByCustomerIdAsync(int customerId);

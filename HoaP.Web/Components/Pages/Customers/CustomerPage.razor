@@ -37,7 +37,7 @@
                                     <PropertyColumn Title="Příjmení" Property="@(x => x.LastName)" Sortable="true" />
                                     <PropertyColumn Title="Email" Property="@(x => x.Email)" Sortable="true" />
                                     <PropertyColumn Title="Telefon" Property="@(x => x.Phone)" Sortable="true" />
-                                    <PropertyColumn Title="Číslo dokladu" Property="@(x => x.PersonalIdentificationNumber)" Sortable="true" />
+                                    <PropertyColumn Title="Rodné číslo" Property="@(x => x.PersonalIdentificationNumber)" Sortable="true" />
                                     <TemplateColumn Title="Akce">
                                         <div class="d-inline-flex">
                                             <button class="btn text-primary" @onclick="() => NavigateToCustomerDetail(context.Id)">

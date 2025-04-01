@@ -96,5 +96,21 @@ namespace HoaP.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task DeleteReservationAsync(int id)
+        {
+            var reservation = await _context.Reservations.FindAsync(id);
+            if (reservation != null)
+            {
+                var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.ReservationId == id);
+                if (invoice != null)
+                {
+                    throw new Exception("Can't delete reservation with invoice");
+                }
+
+                _context.Reservations.Remove(reservation);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

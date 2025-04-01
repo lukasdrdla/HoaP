@@ -4,6 +4,12 @@
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
 
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="alert alert-danger">@errorMessage</p>
+}
+
+
 <div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
@@ -67,6 +73,7 @@
     private string? searchTerm;
     private int reservationIdToDelete;
     private bool isDeleteModalVisible = false;
+	private string errorMessage = string.Empty;
 	private ElementReference optionsMenu;
 	private int? VisibleReservationId { get; set; }
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 20 };
@@ -98,9 +105,16 @@
 
         if (result)
         {
-			await ReservationService.CancelReservationAsync(reservationIdToDelete);
-            reservations.Remove(reservation);
-            filteredReservations = reservations;
+			try
+			{
+                await ReservationService.DeleteReservationAsync(reservationIdToDelete);
+                reservations.Remove(reservation);
+                filteredReservations = reservations;
+            }
+            catch (Exception ex)
+			{
+				errorMessage = ex.Message;
+			}
         }
     }
 

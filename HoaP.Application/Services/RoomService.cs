@@ -37,6 +37,11 @@ namespace HoaP.Application.Services
             await _roomRepository.UpdateRoomAsync(room);
         }
 
+        public async Task DeleteRoomAsync(int id)
+        {
+            await _roomRepository.DeleteRoomAsync(id);
+        }
+
         public async Task DisableRoomAsync(int id)
         {
             await _roomRepository.DisableRoom(id);
@@ -61,6 +66,8 @@ namespace HoaP.Application.Services
         {
             return await _roomRepository.GetAvailableRoomsAsync(checkIn, checkOut);
         }
+
+
 
         
 

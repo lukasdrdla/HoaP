@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class TaskItem
+    public class TaskItem : Entity<int>
     {
-        public int Id { get; set; }
         public string EmployeeId { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
