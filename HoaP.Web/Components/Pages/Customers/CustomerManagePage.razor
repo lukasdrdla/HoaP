@@ -5,6 +5,13 @@
 @inject IMapper Mapper
 @rendermode InteractiveServer
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
+
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
@@ -136,19 +143,28 @@
 
     [SupplyParameterFromForm]
     private CustomerFormViewModel customer { get; set; } = new CustomerFormViewModel();
+	private string? errorMessage;
 
     private async Task HandleValidSubmit()
     {
-		if (customerId.HasValue)
-        {
-            await CustomerService.UpdateCustomer(customer);
-        }
-		else
-		{
-			await CustomerService.CreateCustomer(customer);
-		}
+		
+        try {
+            if (customerId.HasValue)
+            {
+                await CustomerService.UpdateCustomer(customer);
+            }
+            else
+            {
+                await CustomerService.CreateCustomer(customer);
+            }
 
-        NavigationManager.NavigateTo("/zakaznici");
+            NavigationManager.NavigateTo("/zakaznici");
+        }
+
+		catch (Exception ex)
+		{
+			errorMessage = "Chyba při zpracování požadavku: " + ex.Message; 
+		}
     }
 
 	protected override async Task OnInitializedAsync()

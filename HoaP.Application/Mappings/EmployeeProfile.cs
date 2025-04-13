@@ -20,7 +20,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
             CreateMap<DetailEmployeeViewModel, EmployeeFormViewModel>()
-                .ForMember(dest => dest.InsuranceCompanyId, opt => opt.MapFrom(src => src.InsuranceCompanyId));
+                .ForMember(dest => dest.InsuranceCompanyId, opt => opt.MapFrom(src => src.InsuranceCompanyId))
+                .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId));
 
             CreateMap<EmployeeFormViewModel, AppUser>();
 

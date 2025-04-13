@@ -9,6 +9,14 @@
 @inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin, Manager")]
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
 
 
 
@@ -131,6 +139,8 @@
 
 	private byte[] imageBytes;
     private string message;
+    private string? errorMessage;
+
 
 	private async void HandleFileSelected(InputFileChangeEventArgs e)
 	{
@@ -185,18 +195,30 @@
 
     private async void HandleValidSubmit()
     {
-		room.Amenities = amenities.Where(a => a.isSelected).Select(a => new AmenityViewModel { Id = a.Id }).ToList();
+		try
+        {
+            room.Amenities = amenities.Where(a => a.isSelected).Select(a => new AmenityViewModel { Id = a.Id }).ToList();
 
-		if (roomId.HasValue)
+            if (roomId.HasValue)
+            {
+                await RoomService.UpdateRoomAsync(room);
+            }
+            else
+            {
+                await RoomService.CreateRoomAsync(room);
+            }
+
+            NavigationManager.NavigateTo("/pokoje");
+        }
+        catch (DbUpdateException dbEx)
+        {
+            errorMessage = "Nepodařilo se uložit rezervaci do databáze. Zkuste to prosím znovu.";
+        }
+		catch (Exception ex)
 		{
-			await RoomService.UpdateRoomAsync(room);
+            errorMessage = "Nastala chyba při ukládání rezervace. Zkuste to prosím znovu. : " + ex.Message;
 		}
-		else
-		{
-			await RoomService.CreateRoomAsync(room);
-		}
-        
-        NavigationManager.NavigateTo("/pokoje");
+
     }
 
     private async Task SearchRoom(ChangeEventArgs e)

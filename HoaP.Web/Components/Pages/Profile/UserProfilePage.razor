@@ -118,7 +118,7 @@
     {
 		
 
-		userProfileModel = Mapper.Map<UpdateEmployeeViewModel>(await AccountService.GetCurrentUserAsync());
+		userProfileModel = Mapper.Map<UpdateEmployeeViewModel>(await AccountService.FetchLoggedInUserAsync());
         if (userProfileModel.ProfilePicture != null)
         {
             profilePictureBase64 = Convert.ToBase64String(userProfileModel.ProfilePicture);

@@ -27,6 +27,6 @@ namespace HoaP.Domain.Entities
         public ReservationStatus? ReservationStatus { get; set; }
         public MealPlan? MealPlan { get; set; }
 
-        public ICollection<Guest> Guests { get; set; } = null!;
+        public ICollection<ReservationCustomer> ReservationCustomers { get; set; } = new List<ReservationCustomer>();
     }
 }

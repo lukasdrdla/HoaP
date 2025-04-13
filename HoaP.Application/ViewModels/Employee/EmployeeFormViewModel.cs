@@ -83,6 +83,11 @@ namespace HoaP.Application.ViewModels.Employee
         [Required]
         public int InsuranceCompanyId { get; set; }
 
+        [Required]
+        public string RoleId { get; set; } = string.Empty;
+
+
+
         public List<InsuranceCompanyViewModel> InsuranceCompanies { get; set; } = new();
     }
 }

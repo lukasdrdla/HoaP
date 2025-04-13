@@ -47,7 +47,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        user = await AccountService.GetCurrentUserAsync();
+        user = await AccountService.FetchLoggedInUserAsync();
         tasks = await TaskService.GetTasksForEmployeeAsync(user.Id);
     }
 

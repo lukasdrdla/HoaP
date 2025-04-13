@@ -52,38 +52,32 @@
     </div>
 
     <!-- Hosté card -->
-    <div class="card mb-4 border-0 shadow-sm">
-     
-            <h5>Hosté</h5>
-        <div class="card-body">
-            @if (reservation.Guests != null && reservation.Guests.Any())
-            {
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Jméno</th>
-                            <th>Číslo dokumentu</th>
-                            <th>Datum narození</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var guest in reservation.Guests)
-                        {
-                            <tr>
-                                <td>@guest.FirstName @guest.LastName</td>
-                                <td>@guest.DocumentNumber</td>
-                                <td>@guest.DateOfBirth.ToShortDateString()</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p>Žádní hosté nejsou přidáni k této rezervaci.</p>
-            }
-        </div>
-    </div>
+    @if (reservation.Guests != null && reservation.Guests.Any())
+    {
+        <table class="table table-hover table-striped">
+            <thead class="table-light">
+                <tr>
+                    <th>Jméno</th>
+                    <th>Číslo dokladu</th>
+                    <th>Datum narození</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var guest in reservation.Guests)
+                {
+                    <tr>
+                        <td>@guest.FirstName @guest.LastName</td>
+                        <td>@guest.DocumentNumber</td>
+                        <td>@guest.DateOfBirth.ToString("dd.MM.yyyy")</td>
+                        <td><a href="mailto:@guest.Email">@guest.Email</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+
 
     <!-- Akce -->
     <div class="d-flex gap-3">
@@ -109,6 +103,8 @@
     protected override async Task OnInitializedAsync()
     {
         reservation = await ReservationService.GetReservationByIdAsync(Id);
+
+
     }
 
 

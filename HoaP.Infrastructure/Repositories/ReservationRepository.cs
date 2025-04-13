@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels;
+using HoaP.Application.ViewModels.Customer;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -25,8 +26,29 @@ namespace HoaP.Infrastructure.Repositories
         public async Task CreateReservationAsync(ReservationFormViewModel reservation)
         {
             var newReservation = _mapper.Map<Reservation>(reservation);
+
+            newReservation.ReservationCustomers.Add(new ReservationCustomer
+            {
+                CustomerId = reservation.CustomerId,
+                IsMainGuest = true
+            });
+
+       
+            foreach (var guest in reservation.Guests)
+            {
+                var guestEntity = _mapper.Map<Customer>(guest);
+                _context.Customers.Add(guestEntity);
+
+                newReservation.ReservationCustomers.Add(new ReservationCustomer
+                {
+                    Customer = guestEntity,
+                    IsMainGuest = false
+                });
+            }
+
             await _context.Reservations.AddAsync(newReservation);
             await _context.SaveChangesAsync();
+
         }
 
         public async Task CancelReservationAsync(int id)
@@ -46,12 +68,25 @@ namespace HoaP.Infrastructure.Repositories
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
-                .ThenInclude(r => r.RoomType)
-                .Include(r => r.Guests)
+                    .ThenInclude(rt => rt.RoomType)
+                .Include(r => r.ReservationCustomers)
+                    .ThenInclude(rc => rc.Customer)
+                .Include(r => r.MealPlan)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            return _mapper.Map<DetailReservationViewModel>(reservation);
+            var result = _mapper.Map<DetailReservationViewModel>(reservation);
+
+            var guests = await _context.ReservationCustomers
+                .Include(rc => rc.Customer)
+                .Where(rc => rc.ReservationId == id && !rc.IsMainGuest)
+                .Select(rc => rc.Customer)
+                .ToListAsync();
+
+            result.Guests = _mapper.Map<List<CustomerViewModel>>(guests);
+
+            return result;
         }
+
 
         public async Task<List<ReservationViewModel>> GetReservationsAsync()
         {

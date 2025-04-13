@@ -1,5 +1,6 @@
 ﻿@page "/spravovat-zamestnance/{Id}"
 @page "/vytvorit-zamestnance"
+@using Microsoft.AspNetCore.Identity
 @inject NavigationManager NavigationManager
 @inject InsuranceCompanyService InsuranceCompanyService
 @inject IFileUploadService FileUploadService
@@ -7,7 +8,16 @@
 @inject EmployeeService EmployeeService
 @inject AccountService AccountService
 @rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin, Manager")]
 
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
 
 
 <div class="container mt-2">
@@ -50,7 +60,17 @@
 
                 <div class="mb-3 row">
                     <div class="col-md-6">
-						<label for="role" class="form-label">Role</label>
+                        <label for="role" class="form-label">Role</label>
+                        <select id="role" class="form-select" @bind="employee.RoleId">
+                            <option value="">Vyberte roli</option>
+                            @foreach (var role in roles)
+                            {
+                                <option value="@role.Id">@role.Name</option>
+                            }
+						</select>
+                        
+
+
                     </div>
                  
 					<div class="col-md-6">
@@ -184,9 +204,14 @@
     private List<InsuranceCompanyViewModel> insuranceCompanies = new List<InsuranceCompanyViewModel>();
     private string searchTerm = string.Empty;
     private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
+    private List<RoleViewModel> roles = new();
+    private string? selectedRoleId;
+
 
     private byte[] profilePictureBytes;
 	private string message;
+
+	private string? errorMessage;
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
@@ -213,13 +238,17 @@
 			var company = await InsuranceCompanyService.GetInsuranceCompanyByIdAsync(employee.InsuranceCompanyId);
 			searchTerm = company.Name;
 
+
         }
 
 		insuranceCompanies = await InsuranceCompanyService.GetInsuranceCompaniesAsync();
 		filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
+		roles = await AccountService.GetRolesAsync();
 
         
     }
+
+	
 
     private void OnInputChange(ChangeEventArgs e)
     {
@@ -242,17 +271,28 @@
     private async Task HandleValidSubmit()
     {
        
-		if (Id == null)
+		try {
+
+            if (Id == null)
+            {
+                await AccountService.RegisterEmployeeAsync(employee);
+            }
+            else
+            {
+                await EmployeeService.UpdateEmployeeAsync(employee);
+            }
+
+
+            NavigationManager.NavigateTo("/zamestnanci");
+        }
+		catch (DbUpdateException dbEx)
 		{
-			await AccountService.RegisterEmployeeAsync(employee);
+			errorMessage = "Chyba při aktualizaci databáze. Zkontrolujte, zda jsou všechny povinné údaje vyplněny správně.";
 		}
-		else
+		catch (Exception ex)
 		{
-			await EmployeeService.UpdateEmployeeAsync(employee);
+			errorMessage = "Nastala chyba při zpracování požadavku.: " + errorMessage;
 		}
-        
-		
-        NavigationManager.NavigateTo("/zamestnanci");
     }
 
 }

@@ -3,7 +3,6 @@
 @page "/vytvorit-rezervaci/zakaznik/{customerId:int}"
 @page "/vytvorit-rezervaci/pokoj/{roomId:int}"
 
-@using HoaP.Application.ViewModels.Guest
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
 @inject RoomService RoomService
@@ -13,6 +12,14 @@
 @inject IMapper Mapper
 
 @rendermode InteractiveServer
+
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+	<div class="alert alert-danger">
+		<strong>Chyba:</strong> @errorMessage
+	</div>
+}
 
 <div class="container mt-2">
 	<div class="card border-0 shadow-sm mx-auto">
@@ -81,24 +88,114 @@
 
 
 				<div class="d-flex justify-content-between">
-					<label for="Guests" class="form-label">Hosté</label>
-					<button type="button" class="btn btn-primary mb-3" @onclick="AddGuest">Přidat hosta</button>
+					<label class="form-label">Hosté</label>
+					<div>
+						<button type="button" class="btn btn-outline-primary me-2" @onclick="ToggleSearchGuest">Přidat existujícího hosta</button>
+						<button type="button" class="btn btn-primary" @onclick="AddGuest">Přidat nového hosta</button>
+					</div>
 				</div>
+
+				@if (isGuestSearchVisible)
+				{
+					<input type="text" class="form-control mb-2" placeholder="Hledat hosta" @bind="searchGuestTerm" @bind:event="oninput" @bind:after="FilterGuestCustomers" />
+					@if (filteredGuestCustomers.Any())
+					{
+						<ul class="list-group mb-3">
+							@foreach (var customer in filteredGuestCustomers)
+							{
+								<li class="list-group-item list-group-item-action" @onclick="() => AddExistingGuest(customer)">
+									<strong>@customer.FirstName @customer.LastName</strong><br />
+									@customer.Email, @customer.Phone
+								</li>
+							}
+						</ul>
+					}
+				}
+
+
+
+
 				<div class="form-group mb-3">
 					@foreach (var guest in reservation.Guests)
 					{
-						<div class="d-flex mb-2">
-							<input type="text" class="form-control me-2" placeholder="Jméno hosta" @bind="guest.FirstName" />
-							<input type="text" class="form-control me-2" placeholder="Příjmení hosta" @bind="guest.LastName" />
-							<input type="date" class="form-control me-2" placeholder="Datum narození hosta" @bind="guest.DateOfBirth" />
-							<input type="number" class="form-control" placeholder="Rodné číslo hosta" @bind="guest.DocumentNumber" />
+						<div class="border rounded p-3 mb-4 bg-light-subtle">
+							<div class="row">
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Jméno</label>
+									<InputText class="form-control" @bind-Value="guest.FirstName" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Příjmení</label>
+									<InputText class="form-control" @bind-Value="guest.LastName" />
+								</div>
 
-							<button type="button" class="btn btn-danger ms-2" @onclick="() => reservation.Guests.Remove(guest)">
-								<i class="bi bi-trash"></i>
-							</button>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Číslo dokladu</label>
+									<InputText class="form-control" @bind-Value="guest.DocumentNumber" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Datum vydání</label>
+									<InputDate class="form-control" @bind-Value="guest.DateOfIssue" />
+								</div>
 
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Datum expirace</label>
+									<InputDate class="form-control" @bind-Value="guest.DateOfExpiry" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Datum narození</label>
+									<InputDate class="form-control" @bind-Value="guest.DateOfBirth" />
+								</div>
+
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Místo narození</label>
+									<InputText class="form-control" @bind-Value="guest.PlaceOfBirth" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Rodné číslo</label>
+									<InputText class="form-control" @bind-Value="guest.PersonalIdentificationNumber" />
+								</div>
+
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Národnost</label>
+									<InputText class="form-control" @bind-Value="guest.Nationality" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Telefon</label>
+									<InputText class="form-control" @bind-Value="guest.Phone" />
+								</div>
+
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Email</label>
+									<InputText class="form-control" type="email" @bind-Value="guest.Email" />
+								</div>
+								<div class="col-md-6 mb-3">
+									<label class="form-label">Adresa</label>
+									<InputText class="form-control" @bind-Value="guest.Address" />
+								</div>
+
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Město</label>
+									<InputText class="form-control" @bind-Value="guest.City" />
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">Země</label>
+									<InputText class="form-control" @bind-Value="guest.Country" />
+								</div>
+								<div class="col-md-4 mb-3">
+									<label class="form-label">PSČ</label>
+									<InputText class="form-control" @bind-Value="guest.PostalCode" />
+								</div>
+							</div>
+
+							<div class="text-end">
+								<button type="button" class="btn btn-danger" @onclick="() => reservation.Guests.Remove(guest)">
+									<i class="bi bi-trash me-1"></i> Odebrat hosta
+								</button>
+							</div>
 						</div>
 					}
+
 				</div>
 
 				@if (mode == ReservationMode.ByDate)
@@ -292,12 +389,12 @@
 				</div>
 
 				<div class="form-group mb-3">
-					<label for="SpecialRequest" class="form-label">Speciální Požadavky</label>
+					<label for="SpecialRequest" class="form-label">Speciální požadavky</label>
 					<InputTextArea id="SpecialRequest" class="form-control" @bind-Value="reservation.SpecialRequest" />
 				</div>
 
 				<div class="form-group mb-3">
-					<label for="adminNote" class="form-label">Poznámka Zaměstnance</label>
+					<label for="adminNote" class="form-label">Poznámka zaměstnance</label>
 					<InputTextArea id="adminNote" class="form-control" @bind-Value="reservation.AdminNote" />
 				</div>
 
@@ -336,6 +433,7 @@
 	private string? searchCustomerTerm;
 	private string? searchRoomTerm;
 	private string? searchRoomTermByDate;
+	private string? errorMessage;
 
 	private List<MealPlanViewModel> mealPlans = new();
 	private List<ReservationStatusViewModel> reservationStatuses = new();
@@ -351,8 +449,22 @@
 	private bool isCheckInCalendarVisible = false;
 	private bool isCheckOutCalendarVisible = false;
 
+
 	private bool isCheckInCalendarVisibleFromDateFirst = false;
 	private bool isCheckOutCalendarVisibleFromDateFirst = false;
+
+	private bool isGuestSearchVisible = false;
+	private string? searchGuestTerm;
+	private List<CustomerViewModel> filteredGuestCustomers = new();
+
+
+
+	private void ToggleSearchGuest()
+	{
+		isGuestSearchVisible = !isGuestSearchVisible;
+		searchGuestTerm = "";
+		filteredGuestCustomers.Clear();
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -393,6 +505,45 @@
 			unavailableDates = await RoomService.GetUnavaibleDatesAsync(roomId.Value);
 		}
 
+	}
+
+	private void FilterGuestCustomers()
+	{
+		filteredGuestCustomers = customers
+			.Where(x =>
+				x.FirstName.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
+				x.LastName.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
+				x.Email.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
+				x.DocumentNumber.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase))
+			.ToList();
+	}
+
+	private void AddExistingGuest(CustomerViewModel customer)
+	{
+		reservation.Guests.Add(new CustomerFormViewModel
+			{
+				Id = customer.Id,
+				FirstName = customer.FirstName,
+				LastName = customer.LastName,
+				Email = customer.Email,
+				Phone = customer.Phone,
+				DocumentNumber = customer.DocumentNumber,
+				DateOfIssue = customer.DateOfIssue,
+				DateOfExpiry = customer.DateOfExpiry,
+				PlaceOfBirth = customer.PlaceOfBirth,
+				PersonalIdentificationNumber = customer.PersonalIdentificationNumber,
+				PostalCode = customer.PostalCode,
+				Country = customer.Country,
+				City = customer.City,
+				Nationality = customer.Nationality,
+				Address = customer.Address,
+				DateOfBirth = customer.DateOfBirth
+
+			});
+
+		isGuestSearchVisible = false;
+		searchGuestTerm = "";
+		filteredGuestCustomers.Clear();
 	}
 
 	private void SwitchMode(ReservationMode mode)
@@ -542,23 +693,37 @@
 
 	private async Task HandleValidSubmit()
 	{
-		if (reservationId == null)
-		{
-			await ReservationService.CreateReservationAsync(reservation);
-		}
-		else
-		{
-			await ReservationService.UpdateReservationAsync(reservation);
-		}
+		try {
+			if (reservationId == null)
+			{
+				await ReservationService.CreateReservationAsync(reservation);
+			}
+			else
+			{
+				await ReservationService.UpdateReservationAsync(reservation);
+			}
 
-		NavigationManager.NavigateTo("/rezervace");
+			NavigationManager.NavigateTo("/rezervace");
+		}
+		catch (DbUpdateException dbEx)
+		{
+			errorMessage = "Chyba při ukládání rezervace. Zkontrolujte, zda jsou všechna pole vyplněna správně.";
+		}
+		catch (Exception ex)
+		{
+			errorMessage = "Nastala chyba při ukládání rezervace. Zkuste to prosím znovu. : " + ex.Message;
+		}
+		finally
+		{
+			StateHasChanged();
+		}
 	}
 
 
 
 	private void AddGuest()
 	{
-		reservation.Guests.Add(new GuestViewModel());
+		reservation.Guests.Add(new CustomerFormViewModel());
 	}
 
 	private void FilterCustomers()

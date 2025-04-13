@@ -7,7 +7,12 @@
 @inject IMapper Mapper
 @rendermode InteractiveServer
 
-
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
 
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
@@ -123,6 +128,8 @@
 	private string searchCustomerTerm;
 	private List<CustomerViewModel> filteredCustomers = new List<CustomerViewModel>();
 
+	private string? errorMessage;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -179,16 +186,26 @@
 
     private async void HandleValidSubmit()
     {
-        if (reviewId.HasValue)
-        {
-            await ReviewService.UpdateReviewAsync(review);
-        }
-        else
-        {
+        try {
+            if (reviewId.HasValue)
+            {
+                await ReviewService.UpdateReviewAsync(review);
+            }
+            else
+            {
 
-            await ReviewService.CreateReviewAsync(review);
-        }
+                await ReviewService.CreateReviewAsync(review);
+            }
 
-        NavigationManager.NavigateTo("/recenze");
+            NavigationManager.NavigateTo("/recenze");
+        }
+		catch (DbUpdateException dbEx)
+		{
+			errorMessage = "Nepodařilo se uložit recenzi do databáze. Zkuste to prosím znovu.";
+		}
+		catch (Exception ex)
+		{
+			errorMessage = "Nastala chyba při ukládání recenze. Zkuste to prosím znovu. : " + ex.Message;
+		}
     }
 }

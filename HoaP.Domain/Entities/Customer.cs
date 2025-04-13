@@ -23,6 +23,7 @@ namespace HoaP.Domain.Entities
         public string City { get; set; } = string.Empty;
         public string PostalCode { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
-        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        public bool IsMainGuest { get; set; } = false;
+        public ICollection<ReservationCustomer> ReservationCustomers { get; set; } = new List<ReservationCustomer>();
     }
 }

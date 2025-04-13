@@ -117,6 +117,6 @@ else
     {
         using var scope = ServiceScopeFactory.CreateScope();
         var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
-        user = await accountService.GetCurrentUserAsync();
+        user = await accountService.FetchLoggedInUserAsync();
     }
 }

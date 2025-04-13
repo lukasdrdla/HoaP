@@ -18,17 +18,20 @@ namespace HoaP.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly IMapper _mapper;
         private readonly UserManager<AppUser> _userManager;
+        private readonly RoleManager<AppRole> _roleManager;
 
 
-        public EmployeeRepository(ApplicationDbContext context, IMapper mapper, UserManager<AppUser> userManager)
+
+        public EmployeeRepository(ApplicationDbContext context, IMapper mapper, UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
         {
             _context = context;
             _mapper = mapper;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
 
-        
+
 
         public async Task DeleteEmployeeAsync(string id)
         {
@@ -57,12 +60,16 @@ namespace HoaP.Infrastructure.Repositories
             var employee = await _context.Users
                 .Include(x => x.InsuranceCompany)
                 .FirstOrDefaultAsync(x => x.Id == id);
-            if (employee != null)
-            {
-                return _mapper.Map<DetailEmployeeViewModel>(employee);
-            }
 
-            return null;
+            var employeeRoles = await _userManager.GetRolesAsync(employee);
+            var allRoles = await _roleManager.Roles.ToListAsync();
+
+            var role = allRoles.FirstOrDefault(x => x.Name == employeeRoles.FirstOrDefault());
+            var result = _mapper.Map<DetailEmployeeViewModel>(employee);
+
+            result.RoleId = role?.Id ?? string.Empty;
+            result.RoleName = role?.Name ?? string.Empty;
+            return result;
         }
 
         public async Task<List<EmployeeViewModel>> GetEmployeesAsync()
@@ -78,6 +85,14 @@ namespace HoaP.Infrastructure.Repositories
             if (existingEmployee == null)
             {
                 return;
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(existingEmployee);
+            await _userManager.RemoveFromRolesAsync(existingEmployee, currentRoles);
+            var role = await _roleManager.FindByIdAsync(employee.RoleId);
+            if (role != null)
+            {
+                await _userManager.AddToRoleAsync(existingEmployee, role.Name);
             }
 
             _mapper.Map(employee, existingEmployee);

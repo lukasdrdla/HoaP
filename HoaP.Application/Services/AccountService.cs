@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.AppUser;
 using HoaP.Application.ViewModels.Employee;
+using HoaP.Application.ViewModels.Role;
 using HoaP.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -25,9 +26,9 @@ namespace HoaP.Application.Services
             return await _accountRepository.LoginAsync(model);
         }
 
-        public async Task<AppUser> GetCurrentUserAsync()
+        public async Task<AppUser> FetchLoggedInUserAsync()
         {
-            return await _accountRepository.GetCurrentUserAsync();
+            return await _accountRepository.FetchLoggedInUserAsync();
         }
 
         public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
@@ -44,6 +45,11 @@ namespace HoaP.Application.Services
         public async Task LogoutAsync()
         {
             await _accountRepository.LogoutAsync();
+        }
+
+        public async Task<List<RoleViewModel>> GetRolesAsync()
+        {
+            return await _accountRepository.GetRolesAsync();
         }
     }
 }

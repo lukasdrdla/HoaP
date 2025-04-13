@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HoaP.Application.ViewModels.Customer;
-using HoaP.Application.ViewModels.Guest;
 using HoaP.Application.ViewModels.Room;
 using HoaP.Domain.Entities;
 
@@ -27,8 +26,8 @@ namespace HoaP.Application.ViewModels
         public decimal TotalPrice { get; set; }
 
         public int ReservationStatusId { get; set; }
-        public string AdminNote { get; set; } = string.Empty; 
-        public List<GuestViewModel> Guests { get; set; } = new List<GuestViewModel>();
+        public string AdminNote { get; set; } = string.Empty;
+        public List<CustomerFormViewModel> Guests { get; set; } = new();
 
     }
 }

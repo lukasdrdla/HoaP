@@ -12,6 +12,13 @@
 @inject CurrencyService CurrencyService
 @rendermode InteractiveServer
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
+
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
@@ -124,6 +131,7 @@
     private string? searchTerm { get; set; }
     private decimal OriginalPrice { get; set; }
 
+	private string? errorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -171,16 +179,27 @@
 
     private async Task HandleValidSubmit()
     {
-		if (invoiceId == null)
+		try {
+
+            if (invoiceId == null)
+            {
+                await InvoiceService.CreateInvoiceAsync(invoice);
+            }
+            else
+            {
+                await InvoiceService.UpdateInvoiceAsync(invoice);
+            }
+
+            NavigationManager.NavigateTo("/faktury");
+        }
+		catch (DbUpdateException dbEx)
 		{
-			await InvoiceService.CreateInvoiceAsync(invoice);
-		}
-		else
+			errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
+        }
+        catch (Exception ex)
 		{
-			await InvoiceService.UpdateInvoiceAsync(invoice);
+			errorMessage = "Neočekávaná chyba. Zkuste to prosím znovu nebo kontaktujte podporu. : " + ex.Message;
 		}
-        
-        NavigationManager.NavigateTo("/faktury");
     }
 
     private async Task SearchReservation(ChangeEventArgs e)

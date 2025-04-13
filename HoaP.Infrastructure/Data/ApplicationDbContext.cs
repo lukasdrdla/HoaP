@@ -22,7 +22,6 @@ namespace HoaP.Infrastructure.Data
         public DbSet<InsuranceCompany> InsuranceCompanies { get; set; }
         public DbSet<Invoice> Invoices { get; set; }
         public DbSet<MealPlan> MealPlans { get; set; }
-        public DbSet<Guest> Guests { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<ReservationStatus> ReservationStatuses { get; set; }
@@ -34,10 +33,24 @@ namespace HoaP.Infrastructure.Data
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<RoomAmenity> RoomAmenities { get; set; }
+        public DbSet<ReservationCustomer> ReservationCustomers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<ReservationCustomer>()
+    .HasKey(rc => new { rc.ReservationId, rc.CustomerId });
+
+            builder.Entity<ReservationCustomer>()
+                .HasOne(rc => rc.Reservation)
+                .WithMany(r => r.ReservationCustomers)
+                .HasForeignKey(rc => rc.ReservationId);
+
+            builder.Entity<ReservationCustomer>()
+                .HasOne(rc => rc.Customer)
+                .WithMany(c => c.ReservationCustomers)
+                .HasForeignKey(rc => rc.CustomerId);
 
             builder.Entity<RoomAmenity>()
             .HasKey(ra => new { ra.RoomId, ra.AmenityId });

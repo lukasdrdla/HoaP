@@ -3,6 +3,7 @@
 @using HoaP.Web.Components.Pages.AdminSettings
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
 
 <div class="container mt-5">
     <div class="card border-0 shadow-sm">

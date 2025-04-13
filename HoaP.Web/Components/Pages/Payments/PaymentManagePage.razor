@@ -10,6 +10,13 @@
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
+
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto w-50">
         <div class="card-body">
@@ -91,6 +98,7 @@
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
 
     private List<PaymentMethodViewModel> paymentMethods { get; set; } = new List<PaymentMethodViewModel>();
+	private string? errorMessage;
 
 
     private string searchTerm = string.Empty;
@@ -150,14 +158,24 @@
 
     private async Task HandleValidSubmit()
     {
-        if (paymentId == null)
+        try {
+            if (paymentId == null)
+            {
+                await PaymentService.CreatePaymentAsync(payment);
+            }
+            else
+            {
+                await PaymentService.UpdatePaymentAsync(payment);
+            }
+            NavigationManager.NavigateTo("/platby");
+        }
+		catch (DbUpdateException dbEx)
 		{
-			await PaymentService.CreatePaymentAsync(payment);
+			errorMessage = "Nepodařilo se uložit platbu do databáze. Zkuste to prosím znovu.";
 		}
-		else
+		catch (Exception ex)
 		{
-			await PaymentService.UpdatePaymentAsync(payment);
+			errorMessage = "Nastala chyba při ukládání platby. Zkuste to prosím znovu. : " + ex.Message;
 		}
-		NavigationManager.NavigateTo("/platby");
     }
 }
