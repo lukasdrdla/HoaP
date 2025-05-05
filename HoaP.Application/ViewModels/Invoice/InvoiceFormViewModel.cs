@@ -36,6 +36,8 @@ namespace HoaP.Application.ViewModels.Invoice
         [Range(0, double.MaxValue, ErrorMessage = "Prepayment must be a positive value.")]
         public decimal Prepayment { get; set; } = 0.0m;
 
+        public string UserId { get; set; } 
+
         [Required]
         public int CurrencyId { get; set; }
 

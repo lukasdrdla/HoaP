@@ -24,6 +24,7 @@ namespace HoaP.Application.Mappings
 
             CreateMap<Invoice, DetailInvoiceViewModel>()
                 .ForMember(dest => dest.CurrencyName, opt => opt.MapFrom(src => src.Currency.Name))
+                .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.AppUser.FirstName + " " + src.AppUser.LastName))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.ReservationId, opt => opt.MapFrom(src => src.ReservationId))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
@@ -52,7 +53,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.Discount, opt => opt.MapFrom(src => src.Discount))
                 .ForMember(dest => dest.Prepayment, opt => opt.MapFrom(src => src.Prepayment))
-                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId));
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
+                .ForMember(dest => dest.AppUserId, opt => opt.MapFrom(src => src.UserId));
 
 
 

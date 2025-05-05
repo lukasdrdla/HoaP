@@ -60,6 +60,8 @@ namespace HoaP.Infrastructure.Repositories
             var invoice = await _context.Invoices
                 .Include(i => i.Reservation)
                 .ThenInclude(r => r.Customer)
+                .Include(i => i.Currency)
+                .Include(i => i.AppUser)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             return _mapper.Map<DetailInvoiceViewModel>(invoice);

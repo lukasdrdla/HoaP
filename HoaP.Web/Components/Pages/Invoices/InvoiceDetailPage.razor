@@ -59,6 +59,10 @@
             <span class="label">Předplatba:</span>
             <span class="value">@invoice.Prepayment.ToString("C")</span>
         </div>
+        <div class="summary-footer">
+            <span class="footer-label">Vystavil:</span>
+            <span class="footer-value">@invoice.CreatedBy</span>
+        </div>
     </div>
 
     <div class="d-flex gap-3">

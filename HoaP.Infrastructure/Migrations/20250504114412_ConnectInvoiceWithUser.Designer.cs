@@ -3,6 +3,7 @@ using System;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HoaP.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250504114412_ConnectInvoiceWithUser")]
+    partial class ConnectInvoiceWithUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -73,21 +76,21 @@ namespace HoaP.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "3a67cbd1-2e37-4c1f-9012-6c541d4bd782",
+                            Id = "e6fce52a-790c-418e-950c-8652c33eb929",
                             Description = "",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "dd673cbf-4ed9-4adf-a42b-2b1ced87b388",
+                            Id = "b0f2dbb8-c02b-4a31-9925-4c55c578cf2d",
                             Description = "",
                             Name = "Manager",
                             NormalizedName = "MANAGER"
                         },
                         new
                         {
-                            Id = "a23370c5-3c1a-4895-83e2-05a464d3a5b4",
+                            Id = "9bfd261e-1ae3-4984-a7b5-3ce2f44bbf0d",
                             Description = "",
                             Name = "Receptionist",
                             NormalizedName = "RECEPTIONIST"
@@ -213,11 +216,11 @@ namespace HoaP.Infrastructure.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "69d591b1-ccd7-4d79-a892-1e15d2602880",
+                            Id = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
                             AccessFailedCount = 0,
                             Address = "Hlavní 123",
                             City = "Praha",
-                            ConcurrencyStamp = "4049a578-e727-491f-a273-b97e35e13425",
+                            ConcurrencyStamp = "763a5948-9212-41b1-9846-97c87c456234",
                             Country = "Česká republika",
                             Email = "admin@admin.com",
                             EmailConfirmed = true,
@@ -229,14 +232,14 @@ namespace HoaP.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@ADMIN.COM",
                             NormalizedUserName = "ADMIN@ADMIN.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEE29vBWFHj9D+0jfX6WSO8FHkx+kMnFCCtuUX0if4GQTyS9qWXx7zYiBngnjmR8P8Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEBhRHO9Z2kG3x55kzKNl9xBYWWGrcNKE4cfD1q6EWx8thWWcoGzGKtOGvaa3bpjxTA==",
                             PersonalIdentificationNumber = "CZ1234567890",
                             PhoneNumberConfirmed = false,
                             PlaceOfBirth = "Praha",
                             PostalCode = "11000",
                             Salary = 50000m,
-                            SecurityStamp = "78e05373-c050-4223-8fcd-18426d54b6db",
-                            StartDate = new DateTime(2025, 5, 5, 17, 37, 28, 60, DateTimeKind.Local).AddTicks(2087),
+                            SecurityStamp = "0aefa9ab-068b-4a74-83c0-6d038b3405dc",
+                            StartDate = new DateTime(2025, 5, 4, 13, 44, 11, 990, DateTimeKind.Local).AddTicks(4017),
                             TwoFactorEnabled = false,
                             UserName = "admin@admin.com"
                         });
@@ -256,9 +259,6 @@ namespace HoaP.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<decimal>("Rate")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Symbol")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -273,7 +273,6 @@ namespace HoaP.Infrastructure.Migrations
                             Id = 1,
                             Code = "",
                             Name = "USD",
-                            Rate = 1.0m,
                             Symbol = "$"
                         },
                         new
@@ -281,7 +280,6 @@ namespace HoaP.Infrastructure.Migrations
                             Id = 2,
                             Code = "",
                             Name = "EUR",
-                            Rate = 1.0m,
                             Symbol = "€"
                         },
                         new
@@ -289,7 +287,6 @@ namespace HoaP.Infrastructure.Migrations
                             Id = 3,
                             Code = "",
                             Name = "GBP",
-                            Rate = 1.0m,
                             Symbol = "£"
                         },
                         new
@@ -297,7 +294,6 @@ namespace HoaP.Infrastructure.Migrations
                             Id = 4,
                             Code = "",
                             Name = "JPY",
-                            Rate = 1.0m,
                             Symbol = "¥"
                         },
                         new
@@ -305,7 +301,6 @@ namespace HoaP.Infrastructure.Migrations
                             Id = 5,
                             Code = "",
                             Name = "CZK",
-                            Rate = 1.0m,
                             Symbol = "Kč"
                         });
                 });
@@ -393,7 +388,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Hlavní 123",
                             City = "Praha",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3002),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4363),
                             DateOfBirth = new DateTime(1990, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2030, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2020, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -407,7 +402,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420123456789",
                             PlaceOfBirth = "Praha",
                             PostalCode = "11000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3004)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4364)
                         },
                         new
                         {
@@ -415,7 +410,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Náměstí 456",
                             City = "Brno",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3010),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4371),
                             DateOfBirth = new DateTime(1985, 5, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2029, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2019, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -429,7 +424,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420987654321",
                             PlaceOfBirth = "Brno",
                             PostalCode = "60200",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3011)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4372)
                         },
                         new
                         {
@@ -437,7 +432,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Sokolská 789",
                             City = "Ostrava",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3017),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4378),
                             DateOfBirth = new DateTime(1992, 3, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2031, 7, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2021, 7, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -451,7 +446,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420654789123",
                             PlaceOfBirth = "Ostrava",
                             PostalCode = "70200",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3018)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4379)
                         },
                         new
                         {
@@ -459,7 +454,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Jasná 321",
                             City = "Plzeň",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3025),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4386),
                             DateOfBirth = new DateTime(1988, 8, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2032, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2022, 4, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -473,7 +468,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420321654987",
                             PlaceOfBirth = "Plzeň",
                             PostalCode = "30100",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3025)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4387)
                         },
                         new
                         {
@@ -481,7 +476,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Květná 159",
                             City = "Liberec",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3031),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4393),
                             DateOfBirth = new DateTime(1995, 12, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2031, 11, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2021, 11, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -495,7 +490,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420159753468",
                             PlaceOfBirth = "Liberec",
                             PostalCode = "46000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3032)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4393)
                         },
                         new
                         {
@@ -503,7 +498,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Lípa 753",
                             City = "Ústí nad Labem",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3039),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4400),
                             DateOfBirth = new DateTime(1998, 10, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2030, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2020, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -517,7 +512,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420753951852",
                             PlaceOfBirth = "Ústí nad Labem",
                             PostalCode = "40000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3040)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4400)
                         },
                         new
                         {
@@ -525,7 +520,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Březová 852",
                             City = "Hradec Králové",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3046),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4406),
                             DateOfBirth = new DateTime(1987, 4, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2031, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2021, 5, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -539,7 +534,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420852456789",
                             PlaceOfBirth = "Hradec Králové",
                             PostalCode = "50000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3047)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4407)
                         },
                         new
                         {
@@ -547,7 +542,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Růžová 258",
                             City = "Zlín",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3053),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4413),
                             DateOfBirth = new DateTime(1993, 11, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2031, 3, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2021, 3, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -561,7 +556,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420258963147",
                             PlaceOfBirth = "Zlín",
                             PostalCode = "76000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3054)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4414)
                         },
                         new
                         {
@@ -569,7 +564,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Modrá 369",
                             City = "Karlovy Vary",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3060),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4420),
                             DateOfBirth = new DateTime(1980, 9, 9, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2028, 4, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2018, 4, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -583,7 +578,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420369258147",
                             PlaceOfBirth = "Karlovy Vary",
                             PostalCode = "36000",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3061)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4421)
                         },
                         new
                         {
@@ -591,7 +586,7 @@ namespace HoaP.Infrastructure.Migrations
                             Address = "Violetová 741",
                             City = "Jihlava",
                             Country = "Česká republika",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3067),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4427),
                             DateOfBirth = new DateTime(1991, 6, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfExpiry = new DateTime(2031, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             DateOfIssue = new DateTime(2021, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
@@ -605,7 +600,7 @@ namespace HoaP.Infrastructure.Migrations
                             Phone = "+420741852963",
                             PlaceOfBirth = "Jihlava",
                             PostalCode = "58601",
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3068)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4428)
                         });
                 });
 
@@ -730,87 +725,87 @@ namespace HoaP.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            AppUserId = "69d591b1-ccd7-4d79-a892-1e15d2602880",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3164),
+                            AppUserId = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4524),
                             CurrencyId = 1,
                             Description = "",
                             Discount = 0.0m,
-                            DueDate = new DateTime(2025, 6, 4, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3163),
+                            DueDate = new DateTime(2025, 6, 3, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4521),
                             IsCanceled = false,
                             IsPaid = false,
-                            IssueDate = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3161),
+                            IssueDate = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4518),
                             Prepayment = 0.0m,
                             Price = 1500.00m,
                             ReservationId = 1,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3165)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4525)
                         },
                         new
                         {
                             Id = 2,
-                            AppUserId = "69d591b1-ccd7-4d79-a892-1e15d2602880",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3171),
+                            AppUserId = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4532),
                             CurrencyId = 1,
                             Description = "",
                             Discount = 0.0m,
-                            DueDate = new DateTime(2025, 6, 4, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3170),
+                            DueDate = new DateTime(2025, 6, 3, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4531),
                             IsCanceled = false,
                             IsPaid = true,
-                            IssueDate = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3169),
+                            IssueDate = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4530),
                             Prepayment = 0.0m,
                             Price = 2500.00m,
                             ReservationId = 2,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3172)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4533)
                         },
                         new
                         {
                             Id = 3,
-                            AppUserId = "69d591b1-ccd7-4d79-a892-1e15d2602880",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3178),
+                            AppUserId = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4539),
                             CurrencyId = 1,
                             Description = "",
                             Discount = 0.0m,
-                            DueDate = new DateTime(2025, 6, 4, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3177),
+                            DueDate = new DateTime(2025, 6, 3, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4538),
                             IsCanceled = false,
                             IsPaid = false,
-                            IssueDate = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3176),
+                            IssueDate = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4537),
                             Prepayment = 0.0m,
                             Price = 1200.00m,
                             ReservationId = 3,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3179)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4540)
                         },
                         new
                         {
                             Id = 4,
-                            AppUserId = "69d591b1-ccd7-4d79-a892-1e15d2602880",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3185),
+                            AppUserId = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4547),
                             CurrencyId = 1,
                             Description = "",
                             Discount = 0.0m,
-                            DueDate = new DateTime(2025, 6, 4, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3184),
+                            DueDate = new DateTime(2025, 6, 3, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4545),
                             IsCanceled = false,
                             IsPaid = true,
-                            IssueDate = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3184),
+                            IssueDate = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4545),
                             Prepayment = 0.0m,
                             Price = 2000.00m,
                             ReservationId = 4,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3186)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4547)
                         },
                         new
                         {
                             Id = 5,
-                            AppUserId = "69d591b1-ccd7-4d79-a892-1e15d2602880",
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3193),
+                            AppUserId = "92dbdd5e-ce24-4e19-a90d-6b3a3192e38d",
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4554),
                             CurrencyId = 1,
                             Description = "",
                             Discount = 0.0m,
-                            DueDate = new DateTime(2025, 6, 4, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3192),
+                            DueDate = new DateTime(2025, 6, 3, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4553),
                             IsCanceled = false,
                             IsPaid = false,
-                            IssueDate = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3191),
+                            IssueDate = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4552),
                             Prepayment = 0.0m,
                             Price = 1700.00m,
                             ReservationId = 5,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3193)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4555)
                         });
                 });
 
@@ -1007,7 +1002,7 @@ namespace HoaP.Infrastructure.Migrations
                             CheckIn = new DateTime(2025, 1, 4, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Children = 0,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3105),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4461),
                             CustomerId = 1,
                             IsCanceled = false,
                             MealPlanId = 2,
@@ -1015,7 +1010,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomId = 1,
                             SpecialRequest = "Přistýlka",
                             TotalPrice = 6600m,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3106)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4462)
                         },
                         new
                         {
@@ -1025,7 +1020,7 @@ namespace HoaP.Infrastructure.Migrations
                             CheckIn = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2025, 1, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Children = 1,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3111),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4467),
                             CustomerId = 2,
                             IsCanceled = false,
                             MealPlanId = 3,
@@ -1033,7 +1028,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomId = 2,
                             SpecialRequest = "Dětská postýlka",
                             TotalPrice = 13500m,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3112)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4468)
                         },
                         new
                         {
@@ -1043,7 +1038,7 @@ namespace HoaP.Infrastructure.Migrations
                             CheckIn = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Children = 2,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3118),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4473),
                             CustomerId = 3,
                             IsCanceled = false,
                             MealPlanId = 4,
@@ -1051,7 +1046,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomId = 3,
                             SpecialRequest = "Bezlepková dieta",
                             TotalPrice = 19000m,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3118)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4474)
                         },
                         new
                         {
@@ -1061,7 +1056,7 @@ namespace HoaP.Infrastructure.Migrations
                             CheckIn = new DateTime(2025, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2025, 1, 13, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Children = 3,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3123),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4479),
                             CustomerId = 4,
                             IsCanceled = false,
                             MealPlanId = 4,
@@ -1069,7 +1064,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomId = 4,
                             SpecialRequest = "Elktro mobil",
                             TotalPrice = 22500m,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3124)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4480)
                         },
                         new
                         {
@@ -1079,7 +1074,7 @@ namespace HoaP.Infrastructure.Migrations
                             CheckIn = new DateTime(2025, 1, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2025, 1, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Children = 0,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3129),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4486),
                             CustomerId = 5,
                             IsCanceled = false,
                             MealPlanId = 2,
@@ -1087,7 +1082,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomId = 1,
                             SpecialRequest = "Přistýlka",
                             TotalPrice = 6600m,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(3130)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4487)
                         });
                 });
 
@@ -1228,7 +1223,7 @@ namespace HoaP.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2917),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4292),
                             Description = "Jednolůžkový pokoj s výhledem na zahradu",
                             IsDisable = false,
                             MaxAdults = 1,
@@ -1237,12 +1232,12 @@ namespace HoaP.Infrastructure.Migrations
                             RoomNumber = "101",
                             RoomStatusId = 1,
                             RoomTypeId = 1,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2952)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4313)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2960),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4320),
                             Description = "Dvoulůžkový pokoj",
                             IsDisable = false,
                             MaxAdults = 2,
@@ -1251,12 +1246,12 @@ namespace HoaP.Infrastructure.Migrations
                             RoomNumber = "102",
                             RoomStatusId = 1,
                             RoomTypeId = 2,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2961)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4321)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2963),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4323),
                             Description = "Třílůžkový pokoj s výhledem na moře",
                             IsDisable = false,
                             MaxAdults = 3,
@@ -1265,12 +1260,12 @@ namespace HoaP.Infrastructure.Migrations
                             RoomNumber = "103",
                             RoomStatusId = 1,
                             RoomTypeId = 3,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2963)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4323)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2965),
+                            CreatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4325),
                             Description = "Rodinný pokoj",
                             IsDisable = false,
                             MaxAdults = 4,
@@ -1279,7 +1274,7 @@ namespace HoaP.Infrastructure.Migrations
                             RoomNumber = "104",
                             RoomStatusId = 1,
                             RoomTypeId = 4,
-                            UpdatedAt = new DateTime(2025, 5, 5, 17, 37, 28, 95, DateTimeKind.Local).AddTicks(2966)
+                            UpdatedAt = new DateTime(2025, 5, 4, 13, 44, 12, 25, DateTimeKind.Local).AddTicks(4326)
                         });
                 });
 

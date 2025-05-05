@@ -15,5 +15,8 @@ namespace HoaP.Application.ViewModels.Currency
         public string Name { get; set; } = string.Empty;
         [Required(ErrorMessage = "Symbol je povinný")]
         public string Symbol { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Kurz je povinný")]
+        [Range(0.01, 1000000, ErrorMessage = "Kurz musí být mezi 0.01 a 1000000")]
+        public decimal Rate { get; set; } = 1.0m;
     }
 }

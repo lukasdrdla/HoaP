@@ -10,6 +10,7 @@
 @inject ReservationService ReservationService
 @inject IMapper Mapper
 @inject CurrencyService CurrencyService
+@inject AccountService AccountService
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -78,10 +79,10 @@
                     <div class="col-md-3">
                         <div class="form-group mb-3">
 							<label for="Currency" class="form-label">Měna</label>
-							<InputSelect id="Currency" class="form-control" @bind-Value="invoice.CurrencyId">
+							<InputSelect id="Currency" class="form-select" @bind-Value="invoice.CurrencyId" @onchange="OnCurrencyChange">
 								<option value="">Vyberte měnu</option>
 								@foreach (var currency in currencies)
-								{
+                                {
 									<option value="@currency.Id">@currency.Name</option>
 								}
 							</InputSelect>
@@ -172,6 +173,11 @@
 
         reservations = await ReservationService.GetReservationsAsync();
         filteredReservations = new List<ReservationViewModel>();
+		invoice.CurrencyId = 5;
+		var user = await AccountService.FetchLoggedInUserAsync();
+		invoice.UserId = user.Id;
+
+
 
         currencies = await CurrencyService.GetCurrenciesAsync();
     }
@@ -179,27 +185,38 @@
 
     private async Task HandleValidSubmit()
     {
-		try {
+		// try {
 
-            if (invoiceId == null)
-            {
-                await InvoiceService.CreateInvoiceAsync(invoice);
-            }
-            else
-            {
-                await InvoiceService.UpdateInvoiceAsync(invoice);
-            }
+  //           if (invoiceId == null)
+  //           {
+  //               await InvoiceService.CreateInvoiceAsync(invoice);
+  //           }
+  //           else
+  //           {
+  //               await InvoiceService.UpdateInvoiceAsync(invoice);
+  //           }
 
-            NavigationManager.NavigateTo("/faktury");
-        }
-		catch (DbUpdateException dbEx)
-		{
-			errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
-        }
-        catch (Exception ex)
-		{
-			errorMessage = "Neočekávaná chyba. Zkuste to prosím znovu nebo kontaktujte podporu. : " + ex.Message;
+  //           NavigationManager.NavigateTo("/faktury");
+  //       }
+		// catch (DbUpdateException dbEx)
+		// {
+		// 	errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
+  //       }
+  //       catch (Exception ex)
+		// {
+		// 	errorMessage = "Neočekávaná chyba. Zkuste to prosím znovu nebo kontaktujte podporu. : " + ex.Message;
+		// }
+
+        if (invoiceId == null)
+        {
+			await InvoiceService.CreateInvoiceAsync(invoice);
 		}
+		else
+		{
+			await InvoiceService.UpdateInvoiceAsync(invoice);
+		}
+		NavigationManager.NavigateTo("/faktury");
+
     }
 
     private async Task SearchReservation(ChangeEventArgs e)
@@ -222,6 +239,25 @@
     {
         filteredReservations.Clear();
     }
+
+	private async Task OnCurrencyChange(ChangeEventArgs e)
+	{
+        var selectedCurrencyId = Convert.ToInt32(e.Value);
+        invoice.CurrencyId = selectedCurrencyId;
+
+        await RecalculatePrice();
+	}
+
+	private async Task RecalculatePrice()
+	{
+		var selectedCurrency = currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId);
+        if (selectedCurrency != null)
+		{
+			invoice.Price = invoice.Price * selectedCurrency.Rate;
+		}
+	
+	}
+
 
 
     private void SelectCustomer(ReservationViewModel reservation)

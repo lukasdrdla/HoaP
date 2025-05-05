@@ -61,6 +61,7 @@ namespace HoaP.Infrastructure.Data
 
         private void SeedData(ModelBuilder modelBuilder)
         {
+           
 
             var adminRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Admin", NormalizedName = "ADMIN" };
             var managerRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Manager", NormalizedName = "MANAGER" };
@@ -68,9 +69,11 @@ namespace HoaP.Infrastructure.Data
 
             modelBuilder.Entity<AppRole>().HasData(adminRole, managerRole, receptionistRole);
 
+            var adminId = Guid.NewGuid().ToString();
+
             var admin = new AppUser
             {
-                    Id = Guid.NewGuid().ToString(),
+                    Id = adminId,
                     UserName = "admin@admin.com",
                     NormalizedUserName = "ADMIN@ADMIN.COM",
                     Email = "admin@admin.com",
@@ -78,8 +81,8 @@ namespace HoaP.Infrastructure.Data
                     EmailConfirmed = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Admin",
-                ProfilePicture = null,
-                LastName = "Admin",
+                    ProfilePicture = null,
+                    LastName = "Admin",
                     Address = "Hlavní 123",
                     City = "Praha",
                     PostalCode = "11000",
@@ -177,11 +180,11 @@ namespace HoaP.Infrastructure.Data
                 );
 
             modelBuilder.Entity<Invoice>().HasData(
-                new Invoice { Id = 1, CurrencyId = 1, ReservationId = 1, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 2, CurrencyId = 1, ReservationId = 2, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 3, CurrencyId = 1, ReservationId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 4, CurrencyId = 1, ReservationId = 4, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 5, CurrencyId = 1, ReservationId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
+                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 1, ReservationId = 1, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 1, ReservationId = 2, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 1, ReservationId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 1, ReservationId = 4, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 1, ReservationId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
                 );
         }
     }

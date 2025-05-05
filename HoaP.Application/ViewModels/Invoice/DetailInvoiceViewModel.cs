@@ -12,6 +12,7 @@ namespace HoaP.Application.ViewModels.Invoice
         public int ReservationId { get; set; }
         public string CurrencyName { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
+        public string CreatedBy { get; set; } = string.Empty;
         public DateTime IssueDate { get; set; }
         public DateTime DueDate { get; set; }
         public decimal Price { get; set; }

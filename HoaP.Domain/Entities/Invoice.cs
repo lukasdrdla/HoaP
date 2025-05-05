@@ -21,5 +21,9 @@ namespace HoaP.Domain.Entities
         public Reservation? Reservation { get; set; }
         public Currency? Currency { get; set; }
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+        public string AppUserId { get; set; } = string.Empty;
+        public AppUser? AppUser { get; set; }
+
     }
 }
