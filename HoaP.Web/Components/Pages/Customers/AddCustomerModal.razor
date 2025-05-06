@@ -1,0 +1,126 @@
+﻿@using HoaP.Application.ViewModels.Customer
+@inject CustomerService CustomerService
+@inject IMapper _mapper
+@rendermode InteractiveServer
+
+@if (IsVisible)
+{
+    <EditForm Model="customer" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="modal fade @(IsVisible ? "show" : "")" tabindex="-1" style="display:@(IsVisible ? "block" : "none"); background-color: rgba(0,0,0,0.5); z-index: 1050;">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Přidat zákazníka</h5>
+                        <button type="button" class="btn-close" @onclick="Close" aria-label="Zavřít"></button>
+                    </div>
+                    <div class="modal-body">
+						<div class="row">
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Jméno</label>
+								<InputText class="form-control" @bind-Value="customer.FirstName" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Příjmení</label>
+								<InputText class="form-control" @bind-Value="customer.LastName" />
+							</div>
+
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Číslo dokladu</label>
+								<InputText class="form-control" @bind-Value="customer.DocumentNumber" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Datum vydání</label>
+								<InputDate class="form-control" @bind-Value="customer.DateOfIssue" />
+							</div>
+
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Datum expirace</label>
+								<InputDate class="form-control" @bind-Value="customer.DateOfExpiry" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Datum narození</label>
+								<InputDate class="form-control" @bind-Value="customer.DateOfBirth" />
+							</div>
+
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Místo narození</label>
+								<InputText class="form-control" @bind-Value="customer.PlaceOfBirth" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Rodné číslo</label>
+								<InputText class="form-control" @bind-Value="customer.PersonalIdentificationNumber" />
+							</div>
+
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Národnost</label>
+								<InputText class="form-control" @bind-Value="customer.Nationality" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Telefon</label>
+								<InputText class="form-control" @bind-Value="customer.Phone" />
+							</div>
+
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Email</label>
+								<InputText class="form-control" type="email" @bind-Value="customer.Email" />
+							</div>
+							<div class="col-md-6 mb-3">
+								<label class="form-label">Adresa</label>
+								<InputText class="form-control" @bind-Value="customer.Address" />
+							</div>
+
+							<div class="col-md-4 mb-3">
+								<label class="form-label">Město</label>
+								<InputText class="form-control" @bind-Value="customer.City" />
+							</div>
+							<div class="col-md-4 mb-3">
+								<label class="form-label">Země</label>
+								<InputText class="form-control" @bind-Value="customer.Country" />
+							</div>
+							<div class="col-md-4 mb-3">
+								<label class="form-label">PSČ</label>
+								<InputText class="form-control" @bind-Value="customer.PostalCode" />
+							</div>
+						</div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" type="button" @onclick="Close">Zavřít</button>
+                        <button class="btn btn-primary" type="submit">Uložit</button>
+                    </div>
+                </div>
+            </div>
+			</div>
+        </div>
+    </EditForm>
+
+}
+
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> OnClose { get; set; }
+    [Parameter] public EventCallback<CustomerViewModel> OnCustomerAdded { get; set; }
+
+    private CustomerFormViewModel customer = new();
+
+    private async Task HandleValidSubmit()
+    {
+        await CustomerService.CreateCustomer(customer);
+
+		var created = await CustomerService.GetCustomerById(customer?.Id ?? 0);
+        if (created is not null)
+        {
+            var mapped = _mapper.Map<CustomerViewModel>(created);
+            await OnCustomerAdded.InvokeAsync(mapped);
+        }
+
+        await OnClose.InvokeAsync(false); // zavřít modal
+    }
+
+    private async Task Close()
+    {
+        await OnClose.InvokeAsync(false);
+    }
+}

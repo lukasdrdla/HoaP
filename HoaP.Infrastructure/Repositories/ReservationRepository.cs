@@ -27,29 +27,42 @@ namespace HoaP.Infrastructure.Repositories
         {
             var newReservation = _mapper.Map<Reservation>(reservation);
 
+            // Přidej hlavního zákazníka
             newReservation.ReservationCustomers.Add(new ReservationCustomer
             {
                 CustomerId = reservation.CustomerId,
                 IsMainGuest = true
             });
 
-       
             foreach (var guest in reservation.Guests)
             {
-                var guestEntity = _mapper.Map<Customer>(guest);
-                _context.Customers.Add(guestEntity);
-
-                newReservation.ReservationCustomers.Add(new ReservationCustomer
+                if (guest.Id > 0)
                 {
-                    Customer = guestEntity,
-                    IsMainGuest = false
-                });
+                    // Existující zákazník – použij jen referenci
+                    newReservation.ReservationCustomers.Add(new ReservationCustomer
+                    {
+                        CustomerId = guest.Id.Value,
+                        IsMainGuest = false
+                    });
+                }
+                else
+                {
+                    // Nový zákazník – vytvoř entitu
+                    var guestEntity = _mapper.Map<Customer>(guest);
+                    _context.Customers.Add(guestEntity);
+                    // přidej jako navázanou entitu
+                    newReservation.ReservationCustomers.Add(new ReservationCustomer
+                    {
+                        Customer = guestEntity,
+                        IsMainGuest = false
+                    });
+                }
             }
 
             await _context.Reservations.AddAsync(newReservation);
             await _context.SaveChangesAsync();
-
         }
+
 
         public async Task CancelReservationAsync(int id)
         {
@@ -92,6 +105,7 @@ namespace HoaP.Infrastructure.Repositories
         {
             var reservations = await _context.Reservations
                 .Include(r => r.ReservationStatus)
+                .Include(r => r.Currency)
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .ToListAsync();
@@ -112,6 +126,8 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<ReservationViewModel>> GetReservationsByRoomIdAsync(int roomId)
         {
             var reservations = await _context.Reservations
+                .Include(r=> r.InvoiceReservations)
+                .ThenInclude(ir => ir.Invoice)
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Customer)
                 .Where(r => r.RoomId == roomId)
@@ -137,7 +153,11 @@ namespace HoaP.Infrastructure.Repositories
             var reservation = await _context.Reservations.FindAsync(id);
             if (reservation != null)
             {
-                var invoice = await _context.Invoices.FirstOrDefaultAsync(i => i.ReservationId == id);
+                var invoice = await _context.Invoices
+                    .Include(i => i.InvoiceReservations)
+                    .ThenInclude(ir => ir.Reservation)
+                    .FirstOrDefaultAsync(i => i.InvoiceReservations.Any(ir => ir.ReservationId == id));
+
                 if (invoice != null)
                 {
                     throw new Exception("Can't delete reservation with invoice");

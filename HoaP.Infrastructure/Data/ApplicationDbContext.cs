@@ -34,6 +34,9 @@ namespace HoaP.Infrastructure.Data
         public DbSet<Amenity> Amenities { get; set; }
         public DbSet<RoomAmenity> RoomAmenities { get; set; }
         public DbSet<ReservationCustomer> ReservationCustomers { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<ServiceReservation> ReservationServices { get; set; }
+        public DbSet<InvoiceReservation> InvoiceReservations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -61,6 +64,7 @@ namespace HoaP.Infrastructure.Data
 
         private void SeedData(ModelBuilder modelBuilder)
         {
+
            
 
             var adminRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Admin", NormalizedName = "ADMIN" };
@@ -70,6 +74,8 @@ namespace HoaP.Infrastructure.Data
             modelBuilder.Entity<AppRole>().HasData(adminRole, managerRole, receptionistRole);
 
             var adminId = Guid.NewGuid().ToString();
+            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "admin.png");
+            byte[]? profilePictureBytes = File.Exists(imagePath) ? File.ReadAllBytes(imagePath) : null;
 
             var admin = new AppUser
             {
@@ -81,7 +87,7 @@ namespace HoaP.Infrastructure.Data
                     EmailConfirmed = true,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     FirstName = "Admin",
-                    ProfilePicture = null,
+                    ProfilePicture = profilePictureBytes,
                     LastName = "Admin",
                     Address = "Hlavní 123",
                     City = "Praha",
@@ -100,6 +106,12 @@ namespace HoaP.Infrastructure.Data
             admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123456789!");
 
             modelBuilder.Entity<AppUser>().HasData(admin);
+
+            modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
+            {
+                RoleId = adminRole.Id,
+                UserId = adminId
+            });
 
 
 
@@ -127,8 +139,7 @@ namespace HoaP.Infrastructure.Data
 
             modelBuilder.Entity<ReservationStatus>().HasData(
                 new ReservationStatus { Id = 1, Name = "Potvrzená" },
-                new ReservationStatus { Id = 2, Name = "Zrušená" },
-                new ReservationStatus { Id = 3, Name = "Čeká na platbu" }
+                new ReservationStatus { Id = 2, Name = "Zrušená" }
             );
 
             modelBuilder.Entity<RoomType>().HasData(
@@ -172,19 +183,19 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Reservation { Id = 4, RoomId = 4, CheckIn = new DateTime(2025, 1, 5), CheckOut = new DateTime(2025, 1, 13), TotalPrice = 22500, ReservationStatusId = 1, CustomerId = 4, Adults = 4, Children = 3, MealPlanId = 4, SpecialRequest = "Elktro mobil", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Reservation { Id = 5, RoomId = 1, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 5), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 5, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
+                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
+                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
+                new Reservation { Id = 4, RoomId = 4, CheckIn = new DateTime(2025, 1, 5), CheckOut = new DateTime(2025, 1, 13), TotalPrice = 22500, ReservationStatusId = 1, CustomerId = 4, Adults = 4, Children = 3, MealPlanId = 4, SpecialRequest = "Elktro mobil", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
+                new Reservation { Id = 5, RoomId = 1, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 5), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 5, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 }
                 );
 
             modelBuilder.Entity<Invoice>().HasData(
-                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 1, ReservationId = 1, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 1, ReservationId = 2, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 1, ReservationId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 1, ReservationId = 4, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 1, ReservationId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
+                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
                 );
         }
     }

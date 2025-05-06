@@ -32,6 +32,9 @@ namespace HoaP.Application.ViewModels
         public string MealPlanName { get; set; } = string.Empty;
         public string SpecialRequest { get; set; } = "";
         public string AdminNote { get; set; } = "";
+        public bool HasInvoice { get; set; }
+        public bool IsInvoicePaid { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public ICollection<CustomerViewModel> Guests { get; set; } = null!;

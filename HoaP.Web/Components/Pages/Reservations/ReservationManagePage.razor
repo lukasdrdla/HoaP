@@ -2,6 +2,7 @@
 @page "/vytvorit-rezervaci"
 @page "/vytvorit-rezervaci/zakaznik/{customerId:int}"
 @page "/vytvorit-rezervaci/pokoj/{roomId:int}"
+@using HoaP.Web.Components.Pages.Customers
 
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
@@ -9,6 +10,7 @@
 @inject CustomerService CustomerService
 @inject MealPlanService MealPlanService
 @inject ReservationStatusService ReservationStatusService
+@inject CurrencyService CurrencyService
 @inject IMapper Mapper
 
 @rendermode InteractiveServer
@@ -53,7 +55,9 @@
 				<div class="form-group mb-3">
 					<div class="form-group mb-3">
 						<div class="d-flex justify-content-end">
-							<a href="/spravovat-zakaznika" class="btn btn-primary">Přidat zákazníka</a>
+							<button type="button" class="btn btn-primary" @onclick=" () => showAddCustomerModal = true">
+								<i class="bi bi-plus-circle me-1"></i> Přidat nového zákazníka
+							</button>
 						</div>
 						<label for="CustomerId" class="form-label">Zákazník</label>
 						<div class="form-group position-relative">
@@ -97,7 +101,7 @@
 
 				@if (isGuestSearchVisible)
 				{
-					<input type="text" class="form-control mb-2" placeholder="Hledat hosta" @bind="searchGuestTerm" @bind:event="oninput" @bind:after="FilterGuestCustomers" />
+					<input type="text" class="form-control mb-2 mt-2" placeholder="Hledat hosta" @bind="searchGuestTerm" @bind:event="oninput" @bind:after="FilterGuestCustomers" />
 					@if (filteredGuestCustomers.Any())
 					{
 						<ul class="list-group mb-3">
@@ -118,7 +122,7 @@
 				<div class="form-group mb-3">
 					@foreach (var guest in reservation.Guests)
 					{
-						<div class="border rounded p-3 mb-4 bg-light-subtle">
+						<div class="border rounded p-3 mb-4 mt-2 bg-light-subtle">
 							<div class="row">
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Jméno</label>
@@ -238,30 +242,39 @@
 							<label for="CheckIn" class="form-label">Check In</label>
 							<div class="input-group">
 								<input type="text" class="form-control" placeholder="Vyberte datum"
-								value="@reservation.CheckIn.ToShortDateString()" @onclick="OpenCheckInCalendar" readonly style="cursor: pointer;" />
+									   value="@reservation.CheckIn.ToShortDateString()"
+									   @onclick="OpenCheckInCalendar" readonly style="cursor: pointer;" />
 							</div>
-							@if (isCheckInCalendarVisible)
-							{
-								<div class="calendar-container">
-									<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectIn" />
-								</div>
-							}
 						</div>
 
 						<div class="col-md-6">
 							<label for="CheckOut" class="form-label">Check Out</label>
 							<div class="input-group">
 								<input type="text" class="form-control" placeholder="Vyberte datum"
-								value="@reservation.CheckOut.ToShortDateString()" @onclick="OpenCheckOutCalendar" readonly style="cursor: pointer;" />
+									   value="@reservation.CheckOut.ToShortDateString()"
+									   @onclick="OpenCheckOutCalendar" readonly style="cursor: pointer;" />
 							</div>
-							@if (isCheckOutCalendarVisible)
-							{
-								<div class="calendar-container">
-									<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectOut" />
-								</div>
-							}
 						</div>
 					</div>
+
+					@if (isCheckInCalendarVisible)
+					{
+						<div class="calendar-overlay" @onclick="CloseCalendars">
+							<div class="calendar-popup" @onclick:stopPropagation>
+								<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectIn" />
+							</div>
+						</div>
+					}
+
+					@if (isCheckOutCalendarVisible)
+					{
+						<div class="calendar-overlay" @onclick="CloseCalendars">
+							<div class="calendar-popup" @onclick:stopPropagation>
+								<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectOut" />
+							</div>
+						</div>
+					}
+
 
 
 				}
@@ -360,6 +373,19 @@
 					<label for="Total" class="form-label">Cena</label>
 					<InputNumber id="Total" class="form-control" @bind-Value="reservation.TotalPrice" />
 				</div>
+				<div class="form-group mb-3">
+					<label for="CurrencyId" class="form-label">Měna</label>
+					<select id="CurrencyId" class="form-control" @onchange="OnCurrencyChanged">
+						@foreach (var currency in currencies)
+						{
+							<option value="@currency.Id" selected="@(currency.Id == reservation.CurrencyId)">
+								@currency.Name (@currency.Symbol)
+							</option>
+						}
+					</select>
+				</div>
+
+
 
 				<div class="mb-3 row">
 					<div class="col-md-6">
@@ -398,6 +424,18 @@
 					<InputTextArea id="adminNote" class="form-control" @bind-Value="reservation.AdminNote" />
 				</div>
 
+				@* <h5>Doplňkové služby</h5>
+				@foreach (var service in allServices)
+				{
+					<div class="form-check">
+						<input class="form-check-input" type="checkbox"
+							   @onchange="e => ToggleService(service.Id, e.Value.ToString() == " true")"
+							   checked="@SelectedServiceIds.Contains(service.Id)" />
+						<label class="form-check-label">@service.Name (@service.Price Kč)</label>
+					</div>
+				} *@
+
+
 
 				<div class="text-center mt-4">
 					<button type="submit" class="btn btn-primary">@(reservationId == null ? "Vytvořit rezervaci" : "Uložit rezervaci")</button>
@@ -409,8 +447,36 @@
 </div>
 
 
+<AddCustomerModal IsVisible="@showAddCustomerModal"
+OnClose="CloseAddCustomerModal"
+OnCustomerAdded="OnCustomerAdded" />
+
+
 <style>
+	.calendar-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 2000;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.calendar-popup {
+		background-color: white;
+		padding: 20px;
+		border-radius: 12px;
+		box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+	}
+
+
+
 </style>
+
 
 
 
@@ -421,6 +487,7 @@
 	public int? customerId { get; set; }
 	[Parameter]
 	public int? roomId { get; set; }
+
 
 	private ReservationFormViewModel reservation = new ReservationFormViewModel();
 	private List<CustomerViewModel> customers = new();
@@ -456,6 +523,29 @@
 	private bool isGuestSearchVisible = false;
 	private string? searchGuestTerm;
 	private List<CustomerViewModel> filteredGuestCustomers = new();
+	private List<CurrencyViewModel> currencies = new();
+
+
+	private bool showAddCustomerModal = false;
+
+	private void CloseAddCustomerModal(bool visible)
+	{
+		showAddCustomerModal = visible;
+	}
+
+	private void OnCustomerAdded(CustomerViewModel customer)
+	{
+		reservation.CustomerId = customer.Id;
+		searchCustomerTerm = $"";
+
+	}
+
+	private void CloseCalendars()
+	{
+		isCheckInCalendarVisible = false;
+		isCheckOutCalendarVisible = false;
+	}
+
 
 
 
@@ -479,6 +569,10 @@
 
 		mealPlans = await MealPlanService.GetMealPlansAsync();
 		reservationStatuses = await ReservationStatusService.GetReservationStatusesAsync();
+		reservation.ReservationStatusId = reservationStatuses.FirstOrDefault(x => x.Name == "Potvrzená")?.Id ?? 0;
+		reservation.MealPlanId = mealPlans.FirstOrDefault(x => x.Name == "Bez stravy")?.Id ?? 0;
+		currencies = await CurrencyService.GetCurrenciesAsync();
+		reservation.CurrencyId = currencies.FirstOrDefault(x => x.Name == "CZK")?.Id ?? 0;
 
 		if (reservationId != null)
 		{
@@ -545,6 +639,27 @@
 		searchGuestTerm = "";
 		filteredGuestCustomers.Clear();
 	}
+
+	private async Task OnCurrencyChanged(ChangeEventArgs e)
+	{
+		if (int.TryParse(e.Value.ToString(), out int selectedCurrencyId))
+		{
+			if (selectedCurrencyId != reservation.CurrencyId)
+			{
+				var oldCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+				var newCurrency = currencies.FirstOrDefault(c => c.Id == selectedCurrencyId);
+
+				if (oldCurrency != null && newCurrency != null)
+				{
+					// Příklad: předpokládáme, že máš kurzy jako decimal např. CZK = 1.0, EUR = 0.04
+					reservation.TotalPrice = reservation.TotalPrice / oldCurrency.Rate * newCurrency.Rate;
+					reservation.CurrencyId = selectedCurrencyId;
+
+				}
+			}
+		}
+	}
+
 
 	private void SwitchMode(ReservationMode mode)
 	{

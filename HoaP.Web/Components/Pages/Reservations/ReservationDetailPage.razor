@@ -37,8 +37,25 @@
                         @reservation.RoomTypeName (Číslo pokoje: @reservation.RoomNumber)
                     </a>
                 </p>
-                <p><strong>Počet hostů:</strong> @reservation.GuestCount</p>
+                <p><strong>Počet hostů:</strong> @(reservation.Guests?.Count ?? 0)</p>
                 <p><strong>Speciální požadavky:</strong> @reservation.SpecialRequest</p>
+
+                @if (reservation.HasInvoice)
+                {
+                    <p>
+                        <strong>Faktura:</strong>
+                        <span class="badge @(reservation.IsInvoicePaid ? "bg-success" : "bg-warning")">
+                            @(reservation.IsInvoicePaid ? "Zaplacena" : "Nezaplacena")
+                        </span>
+                    </p>
+                }
+                else
+                {
+                    <p><strong>Faktura:</strong> Žádná</p>
+                }
+
+
+                
             </div>
 
             <!-- Pravá část: Shrnutí -->

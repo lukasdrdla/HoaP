@@ -23,7 +23,7 @@
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
-			<h3 class="card-title text-center mb-4 page-title">@(invoiceId == null ? "Vytvořit fakturu" : "Upravit fakturu")</h3>
+            <h3 class="card-title text-center mb-4 page-title">@(invoiceId == null ? "Vytvořit fakturu" : "Upravit fakturu")</h3>
             <EditForm Model="invoice" OnValidSubmit="HandleValidSubmit" FormName="AddInvoice">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -31,32 +31,53 @@
                     <label for="customerSearch" class="form-label">Rezervace</label>
                     <div class="form-group position-relative">
 
-                        <input type="text" class="form-control" placeholder="Hledat rezervaci" @bind="searchTerm" @oninput="SearchReservation" @onblur="HideReservationList" />
+                        <input type="text" class="form-control" placeholder="Hledat rezervaci" @bind="searchTerm" @oninput="SearchReservation"/>
                         @if (filteredReservations.Any())
                         {
                             <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
                                 @foreach (var reservation in filteredReservations)
                                 {
-                                    <li class="list-group-item list-group-item-action" @onmousedown="() => SelectCustomer(reservation)">
-                                        <div>
-                                            <strong>Rezervace:</strong> č. @reservation.Id
-                                        </div>
-                                        <div>
-                                            <strong>Termín:</strong> @reservation.CheckIn.ToShortDateString() - @reservation.CheckOut.ToShortDateString()
-                                        </div>
-                                        <div>
-                                            <strong>Pokoj:</strong> @reservation.RoomNumber
-                                        </div>
-                                        <div>
-											<strong>Zákazník:</strong> @reservation.CustomerName (ID: @reservation.Customer.Id, @reservation.Customer.Email, RČ: @reservation.Customer.PersonalIdentificationNumber)
-                                        </div>
+                                    <li class="list-group-item">
+                                        <input type="checkbox"
+                                        checked="@invoice.ReservationIds.Contains(reservation.Id)"
+                                        @onchange="@(() => ToggleReservationSelection(reservation))" />
 
+
+
+                                        <strong>Rezervace:</strong> č. @reservation.Id –
+                                        @reservation.CustomerName, @reservation.CheckIn.ToShortDateString() - @reservation.CheckOut.ToShortDateString()
                                     </li>
                                 }
+
                             </ul>
                         }
                     </div>
                 </div>
+
+                @if (invoice.Reservations.Any())
+                {
+                    <div class="mt-3">
+                        <h5>Vybrané rezervace:</h5>
+                        <ul class="list-group">
+                            @foreach (var selected in invoice.Reservations)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Rezervace:</strong> č. @selected.Id —
+                                        <strong>@selected.CustomerName</strong>,
+                                        @selected.CheckIn.ToShortDateString() až @selected.CheckOut.ToShortDateString()
+                                        (@selected.RoomNumber)
+                                    </div>
+                                    <button class="btn btn-sm btn-danger"
+                                    @onclick="() => ToggleReservationSelection(selected)">
+                                        Odebrat
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
 
                 <div class="mb-3 row">
                     <div class="col-md-6">
@@ -73,29 +94,34 @@
                 <div class="mb-3 row">
                     <div class="col-md-3">
                         <label for="discount" class="form-label">Sleva (%)</label>
-                        <input type="number" id="discount" class="form-control" @bind="invoice.Discount" @bind:event="oninput" @bind:after="CalculatePrice" />
+                        <input type="number" min="0" id="discount" class="form-control" @bind="invoice.Discount" @bind:event="oninput" @bind:after="RecalculatePrice" />
                     </div>
 
                     <div class="col-md-3">
                         <div class="form-group mb-3">
-							<label for="Currency" class="form-label">Měna</label>
-							<InputSelect id="Currency" class="form-select" @bind-Value="invoice.CurrencyId" @onchange="OnCurrencyChange">
-								<option value="">Vyberte měnu</option>
-								@foreach (var currency in currencies)
+                            <label for="Currency" class="form-label">Měna</label>
+                            <select class="form-select" @onchange="OnCurrencyChange">
+                                <option value="">Vyberte měnu</option>
+                                @foreach (var currency in currencies)
                                 {
-									<option value="@currency.Id">@currency.Name</option>
-								}
-							</InputSelect>
+                                    <option value="@currency.Id" selected="@(currency.Id == invoice.CurrencyId)">
+                                        @currency.Name
+                                    </option>
+                                }
+                            </select>
+
+
+
                         </div>
                     </div>
 
                     <div class="col-md-3">
                         <label for="prepayment" class="form-label">Záloha</label>
-                        <input type="number" id="prepayment" class="form-control" @bind="invoice.Prepayment" @bind:event="oninput" @bind:after="CalculatePrice" />
+                        <input type="number" min="0" id="prepayment" class="form-control" @bind="invoice.Prepayment" @bind:event="oninput" @bind:after="RecalculatePrice" />
                     </div>
                     <div class="col-md-3">
                         <label for="price" class="form-label">Cena</label>
-                        <InputNumber id="price" class="form-control" @bind-Value="invoice.Price" />
+                        <InputNumber min="0" id="price" class="form-control" @bind-Value="invoice.Price" />
                     </div>
                 </div>
 
@@ -107,7 +133,7 @@
                 </div>
 
                 <div class="text-center mt-4">
-					<button type="submit" class="btn btn-primary">@(invoiceId == null ? "Vytvořit fakturu" : "Uložit fakturu")</button>
+                    <button type="submit" class="btn btn-primary">@(invoiceId == null ? "Vytvořit fakturu" : "Uložit fakturu")</button>
                     <a href="/faktury" class="btn btn-outline-secondary">Zpět na seznam</a>
                 </div>
             </EditForm>
@@ -119,29 +145,29 @@
 
 @code {
 
-	[Parameter]
-	public int? invoiceId { get; set; }
-	[Parameter]
-	public int? reservationId { get; set; }
+    [Parameter]
+    public int? invoiceId { get; set; }
+    [Parameter]
+    public int? reservationId { get; set; }
 
     private InvoiceFormViewModel invoice { get; set; } = new InvoiceFormViewModel();
 
     private List<ReservationViewModel> reservations { get; set; } = new List<ReservationViewModel>();
     private List<ReservationViewModel> filteredReservations { get; set; } = new List<ReservationViewModel>();
-	private List<CurrencyViewModel> currencies { get; set; } = new List<CurrencyViewModel>();
+    private List<CurrencyViewModel> currencies { get; set; } = new List<CurrencyViewModel>();
     private string? searchTerm { get; set; }
     private decimal OriginalPrice { get; set; }
 
-	private string? errorMessage { get; set; }
+    private string? errorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-		if (invoiceId != null)
-		{
-			invoice = Mapper.Map<InvoiceFormViewModel>(await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value));
-			OriginalPrice = invoice.Price;
-            
-            var reservation = await ReservationService.GetReservationByIdAsync(invoice.ReservationId);
+        if (invoiceId != null)
+        {
+            invoice = Mapper.Map<InvoiceFormViewModel>(await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value));
+            OriginalPrice = invoice.Price;
+
+            var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
             if (reservation.Customer != null)
             {
                 searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
@@ -151,71 +177,94 @@
                 searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
             }
             currencies = await CurrencyService.GetCurrenciesAsync();
-		}
+        }
         else if (reservationId != null)
-		{
-			var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
-			invoice.ReservationId = reservation.Id;
-			invoice.Price = reservation.TotalPrice;
-			OriginalPrice = reservation.TotalPrice;
+        {
+            var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
+            if (!invoice.ReservationIds.Contains(reservation.Id))
+            {
+                invoice.ReservationIds.Add(reservation.Id);
+            }
+            invoice.Price = reservation.TotalPrice;
+            OriginalPrice = reservation.TotalPrice;
 
-			if (reservation.Customer != null)
-			{
+            if (reservation.Customer != null)
+            {
                 searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
             }
             else
             {
-				searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-			}
+                searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+            }
 
             currencies = await CurrencyService.GetCurrenciesAsync();
-		}
+        }
 
         reservations = await ReservationService.GetReservationsAsync();
         filteredReservations = new List<ReservationViewModel>();
-		invoice.CurrencyId = 5;
-		var user = await AccountService.FetchLoggedInUserAsync();
-		invoice.UserId = user.Id;
+        var user = await AccountService.FetchLoggedInUserAsync();
+        invoice.UserId = user.Id;
 
 
 
         currencies = await CurrencyService.GetCurrenciesAsync();
+        invoice.CurrencyId = currencies.FirstOrDefault(c => c.Name == "CZK")?.Id ?? 1;
+
     }
+
+    private void ToggleReservationSelection(ReservationViewModel reservation)
+    {
+        if (invoice.ReservationIds.Contains(reservation.Id))
+        {
+            invoice.ReservationIds.Remove(reservation.Id);
+            invoice.Reservations.RemoveAll(r => r.Id == reservation.Id);
+        }
+        else
+        {
+            invoice.ReservationIds.Add(reservation.Id);
+            invoice.Reservations.Add(reservation);
+        }
+        searchTerm = string.Empty;
+        filteredReservations.Clear();
+
+        UpdateOriginalPrice();
+        _ = RecalculatePrice();
+    }
+
+    private void UpdateOriginalPrice()
+    {
+        OriginalPrice = invoice.Reservations.Sum(r => r.TotalPrice);
+
+    }
+
+
+
+
 
 
     private async Task HandleValidSubmit()
     {
-		// try {
+		try {
 
-  //           if (invoiceId == null)
-  //           {
-  //               await InvoiceService.CreateInvoiceAsync(invoice);
-  //           }
-  //           else
-  //           {
-  //               await InvoiceService.UpdateInvoiceAsync(invoice);
-  //           }
+            if (invoiceId == null)
+            {
+                await InvoiceService.CreateInvoiceAsync(invoice);
+            }
+            else
+            {
+                await InvoiceService.UpdateInvoiceAsync(invoice);
+            }
 
-  //           NavigationManager.NavigateTo("/faktury");
-  //       }
-		// catch (DbUpdateException dbEx)
-		// {
-		// 	errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
-  //       }
-  //       catch (Exception ex)
-		// {
-		// 	errorMessage = "Neočekávaná chyba. Zkuste to prosím znovu nebo kontaktujte podporu. : " + ex.Message;
-		// }
-
-        if (invoiceId == null)
-        {
-			await InvoiceService.CreateInvoiceAsync(invoice);
-		}
-		else
+            NavigationManager.NavigateTo("/faktury");
+        }
+		catch (DbUpdateException dbEx)
 		{
-			await InvoiceService.UpdateInvoiceAsync(invoice);
+			errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
+        }
+        catch (Exception ex)
+		{
+			errorMessage = "Neočekávaná chyba. Zkuste to prosím znovu nebo kontaktujte podporu. : " + ex.Message;
 		}
-		NavigationManager.NavigateTo("/faktury");
 
     }
 
@@ -240,53 +289,33 @@
         filteredReservations.Clear();
     }
 
+ 
 	private async Task OnCurrencyChange(ChangeEventArgs e)
 	{
-        var selectedCurrencyId = Convert.ToInt32(e.Value);
-        invoice.CurrencyId = selectedCurrencyId;
-
-        await RecalculatePrice();
-	}
-
-	private async Task RecalculatePrice()
-	{
-		var selectedCurrency = currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId);
-        if (selectedCurrency != null)
-		{
-			invoice.Price = invoice.Price * selectedCurrency.Rate;
-		}
-	
+		invoice.CurrencyId = int.Parse(e.Value.ToString());
+		await RecalculatePrice();
 	}
 
 
-
-    private void SelectCustomer(ReservationViewModel reservation)
+    private async Task RecalculatePrice()
     {
-        invoice.ReservationId = reservation.Id;
-        invoice.Price = reservation.TotalPrice;
-        OriginalPrice = reservation.TotalPrice;
-        searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-        filteredReservations.Clear();
+        var selectedCurrency = currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId);
+        if (selectedCurrency is null || selectedCurrency.Rate <= 0)
+            return;
 
+        var basePriceCZK = OriginalPrice;
+
+        if (invoice.Discount > 0)
+            basePriceCZK -= basePriceCZK * invoice.Discount / 100;
+
+        if (invoice.Prepayment > 0)
+            basePriceCZK -= invoice.Prepayment;
+
+        if (basePriceCZK < 0)
+            basePriceCZK = 0;
+
+        invoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
+ 
     }
-
-    
-
-    private void CalculatePrice()
-    {
-        if (OriginalPrice > 0 && invoice.Discount >= 0 && invoice.Prepayment >= 0)
-        {
-            var discountedPrice = OriginalPrice - (OriginalPrice * invoice.Discount / 100);
-            invoice.Price = discountedPrice - invoice.Prepayment;
-            if (invoice.Price < 0)
-            {
-                invoice.Price = 0;
-            }
-        }
-    }
-
-    
-
-    
 
 }

@@ -17,6 +17,8 @@ namespace HoaP.Application.ViewModels
         public decimal TotalPrice { get; set; }
         public string ReservationStatusName { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
+        public string CurrencySymbol { get; set; } = "";
+
         public int Guests { get; set; }
 
         public CustomerViewModel Customer { get; set; } = new();

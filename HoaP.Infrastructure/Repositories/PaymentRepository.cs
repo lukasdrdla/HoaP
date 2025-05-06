@@ -52,7 +52,8 @@ namespace HoaP.Infrastructure.Repositories
         {
             var payment = await _context.Payments
                 .Include(p => p.Invoice)
-                .ThenInclude(i => i.Reservation)
+                .ThenInclude(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
                 .Include(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(p => p.Id == id);
@@ -67,7 +68,8 @@ namespace HoaP.Infrastructure.Repositories
         {
             var payments = _context.Payments
                 .Include(p => p.Invoice)
-                .ThenInclude(i => i.Reservation)
+                .ThenInclude(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
                 .Include(p => p.PaymentMethod)
                 .ToList();
@@ -79,9 +81,11 @@ namespace HoaP.Infrastructure.Repositories
         {
             var payments = await _context.Payments
                 .Include(p => p.Invoice)
-                .ThenInclude(i => i.Reservation)
+                .ThenInclude(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
-                .Where(p => p.Invoice.ReservationId == reservationId)
+                .Include(p => p.PaymentMethod)
+                .Where(p => p.Invoice.InvoiceReservations.Any(ir => ir.ReservationId == reservationId))
                 .ToListAsync();
 
             return _mapper.Map<List<PaymentViewModel>>(payments);

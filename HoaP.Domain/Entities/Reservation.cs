@@ -13,6 +13,7 @@ namespace HoaP.Domain.Entities
         public DateTime CheckOut { get; set; } = DateTime.Now.AddDays(3);
         public decimal TotalPrice { get; set; }
         public int ReservationStatusId { get; set; }
+        public int CurrencyId { get; set; }
         public int? CustomerId { get; set; }
         public Customer Customer { get; set; } = null!;
         public int Adults { get; set; }
@@ -26,7 +27,10 @@ namespace HoaP.Domain.Entities
         public Room? Room { get; set; }
         public ReservationStatus? ReservationStatus { get; set; }
         public MealPlan? MealPlan { get; set; }
+        public Currency? Currency { get; set; }
 
         public ICollection<ReservationCustomer> ReservationCustomers { get; set; } = new List<ReservationCustomer>();
+        public ICollection<InvoiceReservation> InvoiceReservations { get; set; } = new List<InvoiceReservation>();
+
     }
 }

@@ -33,7 +33,10 @@
 
         <div class="topbar-icons">
             <div class="user-profile">
-                <img src="@user.ProfilePicture" alt="User Profile" class="profile-pic" />
+                <img src="@(user.ProfilePicture != null ? $"data:image/png;base64,{Convert.ToBase64String(user.ProfilePicture)}" : "/images/admin.png")"
+                     alt="User Profile"
+                     class="profile-pic" />
+
                 <div class="user-info">
                     <span>@user.Email</span>
                     <small>@user.JobTitle</small>

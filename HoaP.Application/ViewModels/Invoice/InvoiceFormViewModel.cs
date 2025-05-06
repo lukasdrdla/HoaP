@@ -13,8 +13,7 @@ namespace HoaP.Application.ViewModels.Invoice
 
         public int? Id { get; set; }
 
-        [Required]
-        public int ReservationId { get; set; }
+        public List<int> ReservationIds { get; set; } = new();
 
         [Required]
         [DataType(DataType.Date)]
@@ -40,6 +39,8 @@ namespace HoaP.Application.ViewModels.Invoice
 
         [Required]
         public int CurrencyId { get; set; }
+
+        public List<ReservationViewModel> Reservations { get; set; } = new();
 
         public List<CurrencyViewModel> Currencies { get; set; } = new();
 

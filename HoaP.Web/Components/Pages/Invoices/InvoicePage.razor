@@ -25,8 +25,9 @@
                     <QuickGrid Items="filteredInvoices.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Číslo faktury" Property="@(x => x.Id)" Sortable="true" />
 						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
-                        <PropertyColumn Title="Rezervace" Property="@(x => x.ReservationId)" Sortable="true" />
-                        <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("C"))" Sortable="true" />
+                        <TemplateColumn Title="Cena">
+                            <div>@($"{context.Price} {context.CurrencySymbol}")</div>
+                        </TemplateColumn>                        
                         <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
                         <TemplateColumn Title="Stav" Sortable="true">
 
@@ -152,7 +153,6 @@
         {
             filteredInvoices = invoices.Where(
                 r => r.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                  || r.ReservationId.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)

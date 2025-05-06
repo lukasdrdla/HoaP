@@ -7,6 +7,7 @@ using AutoMapper;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.Invoice;
 using HoaP.Domain.Entities;
+using HoaP.Domain.Interfaces;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +31,25 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
         {
-            await _context.Invoices.AddAsync(_mapper.Map<Invoice>(invoice));
-            await _context.SaveChangesAsync();
+            // Namapuj view model na entitu
+            var entity = _mapper.Map<Invoice>(invoice);
+
+            // Přidej fakturu do databáze
+            await _context.Invoices.AddAsync(entity);
+            await _context.SaveChangesAsync(); // entity.Id je nyní k dispozici
+
+            // Přidej M:N vztahy do spojovací tabulky
+            foreach (var reservationId in invoice.ReservationIds)
+            {
+                _context.InvoiceReservations.Add(new InvoiceReservation
+                {
+                    InvoiceId = entity.Id,
+                    ReservationId = reservationId
+                });
+            }
+
+            await _context.SaveChangesAsync(); // ulož vazby
+
         }
 
         public async Task CancelInvoiceAsync(int id)
@@ -58,7 +76,8 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<DetailInvoiceViewModel> GetInvoiceByIdAsync(int id)
         {
             var invoice = await _context.Invoices
-                .Include(i => i.Reservation)
+                .Include(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
                 .Include(i => i.Currency)
                 .Include(i => i.AppUser)
@@ -70,7 +89,10 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<InvoiceViewModel>> GetInvoiceByReservationIdAsync(int reservationId)
         {
             var invoices = await _context.Invoices
-                .Where(i => i.ReservationId == reservationId)
+                .Include(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
+                .ThenInclude(r => r.Customer)
+                .Where(i => i.InvoiceReservations.Any(ir => ir.ReservationId == reservationId))
                 .ToListAsync();
 
             return _mapper.Map<List<InvoiceViewModel>>(invoices);
@@ -79,8 +101,10 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<InvoiceViewModel>> GetInvoicesAsync()
         {
             var invoices = await _context.Invoices
-                .Include(i => i.Reservation)
+                .Include(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
+                .Include(i => i.Currency)
                 .ToListAsync();
 
             return _mapper.Map<List<InvoiceViewModel>>(invoices);
@@ -89,9 +113,10 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<InvoiceViewModel>> GetInvoicesByCustomerIdAsync(int customerId)
         {
             var invoices = await _context.Invoices
-                .Include(i => i.Reservation)
+                .Include(i => i.InvoiceReservations)
+                .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
-                .Where(i => i.Reservation.CustomerId == customerId)
+                .Where(i => i.InvoiceReservations.Any(ir => ir.Reservation.CustomerId == customerId))
                 .ToListAsync();
 
             return _mapper.Map<List<InvoiceViewModel>>(invoices);
