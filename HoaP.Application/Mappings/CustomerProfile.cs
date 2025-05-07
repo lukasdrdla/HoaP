@@ -21,6 +21,8 @@ namespace HoaP.Application.Mappings
             CreateMap<CustomerFormViewModel, DetailCustomerViewModel>();
 
             CreateMap<Customer, DetailCustomerViewModel>();
+
+            CreateMap<CustomerViewModel, CustomerFormViewModel>();
         }
     }
 }

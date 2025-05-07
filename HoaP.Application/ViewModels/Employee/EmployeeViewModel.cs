@@ -14,6 +14,8 @@ namespace HoaP.Application.ViewModels.Employee
         public string JobTitle { get; set; } = string.Empty;
         public DateTime StartDate { get; set; }
         public decimal Salary { get; set; }
+        public string? CurrencySymbol { get; set; }
+
         public bool IsEmployed { get; set; }
     }
 

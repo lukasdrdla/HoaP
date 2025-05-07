@@ -110,6 +110,23 @@ namespace HoaP.Infrastructure.Data
                 .Property(r => r.Price)
                 .HasPrecision(18, 2);
 
+            builder.Entity<AppUser>()
+                .HasOne(u => u.Currency)
+                .WithMany()
+                .HasForeignKey(u => u.CurrencyId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<AppUser>()
+                .HasOne(u => u.InsuranceCompany)
+                .WithMany()
+                .HasForeignKey(u => u.InsuranceCompanyId)
+                .OnDelete(DeleteBehavior.Restrict);
+            builder.Entity<Room>()
+                .HasOne(r => r.Currency)
+                .WithMany()
+                .HasForeignKey(r => r.CurrencyId)
+                .OnDelete(DeleteBehavior.Restrict); // nebo .NoAction
+
 
             SeedData(builder);
         }

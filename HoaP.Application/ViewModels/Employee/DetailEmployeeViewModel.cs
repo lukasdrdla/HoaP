@@ -28,7 +28,10 @@ namespace HoaP.Application.ViewModels.Employee
         public string InsuranceCompanyName { get; set; } = string.Empty;
         public int InsuranceCompanyId { get; set; }
 
-        public string RoleId { get; set; } = string.Empty;
+        public string? CurrencySymbol { get; set; }
+
+        public string? RoleId { get; set; }
+        public int CurrencyId { get; set; }
         public string RoleName { get; set; } = string.Empty;
 
 

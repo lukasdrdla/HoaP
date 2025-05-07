@@ -57,7 +57,7 @@
 
 						<!-- Room Details -->
 						<div class="col-md-6 mt-4">
-							<h1 class="room-price">@room.Price Kč/noc </h1>
+							<h1 class="room-price">@room.Price @room.CurrencySymbol/noc </h1>
 							<div class="mb-3">
 								<div class="row mt-4">
 									<div class="col-6">
@@ -99,10 +99,13 @@
 								<PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
 								<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
 								<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-								<PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice.ToString("C0"))" Sortable="true" />
+								<TemplateColumn Title="Cena">
+									@context.TotalPrice @context.CurrencySymbol
+								</TemplateColumn>
+
 								<TemplateColumn Title="Akce">
 									<div class="d-inline-flex">
-										<button class="btn	y" @onclick="() => NavigateToDetailRezervation(context.Id)">
+										<button class="btn" @onclick="() => NavigateToDetailRezervation(context.Id)">
 											<i class="bi bi-search"></i>
 										</button>
 

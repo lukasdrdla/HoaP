@@ -28,32 +28,35 @@
                 <div class="mb-3">
                     <label for="invoiceId" class="form-label">Faktura</label>
                     <div class="form-group position-relative">
-                        <input type="text" class="form-control" placeholder="Hledat fakturu..." @bind="searchTerm" @oninput="SearchInvoice" @onblur="HideInvoices" />
+                        @if (isEditMode)
+                        {
+                            <p class="form-control-plaintext fw-semibold">
+                                @searchTerm
+                            </p>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" placeholder="Hledat fakturu..." @bind="searchTerm" @oninput="SearchInvoice" @onblur="HideInvoices" />
+
+                        }
+
                         @if (filteredInvoices.Any())
                         {
                             <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
                                 @foreach (var invoice in filteredInvoices)
                                 {
                                     <li class="list-group-item list-group-item-action" @onmousedown="() => SelectInvoice(invoice)">
-                                        <div>
-                                            <strong>Číslo faktury:</strong> #@invoice.Id
-                                        </div>
-                                        <div>
-											<strong>Zákazník:</strong> @(invoice.CustomerName ?? "Neznámý zákazník")
-                                        </div>
-                                        <div>
-											<strong>Termín:</strong> @invoice.IssueDate.ToShortDateString() - @invoice.DueDate.ToShortDateString()
-                                        </div>
-                                        <div>
-                                            <strong>Cena:</strong> @invoice.Price.ToString("0.00") @invoice.CurrencySymbol
-                                        </div>
-
+                                        <div><strong>Číslo faktury:</strong> #@invoice.Id</div>
+                                        <div><strong>Zákazník:</strong> @(invoice.CustomerName ?? "Neznámý zákazník")</div>
+                                        <div><strong>Termín:</strong> @invoice.IssueDate.ToShortDateString() - @invoice.DueDate.ToShortDateString()</div>
+                                        <div><strong>Cena:</strong> @invoice.Price.ToString("0.00") @invoice.CurrencySymbol</div>
                                     </li>
                                 }
                             </ul>
                         }
                     </div>
                 </div>
+
 
                 <div class="mb-3">
                     <label for="amount" class="form-label">Částka</label>
@@ -94,6 +97,8 @@
 	[Parameter]
 	public string? paymentId { get; set; }
 	private Guid? paymentIdGuid => paymentId != null ? Guid.Parse(paymentId) : (Guid?)null;
+    private bool isEditMode => paymentId != null;
+
 
 	[Parameter]
 	public int? invoiceId { get; set; }
@@ -143,17 +148,19 @@
     private void SearchInvoice(ChangeEventArgs e)
     {
         searchTerm = e.Value?.ToString() ?? string.Empty;
-        filteredInvoices = invoices
-        .Where(i =>
-                   (string.IsNullOrEmpty(searchTerm) ||
-                    i.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    i.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    i.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    i.DueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
-                   (i.CustomerName == null || i.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
-        .ToList();
 
+        filteredInvoices = invoices
+            .Where(i =>
+                string.IsNullOrEmpty(searchTerm) ||
+                i.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                i.DueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(i.CustomerName) && i.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            )
+            .ToList();
     }
+
 
     private void SelectInvoice(InvoiceViewModel invoice)
     {

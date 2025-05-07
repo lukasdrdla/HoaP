@@ -23,6 +23,11 @@ namespace HoaP.Domain.Entities
         public decimal Salary { get; set; }
         public bool IsEmployed { get; set; }
         public int InsuranceCompanyId { get; set; }
+        public int? CurrencyId { get; set; }
+
+        public Currency? Currency { get; set; }
+
+
         public InsuranceCompany? InsuranceCompany { get; set; }
     }
 }

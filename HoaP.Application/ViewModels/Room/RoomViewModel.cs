@@ -15,6 +15,7 @@ namespace HoaP.Application.ViewModels.Room
         public string RoomStatusName { get; set; } = string.Empty;
         public bool IsDisable { get; set; } = false;
         public decimal Price { get; set; }
+        public string CurrencySymbol { get; set; }
         public int MaxAdults { get; set; }
         public int MaxChildren { get; set; }
     }

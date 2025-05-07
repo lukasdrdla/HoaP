@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.ViewModels.Currency;
 using HoaP.Application.ViewModels.InsuranceCompany;
 
 namespace HoaP.Application.ViewModels.Employee
@@ -23,11 +24,18 @@ namespace HoaP.Application.ViewModels.Employee
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
+        [Required(ErrorMessage = "Zadejte heslo.")]
+        [StringLength(100, ErrorMessage = "Heslo musí mít alespoň {2} znaků.", MinimumLength = 8)]
+        [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
+    ErrorMessage = "Heslo musí obsahovat minimálně 1 velké písmeno, 1 číslo a 1 speciální znak.")]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
+        public string Password { get; set; } = "";
 
+        [Required(ErrorMessage = "Potvrďte heslo.")]
         [DataType(DataType.Password)]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        [Compare("Password", ErrorMessage = "Hesla se neshodují.")]
+        public string ConfirmPassword { get; set; } = "";
+
 
         [Required]
         [StringLength(50, ErrorMessage = "First name must be between 2 and 50 characters.", MinimumLength = 2)]
@@ -84,10 +92,15 @@ namespace HoaP.Application.ViewModels.Employee
         public int InsuranceCompanyId { get; set; }
 
         [Required]
-        public string RoleId { get; set; } = string.Empty;
+        public string? RoleId { get; set; }
+
+        [Required]
+        public int CurrencyId { get; set; }
 
 
 
         public List<InsuranceCompanyViewModel> InsuranceCompanies { get; set; } = new();
+        public List<CurrencyViewModel> Currencies { get; set; } = new();
+
     }
 }

@@ -106,7 +106,18 @@
                                         <PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
                                         <PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                                         <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-                                        <PropertyColumn Title="Celková částka" Property="@(x => x.TotalPrice)" Sortable="true" />
+                                        <TemplateColumn Title="Cena">
+											<div>
+												@if (context.CurrencySymbol != null)
+												{
+													@($"{context.TotalPrice:0.00} {context.CurrencySymbol}")
+												}
+												else
+												{
+													@($"{context.TotalPrice:0.00}")
+												}
+											</div>
+                                        </TemplateColumn>
                                         <TemplateColumn Title="Akce">
                                             <div class="d-inline-flex">
                                                 <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
@@ -233,7 +244,7 @@
     {
         var days = new List<List<CalendarDay>>();
         var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
-        var startOfWeek = firstDay.AddDays(-(int)firstDay.DayOfWeek);
+var startOfWeek = firstDay;
 
         for (int week = 0; week < 6; week++)
         {

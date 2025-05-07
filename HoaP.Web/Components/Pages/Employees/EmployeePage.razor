@@ -24,8 +24,10 @@
                     <QuickGrid Items="filteredEmployees.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Jméno" Property="@(x => x.FirstName + " " + x.LastName)" Sortable="true" />
                         <PropertyColumn Title="Pozice" Property="@(x => x.JobTitle)" Sortable="true" />
-                        <PropertyColumn Title="Plat" Property="@(x => x.Salary.ToString("C"))" Sortable="true" />
-                        <PropertyColumn Title="Nástup" Property="@(x => x.StartDate.ToShortDateString())" Sortable="true" />
+                        <TemplateColumn Title="Plat">
+							@context.Salary @context.CurrencySymbol
+                        </TemplateColumn>
+                        <PropertyColumn Title="Datum nástupu" Property="@(x => x.StartDate.ToShortDateString())" Sortable="true" />
 						<PropertyColumn Title="Zaměstnán" Property="@(x => x.IsEmployed ? "Ano" : "Ne")" Sortable="true" />
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex">

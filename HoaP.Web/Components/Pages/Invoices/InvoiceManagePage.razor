@@ -192,16 +192,21 @@
     protected override async Task OnInitializedAsync()
     {
         lastCurrencyId = invoice.CurrencyId;
+        currencies = await CurrencyService.GetCurrenciesAsync();
 
         if (invoiceId != null)
         {
+
             var invoiceEntity = await InvoiceService.GetInvoiceEntityByIdAsync(invoiceId.Value);
             invoice = Mapper.Map<InvoiceFormViewModel>(invoiceEntity);
             OriginalPrice = invoice.Price;
 
-            
-            currencies = await CurrencyService.GetCurrenciesAsync();
+            if (!currencies.Any(c => c.Id == invoice.CurrencyId))
+            {
+                invoice.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? currencies.First().Id;
+            }
         }
+
         else if (reservationId != null)
         {
             var allReservations = await ReservationService.GetReservationsAsync();
@@ -227,7 +232,6 @@
                     : $"Rezervace č. {reservation.Id} – {reservation.CheckIn:dd.MM.yyyy} až {reservation.CheckOut:dd.MM.yyyy} – Pokoj: {reservation.RoomNumber}";
             }
 
-            currencies = await CurrencyService.GetCurrenciesAsync();
         }
 
 
@@ -241,9 +245,11 @@
         invoice.UserId = user.Id;
 
 
+        if (invoice.CurrencyId == 0 || !currencies.Any(c => c.Id == invoice.CurrencyId))
+        {
+            invoice.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? currencies.First().Id;
+        }
 
-        currencies = await CurrencyService.GetCurrenciesAsync();
-        invoice.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? 1;
 
     }
 
@@ -331,19 +337,18 @@
 
     private async Task SearchReservation(ChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
+        searchTerm = e.Value?.ToString() ?? "";
+
         filteredReservations = reservations
-        .Where(r => r.CustomerName != null &&
-                   (!string.IsNullOrEmpty(searchTerm) &&
-                   (r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                    (!string.IsNullOrEmpty(r.RoomNumber) && r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))))
-        .ToList();
-
-
-
+            .Where(r => !r.HasInvoice && !string.IsNullOrEmpty(searchTerm) &&
+                (r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 r.CheckIn.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 r.CheckOut.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                 (!string.IsNullOrEmpty(r.RoomNumber) && r.RoomNumber.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)))
+            )
+            .ToList();
     }
+
 
     private async void HideReservationList()
     {
@@ -402,19 +407,16 @@
             basePriceCZK += reservation.TotalPrice * reservationCurrency.Rate;
         }
 
-        // Přičti ručně zadané položky – ty jsou považovány za CZK
         if (invoice.Items != null && invoice.Items.Any())
         {
             basePriceCZK += invoice.Items.Sum(i => i.Price);
         }
 
-        // Aplikuj slevu
         if (invoice.Discount > 0)
         {
             basePriceCZK -= basePriceCZK * invoice.Discount / 100;
         }
 
-        // Odečti zálohu
         if (invoice.Prepayment > 0)
         {
             basePriceCZK -= invoice.Prepayment;
@@ -423,7 +425,6 @@
         if (basePriceCZK < 0)
             basePriceCZK = 0;
 
-        // Přepočet z CZK do měny faktury
         invoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
     }
 

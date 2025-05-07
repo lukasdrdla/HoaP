@@ -6,6 +6,7 @@
 @inject AmenityService AmenityService
 @inject RoomStatusService RoomStatusService
 @inject NavigationManager NavigationManager
+@inject CurrencyService CurrencyService
 @inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @rendermode InteractiveServer
@@ -34,7 +35,7 @@
                     <div class="col-md-6">
                         <label for="RoomImg" class="form-label">Obrázek</label>
                         <InputFile id="RoomImg" class="form-control" OnChange="HandleFileSelected" />
-						<p>@message</p>
+                        <p>@message</p>
                     </div>
 
                     <div class="col-md-6">
@@ -68,7 +69,6 @@
                         <div class="form-group mb-3">
                             <label for="RoomStatus" class="form-label">Status</label>
                             <InputSelect id="RoomStatus" class="form-control" @bind-Value="room.RoomStatusId">
-                                <option value="">Vyberte status</option>
                                 @foreach (var status in roomStatuses)
                                 {
                                     <option value="@status.Id">@status.Name</option>
@@ -101,10 +101,29 @@
                 </div>
 
 
-                <div class="form-group mb-3">
-                    <label for="Price" class="form-label">Cena</label>
-                    <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
+                <div class="mb-4 row">
+                    <div class="form-group col-md-6">
+                        <label for="Price" class="form-label">Cena</label>
+                        <div class="input-group">
+                            <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
+                            <span class="input-group-text">@GetCurrencySymbol()</span>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group col-md-6">
+                        <label for="CurrencyId" class="form-label">Měna</label>
+                        <InputSelect id="CurrencyId" class="form-select" @bind-Value="room.CurrencyId">
+                            @foreach (var currency in currencies)
+                            {
+                                <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
+                            }
+                        </InputSelect>
+
+
+                    </div>
                 </div>
+
 
 
                 <div class="form-group mb-3">
@@ -127,6 +146,12 @@
     [Parameter]
     public int? roomId { get; set; }
 
+
+    private string currencySymbol = "";
+
+
+
+
     [SupplyParameterFromForm]
     private RoomFormViewModel room { get; set; } = new RoomFormViewModel();
 
@@ -134,6 +159,9 @@
     private List<RoomTypeViewModel> roomTypes = new List<RoomTypeViewModel>();
     private List<RoomTypeViewModel> filteredRoomTypes = new List<RoomTypeViewModel>();
     private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
+
+    private List<CurrencyViewModel> currencies = new();
+
 
     private List<RoomStatusViewModel> roomStatuses = new List<RoomStatusViewModel>();
 
@@ -158,23 +186,42 @@
         }
 	}
 
+    private string GetCurrencySymbol()
+    {
+        return currencies.FirstOrDefault(c => c.Id == room.CurrencyId)?.Symbol ?? "";
+    }
+
+
+
+
     protected override async Task OnInitializedAsync()
     {
+        currencies = await CurrencyService.GetCurrenciesAsync();
 
         roomStatuses = await RoomStatusService.GetRoomStatusesAsync();
         roomTypes = await RoomTypeService.GetRoomTypesAsync();
         filteredRoomTypes = new List<RoomTypeViewModel>();
 		amenities = await AmenityService.GetAmenitiesAsync();
 
+
 		if (roomId.HasValue)
 		{
 
 			room = Mapper.Map<RoomFormViewModel>(await RoomService.GetRoomByIdAsync(roomId.Value));
+            currencySymbol = currencies.FirstOrDefault(c => c.Id == room.CurrencyId)?.Symbol ?? "";
+
+
+
 			var roomType = roomTypes.FirstOrDefault(r => r.Id == room.RoomTypeId);
 			if (roomType != null)
 			{
 				searchTerm = $"{roomType.Name}";
 			}
+
+            
+
+
+
 
 			var roomAmenities = await AmenityService.GetAmenitiesByRoomIdAsync(roomId.Value);
 
@@ -187,8 +234,14 @@
 		}
 		else
 		{
-			room = new RoomFormViewModel();
-		}
+            var defaultCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
+            room = new RoomFormViewModel
+            {
+                CurrencyId = defaultCurrency?.Id ?? 1
+            };
+
+			room.RoomStatusId = roomStatuses.FirstOrDefault(r => r.Name == "Volný")?.Id ?? 1;
+        }
 
 
     }

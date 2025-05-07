@@ -39,6 +39,7 @@ namespace HoaP.Application.ViewModels.Invoice
 
         [Required]
         public int CurrencyId { get; set; }
+        public string? CurrencySymbol { get; set; }
 
         public List<ReservationViewModel> Reservations { get; set; } = new();
 

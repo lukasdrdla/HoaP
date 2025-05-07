@@ -20,19 +20,37 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.RoomStatusName, opt => opt.MapFrom(src => src.RoomStatus.Name))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
                 .ForMember(dest => dest.MaxAdults, opt => opt.MapFrom(src => src.MaxAdults))
+                .ForMember(dest => dest.IsDisable, opt => opt.MapFrom(src => src.IsDisable))
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
                 .ForMember(dest => dest.MaxChildren, opt => opt.MapFrom(src => src.MaxChildren));
 
             CreateMap<Room, DetailRoomViewModel>()
                 .ForMember(dest => dest.RoomStatusName, opt => opt.MapFrom(src => src.RoomStatus.Name))
-                .ForMember(dest => dest.RoomTypeName, opt => opt.MapFrom(src => src.RoomType.Name));
+                .ForMember(dest => dest.RoomTypeName, opt => opt.MapFrom(src => src.RoomType.Name))
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol));
 
-            CreateMap<RoomFormViewModel, Room>();
+            CreateMap<RoomFormViewModel, Room>()
+                    .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
+                    .ForMember(dest => dest.RoomStatusId, opt => opt.MapFrom(src => src.RoomStatusId))
+                    .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.RoomTypeId))
+                    .ForMember(dest => dest.MaxAdults, opt => opt.MapFrom(src => src.MaxAdults))
+                    .ForMember(dest => dest.MaxChildren, opt => opt.MapFrom(src => src.MaxChildren))
+                    .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+                    .ForMember(dest => dest.RoomNumber, opt => opt.MapFrom(src => src.RoomNumber))
+                    .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.Image))
+                    .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+
 
             CreateMap<DetailRoomViewModel, RoomViewModel>().ReverseMap();
 
             CreateMap<DetailRoomViewModel, RoomFormViewModel>();
             CreateMap<RoomFormViewModel, DetailRoomViewModel>();
-                
+
+            CreateMap<Room, RoomFormViewModel>()
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId));
+
+
 
 
 

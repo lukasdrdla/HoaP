@@ -6,6 +6,7 @@
 @inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @inject EmployeeService EmployeeService
+@inject CurrencyService CurrencyService
 @inject AccountService AccountService
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin, Manager")]
@@ -56,9 +57,7 @@
                             }
                         </div>
                     </div>
-                </div>
 
-                <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="role" class="form-label">Role</label>
                         <select id="role" class="form-select" @bind="employee.RoleId">
@@ -67,13 +66,13 @@
                             {
                                 <option value="@role.Id">@role.Name</option>
                             }
-						</select>
-                        
-
-
+                        </select>
                     </div>
+                </div>
+
+                <div class="mb-3 row">
                  
-					<div class="col-md-6">
+					<div class="col-md-12">
 						<label for="username" class="form-label">Uživatelské jméno</label>
 						<InputText id="username" class="form-control" @bind-Value="employee.UserName" />
                     </div>
@@ -156,15 +155,29 @@
                 </div>
 
                 <div class="mb-3 row">
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <label for="startDate" class="form-label">Datum začátku</label>
                         <InputDate id="startDate" class="form-control" @bind-Value="employee.StartDate" />
                     </div>
-
                     <div class="col-md-6">
                         <label for="salary" class="form-label">Plat</label>
-                        <InputNumber id="salary" class="form-control" @bind-Value="employee.Salary" />
+                        <div class="input-group">
+                            <InputNumber id="salary" class="form-control" @bind-Value="employee.Salary" />
+                            <span class="input-group-text">@GetCurrencySymbol()</span>
+                        </div>
                     </div>
+                    <div class="col-md-3">
+                        <label for="CurrencyId" class="form-label">Měna</label>
+                        <InputSelect id="CurrencyId" class="form-select" @bind-Value="employee.CurrencyId">
+                            @foreach (var currency in currencies)
+                            {
+                                <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+
+                   
                 </div>
 
 
@@ -206,6 +219,8 @@
     private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
     private List<RoleViewModel> roles = new();
     private string? selectedRoleId;
+    private List<CurrencyViewModel> currencies = new();
+
 
 
     private byte[] profilePictureBytes;
@@ -229,21 +244,34 @@
 
     }
 
+	private string GetCurrencySymbol()
+	{
+		var currency = currencies.FirstOrDefault(c => c.Id == employee.CurrencyId);
+		return currency != null ? currency.Symbol : string.Empty;
+	}
+
 
     protected override async Task OnInitializedAsync()
     {
+        insuranceCompanies = await InsuranceCompanyService.GetInsuranceCompaniesAsync();
+        filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
+        roles = await AccountService.GetRolesAsync();
+		currencies = await CurrencyService.GetCurrenciesAsync();
+        employee.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? 0;
+		employee.IsEmployed = true;
+
         if (Id != null)
         {
             employee = Mapper.Map<EmployeeFormViewModel>(await EmployeeService.GetEmployeeByIdAsync(Id));
 			var company = await InsuranceCompanyService.GetInsuranceCompanyByIdAsync(employee.InsuranceCompanyId);
 			searchTerm = company.Name;
+            Console.WriteLine($"DEBUG - Loaded role: {employee.RoleId}");
+
 
 
         }
 
-		insuranceCompanies = await InsuranceCompanyService.GetInsuranceCompaniesAsync();
-		filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
-		roles = await AccountService.GetRolesAsync();
+		
 
         
     }

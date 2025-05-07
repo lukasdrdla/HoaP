@@ -21,6 +21,7 @@ namespace HoaP.Application.Mappings
             CreateMap<Payment, DetailPaymentViewModel>()
                 .ForMember(dest => dest.InvoiceNumber, opt => opt.MapFrom(src => src.InvoiceId))
                 .ForMember(dest => dest.PaymentMethodName, opt => opt.MapFrom(src => src.PaymentMethod.Name))
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Invoice.Currency.Symbol))
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Invoice.InvoiceReservations.FirstOrDefault().Reservation.Customer.FirstName + " " + src.Invoice.InvoiceReservations.FirstOrDefault().Reservation.Customer.LastName));
 
             CreateMap<DetailPaymentViewModel, PaymentFormViewModel>();

@@ -54,6 +54,8 @@ namespace HoaP.Application.Mappings
 
             CreateMap<Invoice, InvoiceFormViewModel>()
                 .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.InvoiceReservations.Select(ri => ri.Reservation)))
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
                 .ForMember(dest => dest.ReservationIds, opt => opt.MapFrom(src => src.InvoiceReservations.Select(ri => ri.ReservationId)));
 
 

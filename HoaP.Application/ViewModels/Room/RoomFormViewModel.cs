@@ -55,6 +55,9 @@ namespace HoaP.Application.ViewModels.Room
         [ForeignKey("RoomTypeId")]
         public RoomType? RoomType { get; set; }
 
+        [Required(ErrorMessage = "Vyberte měnu.")]
+        public int CurrencyId { get; set; }
+
         public List<RoomStatusViewModel> RoomStatuses { get; set; } = new();
 
         public List<AmenityViewModel> Amenities { get; set; } = new();

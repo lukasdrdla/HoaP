@@ -66,32 +66,58 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task RegisterEmployeeAsync(EmployeeFormViewModel employee)
         {
+            // Ověření hesla
+            if (string.IsNullOrWhiteSpace(employee.Password) || employee.Password != employee.ConfirmPassword)
+            {
+                throw new ArgumentException("Hesla nejsou shodná nebo je heslo prázdné.");
+            }
+
             var existingUser = await _userManager.FindByEmailAsync(employee.Email);
             if (existingUser == null)
             {
                 var user = new AppUser();
                 _mapper.Map(employee, user);
+
                 if (string.IsNullOrWhiteSpace(user.Id))
                 {
                     user.Id = Guid.NewGuid().ToString();
                 }
-                await _userManager.CreateAsync(user, employee.Password);
 
+                var result = await _userManager.CreateAsync(user, employee.Password);
+                if (!result.Succeeded)
+                {
+                    var errorMessages = string.Join("; ", result.Errors.Select(e => e.Description));
+                    throw new Exception($"Vytvoření uživatele selhalo: {errorMessages}");
+                }
+
+                // ⚠️ Po úspěšném vytvoření načti znovu
+                existingUser = await _userManager.FindByEmailAsync(employee.Email);
+                if (existingUser == null)
+                {
+                    throw new Exception("Uživatel byl vytvořen, ale nepodařilo se ho znovu načíst.");
+                }
             }
 
+            // Přiřazení role
             if (!string.IsNullOrEmpty(employee.RoleId))
             {
                 var role = await _roleManager.FindByIdAsync(employee.RoleId);
                 if (role != null)
                 {
-                    await _userManager.AddToRoleAsync(existingUser, role.Name);
+                    var roleResult = await _userManager.AddToRoleAsync(existingUser, role.Name);
+                    if (!roleResult.Succeeded)
+                    {
+                        var errorMessages = string.Join("; ", roleResult.Errors.Select(e => e.Description));
+                        throw new Exception($"Přiřazení role selhalo: {errorMessages}");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Zvolená role neexistuje.");
                 }
             }
-
-
-
-
         }
+
 
         public async Task UpdateUserProfileAsync(UpdateEmployeeViewModel model)
         {

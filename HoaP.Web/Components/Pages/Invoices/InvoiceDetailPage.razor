@@ -14,15 +14,22 @@
 
 <div class="invoice-detail-container mt-5">
 
-    <div class="invoice-header">
-        <h2>Faktura #@invoice.Id <span style="color: red;">@(invoice.IsCanceled ? "(STORNOVÁNO)" : "")</span></h2>
-        <div class="d-flex gap-2 justify-content-end align-items-center">
-			<a href="/spravovat-fakturu/@InvoiceId" class="btn btn-outline-primary">Upravit</a>
+    <div class="invoice-header d-flex justify-content-between align-items-start flex-wrap mb-5 mt-3">
+        <div>
+            <h2>Faktura #@invoice.Id</h2>
+            @if (invoice.IsCanceled)
+            {
+                <span class="badge bg-danger">STORNOVÁNO</span>
+            }
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <a href="/spravovat-fakturu/@InvoiceId" class="btn btn-outline-primary">Upravit</a>
             <button class="btn btn-outline-primary" @onclick="DownloadPDF">Stáhnout fakturu</button>
             <button class="btn btn-primary" @onclick="NavigateToPayment">Přidat platbu</button>
-			<button class="btn btn-danger" @onclick="() => DeleteInvoice(invoice.Id)">Odstranit fakturu</button>
+            <button class="btn btn-danger" @onclick="() => DeleteInvoice(invoice.Id)">Odstranit fakturu</button>
         </div>
     </div>
+
 
     <div class="invoice-summary">
         <div class="summary-item">
@@ -103,7 +110,15 @@
 
 
     <div class="d-flex gap-3">
-		<button class="btn btn-danger flex-grow-1" @onclick="() => CancleInvoice(invoice.Id)">Stornovat fakturu</button>
+		@if (invoice.IsCanceled)
+        {
+            <button class="btn btn-danger flex-grow-1" disabled>Faktura byla stornována</button>
+        }
+        else
+        {
+            <button class="btn btn-danger flex-grow-1" @onclick="() => CancleInvoice(invoice.Id)">Stornovat fakturu</button>        
+        }
+        
         <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToInvoices">Zpět na seznam rezervací</button>
     </div>
 </div>

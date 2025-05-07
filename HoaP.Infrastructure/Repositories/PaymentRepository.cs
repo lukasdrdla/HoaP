@@ -55,6 +55,8 @@ namespace HoaP.Infrastructure.Repositories
                 .ThenInclude(i => i.InvoiceReservations)
                 .ThenInclude(ir => ir.Reservation)
                 .ThenInclude(r => r.Customer)
+                .Include(p => p.Invoice)
+                .ThenInclude(i => i.Currency)
                 .Include(p => p.PaymentMethod)
                 .FirstOrDefaultAsync(p => p.Id == id);
 

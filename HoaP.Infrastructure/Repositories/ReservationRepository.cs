@@ -146,8 +146,14 @@ namespace HoaP.Infrastructure.Repositories
             var reservations = await _context.Reservations
                 .Include(r=> r.InvoiceReservations)
                 .ThenInclude(ir => ir.Invoice)
+                .Include(r => r.Currency)
                 .Include(r => r.ReservationStatus)
-                .Include(r => r.Customer)
+                .Include(r => r.Room)
+                .Include(r => r.MealPlan)
+                .Include(r => r.ServiceReservations)
+                    .ThenInclude(sr => sr.Service)
+                    .Include(r => r.ReservationCustomers)
+                    .ThenInclude(rc => rc.Customer)
                 .Where(r => r.RoomId == roomId)
                 .ToListAsync();
             return _mapper.Map<List<ReservationViewModel>>(reservations);

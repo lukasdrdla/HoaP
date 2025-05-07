@@ -35,7 +35,8 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
                     src.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.FirstName + " " +
-                    src.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.LastName));
+                    src.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.LastName))
+                .ForMember(dest => dest.HasInvoice, opt => opt.MapFrom(src => src.InvoiceReservations.Any()));
 
 
 

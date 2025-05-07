@@ -79,6 +79,7 @@ namespace HoaP.Infrastructure.Repositories
                 .Include(r => r.RoomStatus)
                 .Include(r => r.RoomAmenities)
                 .ThenInclude(ra => ra.Amenity)
+                .Include(r => r.Currency)
                 .FirstOrDefaultAsync(r => r.Id == id);
             return _mapper.Map<DetailRoomViewModel>(room);
         }
@@ -88,6 +89,7 @@ namespace HoaP.Infrastructure.Repositories
             var rooms = await _context.Rooms
                 .Include(r => r.RoomType)
                 .Include(r => r.RoomStatus)
+                .Include(r => r.Currency)
                 .ToListAsync();
             return _mapper.Map<List<RoomViewModel>>(rooms);
         }
@@ -132,14 +134,16 @@ namespace HoaP.Infrastructure.Repositories
             }
 
             existingRoom.RoomNumber = room.RoomNumber;
+            existingRoom.RoomTypeId = room.RoomTypeId;
+            existingRoom.RoomStatusId = room.RoomStatusId;
+            existingRoom.Description = room.Description;
             existingRoom.Price = room.Price;
+            existingRoom.Image = room.Image;
             existingRoom.MaxAdults = room.MaxAdults;
             existingRoom.MaxChildren = room.MaxChildren;
-            existingRoom.RoomStatusId = room.RoomStatusId;
-            existingRoom.RoomTypeId = room.RoomTypeId;
-            existingRoom.Description = room.Description;
-            existingRoom.Image = room.Image;
-            existingRoom.UpdatedAt = DateTime.Now;
+            existingRoom.CurrencyId = room.CurrencyId;
+
+
 
             existingRoom.RoomAmenities = room.Amenities.Select(a => new RoomAmenity
             {

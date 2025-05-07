@@ -57,24 +57,39 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task<DetailEmployeeViewModel> GetEmployeeByIdAsync(string id)
         {
-            var employee = await _context.Users
+            var employee = await _userManager.Users
                 .Include(x => x.InsuranceCompany)
+                .Include(x => x.Currency)
                 .FirstOrDefaultAsync(x => x.Id == id);
 
+            if (employee == null)
+                throw new Exception("Zaměstnanec nenalezen.");
+
             var employeeRoles = await _userManager.GetRolesAsync(employee);
-            var allRoles = await _roleManager.Roles.ToListAsync();
 
-            var role = allRoles.FirstOrDefault(x => x.Name == employeeRoles.FirstOrDefault());
+            var roleName = employeeRoles.FirstOrDefault();
+            string? roleId = null;
+
+            if (!string.IsNullOrEmpty(roleName))
+            {
+                var role = await _roleManager.FindByNameAsync(roleName);
+                roleId = role?.Id;
+            }
+
             var result = _mapper.Map<DetailEmployeeViewModel>(employee);
+            result.RoleId = roleId ?? string.Empty;
+            result.RoleName = roleName ?? string.Empty;
 
-            result.RoleId = role?.Id ?? string.Empty;
-            result.RoleName = role?.Name ?? string.Empty;
             return result;
         }
 
+
+
         public async Task<List<EmployeeViewModel>> GetEmployeesAsync()
         {
-            var employees = await _context.Users.ToListAsync();
+            var employees = await _context.Users
+                .Include(x => x.Currency)
+                .ToListAsync();
             return _mapper.Map<List<EmployeeViewModel>>(employees);
         }
 

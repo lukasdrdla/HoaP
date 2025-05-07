@@ -17,6 +17,7 @@ namespace HoaP.Application.ViewModels.Payment
         public string PaymentMethodName { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public string CurrencySymbol { get; set; }
         public string InvoiceNumber { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
     }

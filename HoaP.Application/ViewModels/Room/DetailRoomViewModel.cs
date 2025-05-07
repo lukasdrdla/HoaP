@@ -23,6 +23,9 @@ namespace HoaP.Application.ViewModels.Room
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
+        public string? CurrencySymbol { get; set; }
+        public int? CurrencyId { get; set; }
+
         public int RoomStatusId { get; set; }
         public int RoomTypeId { get; set; }
         public ICollection<ReviewViewModel> Reviews { get; set; } = new List<ReviewViewModel>();

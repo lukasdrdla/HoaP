@@ -140,6 +140,7 @@ namespace HoaP.Infrastructure.Repositories
             var invoices = await _context.Invoices
                 .Include(i => i.InvoiceReservations)
                 .ThenInclude(ir => ir.Reservation)
+
                 .ThenInclude(r => r.Customer)
                 .Where(i => i.InvoiceReservations.Any(ir => ir.ReservationId == reservationId))
                 .ToListAsync();

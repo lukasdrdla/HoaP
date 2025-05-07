@@ -13,17 +13,22 @@ namespace HoaP.Application.Mappings
     {
         public EmployeeProfile()
         {
-            CreateMap<AppUser, EmployeeViewModel>();
+            CreateMap<AppUser, EmployeeViewModel>()
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol));
 
             CreateMap<AppUser, DetailEmployeeViewModel>()
                 .ForMember(dest => dest.InsuranceCompanyName, opt => opt.MapFrom(src => src.InsuranceCompany.Name))
+                .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
             CreateMap<DetailEmployeeViewModel, EmployeeFormViewModel>()
                 .ForMember(dest => dest.InsuranceCompanyId, opt => opt.MapFrom(src => src.InsuranceCompanyId))
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
                 .ForMember(dest => dest.RoleId, opt => opt.MapFrom(src => src.RoleId));
 
-            CreateMap<EmployeeFormViewModel, AppUser>();
+            CreateMap<EmployeeFormViewModel, AppUser>()
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId));
 
             CreateMap<AppUser, UpdateEmployeeViewModel>();
 
