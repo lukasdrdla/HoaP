@@ -68,14 +68,18 @@ namespace HoaP.Infrastructure.Repositories
         {
             var payments = _context.Payments
                 .Include(p => p.Invoice)
-                .ThenInclude(i => i.InvoiceReservations)
-                .ThenInclude(ir => ir.Reservation)
-                .ThenInclude(r => r.Customer)
+                    .ThenInclude(i => i.Currency)
+                .Include(p => p.Invoice)
+                    .ThenInclude(i => i.InvoiceReservations)
+                        .ThenInclude(ir => ir.Reservation)
+                            .ThenInclude(r => r.ReservationCustomers)
+                                .ThenInclude(rc => rc.Customer)
                 .Include(p => p.PaymentMethod)
                 .ToList();
 
             return Task.FromResult(_mapper.Map<List<PaymentViewModel>>(payments));
         }
+
 
         public async Task<List<PaymentViewModel>> GetPaymentsByReservationIdAsync(int reservationId)
         {

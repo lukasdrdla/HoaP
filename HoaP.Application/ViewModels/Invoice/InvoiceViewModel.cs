@@ -18,6 +18,6 @@ namespace HoaP.Application.ViewModels.Invoice
         public DateTime IssueDate { get; set; } = DateTime.Now;
         public DateTime DueDate { get; set; } = DateTime.Now.AddDays(14);
         public decimal Price { get; set; }
-        public bool IsPaid { get; set; } = false;
+        public bool IsPaid { get; set; } 
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using HoaP.Application.Services;
 using HoaP.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -37,26 +38,78 @@ namespace HoaP.Infrastructure.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceReservation> ReservationServices { get; set; }
         public DbSet<InvoiceReservation> InvoiceReservations { get; set; }
+        public DbSet<InvoiceItem> InvoiceItems { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<ReservationCustomer>()
-    .HasKey(rc => new { rc.ReservationId, rc.CustomerId });
+            builder.Entity<InvoiceReservation>()
+            .HasOne(ir => ir.Invoice)
+            .WithMany(i => i.InvoiceReservations)
+            .HasForeignKey(ir => ir.InvoiceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<ReservationCustomer>()
-                .HasOne(rc => rc.Reservation)
-                .WithMany(r => r.ReservationCustomers)
-                .HasForeignKey(rc => rc.ReservationId);
+            builder.Entity<InvoiceReservation>()
+                .HasOne(ir => ir.Reservation)
+                .WithMany(r => r.InvoiceReservations)
+                .HasForeignKey(ir => ir.ReservationId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<ReservationCustomer>()
-                .HasOne(rc => rc.Customer)
-                .WithMany(c => c.ReservationCustomers)
-                .HasForeignKey(rc => rc.CustomerId);
+
 
             builder.Entity<RoomAmenity>()
             .HasKey(ra => new { ra.RoomId, ra.AmenityId });
+
+            builder.Entity<Currency>()
+                .Property(c => c.Rate)
+                .HasPrecision(18, 6);
+
+            builder.Entity<Reservation>()
+                .Property(r => r.TotalPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Service>()
+                .Property(s => s.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<ServiceReservation>()
+                .Property(s => s.UnitPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<MealPlan>()
+                .Property(m => m.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<InvoiceItem>()
+                .Property(i => i.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Invoice>()
+                .Property(i => i.Discount)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Invoice>()
+                .Property(i => i.Prepayment)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Payment>()
+                .Property(p => p.TotalAmount)
+                .HasPrecision(18, 2);
+
+            builder.Entity<AppUser>()
+                .Property(u => u.Salary)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Invoice>()
+                .Property(i => i.Price)
+                .HasPrecision(18, 2);
+
+            builder.Entity<Room>()
+                .Property(r => r.Price)
+                .HasPrecision(18, 2);
+
 
             SeedData(builder);
         }
@@ -117,12 +170,11 @@ namespace HoaP.Infrastructure.Data
 
 
             modelBuilder.Entity<Currency>().HasData(
-                new Currency { Id = 1, Name = "USD", Symbol = "$" },
-                new Currency { Id = 2, Name = "EUR", Symbol = "€" },
-                new Currency { Id = 3, Name = "GBP", Symbol = "£" },
-                new Currency { Id = 4, Name = "JPY", Symbol = "¥" },
-                new Currency { Id = 5, Name = "CZK", Symbol = "Kč" }
+                new Currency { Id = 1, Name = "Americký dolar", Symbol = "$", Code = "USD", Rate = 22.50m },
+                new Currency { Id = 2, Name = "Euro", Symbol = "€", Code = "EUR", Rate = 24.80m },
+                new Currency { Id = 5, Name = "Česká koruna", Symbol = "Kč", Code = "CZK", Rate = 1.00m }
             );
+
 
             modelBuilder.Entity<PaymentMethod>().HasData(
                 new PaymentMethod { Id = 1, Name = "Hotově" },
@@ -197,6 +249,47 @@ namespace HoaP.Infrastructure.Data
                 new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
                 new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
                 );
+            modelBuilder.Entity<Service>().HasData(
+                new Service { Id = 1, Name = "Wellness vstup", Price = 500, IsPerNight = false },
+                new Service { Id = 2, Name = "Parkování", Price = 250, IsPerNight = true },
+                new Service { Id = 3, Name = "Domácí mazlíček", Price = 300, IsPerNight = true },
+                new Service { Id = 4, Name = "Služba žehlení", Price = 150, IsPerNight = false }
+            );
+
+            modelBuilder.Entity<InvoiceReservation>().HasData(
+                new InvoiceReservation { Id = 1, InvoiceId = 1, ReservationId = 1},
+                new InvoiceReservation { Id = 2, InvoiceId = 2, ReservationId = 2},
+                new InvoiceReservation { Id = 3, InvoiceId = 3, ReservationId = 3 },
+                new InvoiceReservation { Id = 4, InvoiceId = 4, ReservationId = 4},
+                new InvoiceReservation { Id = 5, InvoiceId = 5, ReservationId = 5}
+            );
+
+
+            modelBuilder.Entity<ServiceReservation>().HasData(
+                new ServiceReservation { Id = 1, ReservationId = 1, ServiceId = 1, Quantity = 1, UnitPrice = 500, Note = "Wellness pro 1 osobu" },
+                new ServiceReservation { Id = 2, ReservationId = 2, ServiceId = 2, Quantity = 6, UnitPrice = 250, Note = "Parkování po celou dobu" },
+                new ServiceReservation { Id = 3, ReservationId = 3, ServiceId = 3, Quantity = 11, UnitPrice = 300, Note = "Pes na pokoji" }
+            );
+
+            modelBuilder.Entity<ReservationCustomer>().HasData(
+                new ReservationCustomer { Id = 1, ReservationId = 1, CustomerId = 6, IsMainGuest = false },
+                new ReservationCustomer { Id = 2, ReservationId = 1, CustomerId = 1, IsMainGuest = true },
+                new ReservationCustomer { Id = 3, ReservationId = 2, CustomerId = 2, IsMainGuest = true },
+                new ReservationCustomer { Id = 4, ReservationId = 2, CustomerId = 7, IsMainGuest = false },
+                new ReservationCustomer { Id = 5, ReservationId = 3, CustomerId = 3, IsMainGuest = true },
+                new ReservationCustomer { Id = 6, ReservationId = 3, CustomerId = 8, IsMainGuest = false }
+            );
+
+            modelBuilder.Entity<InvoiceItem>().HasData(
+                new InvoiceItem { Id = 1, InvoiceId = 1, Description = "Pokoj 101 (minibar)", Price = 6600 },
+                new InvoiceItem { Id = 2, InvoiceId = 1, Description = "Restaurace", Price = 500 },
+                new InvoiceItem { Id = 3, InvoiceId = 2, Description = "Pokoj 102 (minibar)", Price = 13500 },
+                new InvoiceItem { Id = 4, InvoiceId = 2, Description = "Bar", Price = 2500 }
+            );
+
+
+
+
         }
     }
 }

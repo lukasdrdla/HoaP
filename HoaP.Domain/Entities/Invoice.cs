@@ -19,6 +19,8 @@ namespace HoaP.Domain.Entities
         public bool IsCanceled { get; set; } = false;
 
         public ICollection<InvoiceReservation> InvoiceReservations { get; set; } = new List<InvoiceReservation>();
+        public List<InvoiceItem> Items { get; set; } = new();
+
         public Currency? Currency { get; set; }
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 

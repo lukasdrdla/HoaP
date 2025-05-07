@@ -12,6 +12,8 @@
 
 			<PropertyColumn Title="Icon" Property="@(x => x.Symbol)" Sortable="true" />
 			<PropertyColumn Title="Code" Property="@(x => x.Code)" Sortable="true" />
+			<PropertyColumn Title="Kurz" Property="@(x => x.Rate)" Sortable="true" />
+
 			<TemplateColumn Title="Actions" Class="column-actions">
 				<button class="btn btn-primary btn-sm" @onclick="() => EditCurrency(context)"><i class="bi bi-pencil"></i></button>
 				<button class="btn btn-danger btn-sm" @onclick="() => DeleteCurrency(context.Id)"><i class="bi bi-trash"></i></button>
@@ -38,6 +40,11 @@
 				<label for="symbol" class="form-label">Symbol</label>
 				<InputText id="symbol" class="form-control" @bind-Value="currentCurrency.Symbol" />
 			</div>
+			<div class="mb-3">
+				<label for="rate" class="form-label">Kurz (Rate)</label>
+				<InputNumber id="rate" class="form-control" @bind-Value="currentCurrency.Rate" step="any" />
+			</div>
+
 			<button class="btn btn-success" type="submit">Save</button>
 		</EditForm>
 	</div>

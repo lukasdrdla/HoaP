@@ -2,7 +2,9 @@
 @page "/vytvorit-rezervaci"
 @page "/vytvorit-rezervaci/zakaznik/{customerId:int}"
 @page "/vytvorit-rezervaci/pokoj/{roomId:int}"
+@using HoaP.Application.ViewModels.ServiceR
 @using HoaP.Web.Components.Pages.Customers
+@using System.Globalization
 
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
@@ -11,6 +13,8 @@
 @inject MealPlanService MealPlanService
 @inject ReservationStatusService ReservationStatusService
 @inject CurrencyService CurrencyService
+@inject ServiceService ServiceService
+
 @inject IMapper Mapper
 
 @rendermode InteractiveServer
@@ -370,9 +374,14 @@
 				</div>
 
 				<div class="form-group mb-3">
-					<label for="Total" class="form-label">Cena</label>
-					<InputNumber id="Total" class="form-control" @bind-Value="reservation.TotalPrice" />
+					<label for="Total" class="form-label">Cena:</label>
+					<div class="input-group">
+						<InputNumber id="Total" class="form-control" @bind-Value="reservation.TotalPrice" />
+						<span class="input-group-text">@GetCurrencySymbol()</span>
+					</div>
 				</div>
+
+
 				<div class="form-group mb-3">
 					<label for="CurrencyId" class="form-label">Měna</label>
 					<select id="CurrencyId" class="form-control" @onchange="OnCurrencyChanged">
@@ -395,11 +404,20 @@
 							<option value="">Vyber stravování</option>
 							@foreach (var mealPlan in mealPlans)
 							{
-								<option value="@mealPlan.Id">@mealPlan.Name</option>
+								var isSelected = mealPlan.Id == reservation.MealPlanId;
+								var baseCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
+								var targetCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+								var price = baseCurrency != null && targetCurrency != null
+								? mealPlan.Price * baseCurrency.Rate / targetCurrency.Rate
+								: mealPlan.Price;
 
+								var symbol = GetCurrencySymbol();
 
+								<option value="@mealPlan.Id">@mealPlan.Name (@price.ToString("0.##") @symbol)</option>
 							}
+
 						</select>
+
 					</div>
 
 					<div class="col-md-6">
@@ -424,16 +442,48 @@
 					<InputTextArea id="adminNote" class="form-control" @bind-Value="reservation.AdminNote" />
 				</div>
 
-				@* <h5>Doplňkové služby</h5>
+				<h5>Doplňkové služby</h5>
+
 				@foreach (var service in allServices)
 				{
-					<div class="form-check">
-						<input class="form-check-input" type="checkbox"
-							   @onchange="e => ToggleService(service.Id, e.Value.ToString() == " true")"
-							   checked="@SelectedServiceIds.Contains(service.Id)" />
-						<label class="form-check-label">@service.Name (@service.Price Kč)</label>
-					</div>
-				} *@
+					var selected = reservation.SelectedServices.FirstOrDefault(s => s.ServiceId == service.Id);
+					if (selected == null)
+					{
+						<button type="button" class="btn btn-outline-primary mb-2 me-2 mt-3" @onclick="@(() => AddService(service))">Přidat: @service.Name</button>
+					}
+					else
+					{
+						<div class="border p-3 mb-2">
+							<strong>@service.Name</strong><br />
+							<label>Množství:</label>
+							<input type="number" class="form-control"
+								   value="@selected.Quantity"
+								   @oninput="e => OnQuantityChanged(selected, e.Value?.ToString())" />
+
+
+
+							<label>Cena za jednotku:</label>
+							<div class="input-group">
+								<input type="number" class="form-control"
+									   step="any"
+									   value="@selected.UnitPrice.ToString("0.##", CultureInfo.InvariantCulture)"
+									   @oninput="e => OnUnitPriceChanged(selected, e.Value?.ToString())" />
+								<span class="input-group-text">@GetCurrencySymbol()</span>
+							</div>
+
+				
+
+
+
+							<label>Poznámka:</label>
+							<input type="text" class="form-control" @bind="selected.Note" />
+
+							<button class="btn btn-danger mt-2" type="button" @onclick="@(() => RemoveService(service.Id))">Odebrat službu</button>
+						</div>
+					}
+				}
+
+
 
 
 
@@ -525,6 +575,9 @@ OnCustomerAdded="OnCustomerAdded" />
 	private List<CustomerViewModel> filteredGuestCustomers = new();
 	private List<CurrencyViewModel> currencies = new();
 
+	private List<ServiceViewModel> allServices = new();
+
+
 
 	private bool showAddCustomerModal = false;
 
@@ -545,6 +598,52 @@ OnCustomerAdded="OnCustomerAdded" />
 		isCheckInCalendarVisible = false;
 		isCheckOutCalendarVisible = false;
 	}
+
+	private void AddService(ServiceViewModel service)
+	{
+		var quantity = service.IsPerNight
+		? (int)(reservation.CheckOut - reservation.CheckIn).TotalDays
+		: 1;
+
+		var baseCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
+		var currentCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+
+		var convertedPrice = baseCurrency != null && currentCurrency != null
+			? service.Price * baseCurrency.Rate / currentCurrency.Rate
+			: service.Price;
+
+		reservation.SelectedServices.Add(new ServiceReservationViewModel
+			{
+				ServiceId = service.Id,
+				Quantity = quantity,
+				UnitPrice = convertedPrice,
+				OriginalUnitPrice = service.Price,
+				IsPerNight = service.IsPerNight
+			});
+
+
+	CalculateTotalPrice();
+	}
+
+
+
+	private void RemoveService(int serviceId)
+	{
+		var service = reservation.SelectedServices.FirstOrDefault(x => x.ServiceId == serviceId);
+		if (service != null)
+			reservation.SelectedServices.Remove(service);
+		CalculateTotalPrice();
+
+	}
+
+
+	private string GetCurrencySymbol()
+	{
+		var currency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+		return currency?.Symbol ?? "";
+	}
+
+
 
 
 
@@ -572,17 +671,32 @@ OnCustomerAdded="OnCustomerAdded" />
 		reservation.ReservationStatusId = reservationStatuses.FirstOrDefault(x => x.Name == "Potvrzená")?.Id ?? 0;
 		reservation.MealPlanId = mealPlans.FirstOrDefault(x => x.Name == "Bez stravy")?.Id ?? 0;
 		currencies = await CurrencyService.GetCurrenciesAsync();
-		reservation.CurrencyId = currencies.FirstOrDefault(x => x.Name == "CZK")?.Id ?? 0;
+		reservation.CurrencyId = currencies.FirstOrDefault(x => x.Code == "CZK")?.Id ?? 0;
+
+		allServices = await ServiceService.GetAllAsync();
+
 
 		if (reservationId != null)
 		{
 			reservation = Mapper.Map<ReservationFormViewModel>(await ReservationService.GetReservationByIdAsync(reservationId.Value));
+			foreach (var service in reservation.SelectedServices)
+			{
+				service.OriginalUnitPrice = service.UnitPrice;
+			}
 
 			searchCustomerTerm = $"{reservation.CustomerName}";
 			searchRoomTerm = $"{reservation.RoomTypeName} - {reservation.RoomNumber}";
 			selectedRoom = rooms.FirstOrDefault(x => x.Id == reservation.RoomId);
+			if (selectedRoom is null)
+			{
+				errorMessage = "Pokoj nebyl nalezen.";
+				return;
+			}
 			reservation.RoomId = selectedRoom.Id;
 			unavailableDates = await RoomService.GetUnavaibleDatesAsync(reservation.RoomId);
+
+
+
 		}
 		else if (customerId != null)
 		{
@@ -603,12 +717,14 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void FilterGuestCustomers()
 	{
+		var term = searchGuestTerm?.ToLower();
+
 		filteredGuestCustomers = customers
 			.Where(x =>
-				x.FirstName.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
-				x.LastName.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
-				x.Email.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase) ||
-				x.DocumentNumber.Contains(searchGuestTerm, StringComparison.OrdinalIgnoreCase))
+				x.FirstName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+				x.LastName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+				x.Email.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+				x.DocumentNumber.Contains(term, StringComparison.OrdinalIgnoreCase))
 			.ToList();
 	}
 
@@ -640,9 +756,9 @@ OnCustomerAdded="OnCustomerAdded" />
 		filteredGuestCustomers.Clear();
 	}
 
-	private async Task OnCurrencyChanged(ChangeEventArgs e)
+	private void OnCurrencyChanged(ChangeEventArgs e)
 	{
-		if (int.TryParse(e.Value.ToString(), out int selectedCurrencyId))
+		if (int.TryParse(e.Value?.ToString(), out int selectedCurrencyId))
 		{
 			if (selectedCurrencyId != reservation.CurrencyId)
 			{
@@ -651,14 +767,44 @@ OnCustomerAdded="OnCustomerAdded" />
 
 				if (oldCurrency != null && newCurrency != null)
 				{
-					// Příklad: předpokládáme, že máš kurzy jako decimal např. CZK = 1.0, EUR = 0.04
-					reservation.TotalPrice = reservation.TotalPrice / oldCurrency.Rate * newCurrency.Rate;
+					// Přepočítej všechny služby na základě jejich původní ceny (v CZK)
+					foreach (var service in reservation.SelectedServices)
+					{
+						service.UnitPrice = service.OriginalUnitPrice / newCurrency.Rate;
+					}
+
+					// Aktualizuj měnu
 					reservation.CurrencyId = selectedCurrencyId;
 
+					// Spočítej znovu celkovou cenu (pokoj + strava + služby)
+					CalculateTotalPrice();
 				}
 			}
 		}
 	}
+
+
+
+
+	private void OnQuantityChanged(ServiceReservationViewModel service, string? newValue)
+	{
+		if (int.TryParse(newValue, out int qty))
+		{
+			service.Quantity = qty;
+			CalculateTotalPrice();
+		}
+	}
+
+	private void OnUnitPriceChanged(ServiceReservationViewModel service, string? newValue)
+	{
+		if (decimal.TryParse(newValue, out decimal price))
+		{
+			service.UnitPrice = price;
+			CalculateTotalPrice();
+		}
+	}
+
+
 
 
 	private void SwitchMode(ReservationMode mode)
@@ -721,20 +867,44 @@ OnCustomerAdded="OnCustomerAdded" />
 		}
 
 		numberOfNights = (int)(reservation.CheckOut - reservation.CheckIn).TotalDays;
-		reservation.TotalPrice = selectedRoom.Price * numberOfNights;
 
+		var baseCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
+		var targetCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+		if (baseCurrency == null || targetCurrency == null)
+			return;
+
+		reservation.TotalPrice = 0;
+
+		// Přepočet ceny pokoje
+		var roomPrice = selectedRoom.Price * baseCurrency.Rate / targetCurrency.Rate;
+		reservation.TotalPrice += roomPrice * numberOfNights;
+
+		// Přepočet ceny stravování
 		if (reservation.MealPlanId != 0)
 		{
 			var mealPlan = mealPlans.FirstOrDefault(x => x.Id == reservation.MealPlanId);
-			reservation.TotalPrice += mealPlan.Price * numberOfNights;
+			if (mealPlan != null)
+			{
+				var mealPrice = mealPlan.Price * baseCurrency.Rate / targetCurrency.Rate;
+				reservation.MealPlanConvertedPrice = mealPrice;
+				reservation.TotalPrice += mealPrice * numberOfNights;
+			}
 		}
 
-
+		// Přepočet služeb
+		if (reservation.SelectedServices != null && reservation.SelectedServices.Any())
+		{
+			foreach (var service in reservation.SelectedServices)
+			{
+				reservation.TotalPrice += service.UnitPrice * service.Quantity;
+			}
+		}
 	}
+
 
 	private void OnAdultsSelect(ChangeEventArgs e)
 	{
-		if (int.TryParse(e.Value.ToString(), out int adults))
+		if (int.TryParse(e.Value?.ToString(), out int adults))
 		{
 			reservation.Adults = adults;
 		}
@@ -743,7 +913,7 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void OnChildrenSelect(ChangeEventArgs e)
 	{
-		if (int.TryParse(e.Value.ToString(), out int children))
+		if (int.TryParse(e.Value?.ToString(), out int children))
 		{
 			reservation.Children = children;
 		}
@@ -752,17 +922,34 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void OnMealSelect(ChangeEventArgs e)
 	{
-		if (int.TryParse(e.Value.ToString(), out int selectedMealPlanId))
+		if (int.TryParse(e.Value?.ToString(), out int selectedMealPlanId))
 		{
 			reservation.MealPlanId = selectedMealPlanId;
 
+			var selectedMeal = mealPlans.FirstOrDefault(x => x.Id == selectedMealPlanId);
+			if (selectedMeal != null)
+			{
+				reservation.OriginalMealPlanPrice = selectedMeal.Price;
+
+				var currency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
+				if (currency != null)
+				{
+					reservation.MealPlanConvertedPrice = selectedMeal.Price * currency.Rate;
+				}
+			}
 		}
+
 		CalculateTotalPrice();
 	}
 
+
+
 	private void OnDateSelectIn(DateTime? date)
 	{
-		reservation.CheckIn = date.Value;
+		if (date.HasValue)
+		{
+			reservation.CheckIn = date.Value;
+		}
 		isCheckInCalendarVisible = false;
 		isCheckInCalendarVisibleFromDateFirst = false;
 		CalculateTotalPrice();
@@ -770,7 +957,10 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void OnDateSelectOut(DateTime? date)
 	{
-		reservation.CheckOut = date.Value;
+		if (date.HasValue)
+		{
+			reservation.CheckOut = date.Value;
+		}
 		isCheckOutCalendarVisible = false;
 		isCheckOutCalendarVisibleFromDateFirst = false;
 		CalculateTotalPrice();
@@ -832,6 +1022,8 @@ OnCustomerAdded="OnCustomerAdded" />
 		{
 			StateHasChanged();
 		}
+
+
 	}
 
 
@@ -843,7 +1035,9 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void FilterCustomers()
 	{
-		filteredCustomers = customers.Where(x => x.FirstName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.LastName.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.Email.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.Phone.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase) || x.DocumentNumber.Contains(searchCustomerTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+		var term = searchCustomerTerm ?? string.Empty;
+
+		filteredCustomers = customers.Where(x => x.FirstName.Contains(term, StringComparison.OrdinalIgnoreCase) || x.LastName.Contains(term, StringComparison.OrdinalIgnoreCase) || x.Email.Contains(term, StringComparison.OrdinalIgnoreCase) || x.Phone.Contains(term, StringComparison.OrdinalIgnoreCase) || x.DocumentNumber.Contains(term, StringComparison.OrdinalIgnoreCase)).ToList();
 	}
 
 	private void HideCustomerList()
@@ -853,25 +1047,31 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void FilterRooms()
 	{
+
+		var term = searchRoomTerm ?? string.Empty;
+
 		filteredRooms = rooms
 			.Where(x => x.IsDisable == false &&
-						(x.RoomNumber.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) ||
-							x.RoomTypeName.Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) ||
-							x.Price.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) ||
-							x.MaxAdults.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) ||
-							x.MaxChildren.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase) ||
-							x.MaxChildren.ToString().Contains(searchRoomTerm, StringComparison.OrdinalIgnoreCase)))
+						(x.RoomNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+							x.RoomTypeName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+							x.Price.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+							x.MaxAdults.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+							x.MaxChildren.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
+							x.MaxChildren.ToString().Contains(term, StringComparison.OrdinalIgnoreCase)))
 			.ToList();
 	}
 
 
 	private void FilterRoomsByDate()
 	{
+
 		if (availableRooms.Any())
 		{
+			var term = searchRoomTermByDate ?? string.Empty;
+
 			availableRooms = availableRooms
 				.Where(x => x.IsDisable == false &&
-							x.RoomNumber.Contains(searchRoomTermByDate, StringComparison.OrdinalIgnoreCase))
+							x.RoomNumber.Contains(term, StringComparison.OrdinalIgnoreCase))
 				.ToList();
 		}
 		else

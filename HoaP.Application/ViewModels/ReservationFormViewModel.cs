@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HoaP.Application.ViewModels.Currency;
 using HoaP.Application.ViewModels.Customer;
 using HoaP.Application.ViewModels.Room;
+using HoaP.Application.ViewModels.ServiceR;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels
@@ -26,11 +27,17 @@ namespace HoaP.Application.ViewModels
         public int MealPlanId { get; set; }
         public string SpecialRequest { get; set; } = string.Empty;
         public decimal TotalPrice { get; set; }
+        public decimal OriginalMealPlanPrice { get; set; }
+        public decimal MealPlanConvertedPrice { get; set; }
+
+
 
         public int ReservationStatusId { get; set; }
         public string AdminNote { get; set; } = string.Empty;
         public List<CustomerFormViewModel> Guests { get; set; } = new();
         public List<CurrencyViewModel> Currencies { get; set; } = new();
+        public List<ServiceReservationViewModel> SelectedServices { get; set; } = new();
+
 
     }
 }

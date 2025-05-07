@@ -9,6 +9,6 @@ namespace HoaP.Domain.Entities
 {
     public class Entity<TKey> : IEntity<TKey>
     {
-        public TKey Id { get; set; }
+        public TKey Id { get; set; } = default!;
     }
 }

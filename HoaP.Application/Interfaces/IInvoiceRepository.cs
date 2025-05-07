@@ -20,5 +20,7 @@ namespace HoaP.Application.Interfaces
         Task<bool> CheckIfInvoiceExistsForReservation(int reservationId);
         Task<List<InvoiceViewModel>> GetInvoiceByReservationIdAsync(int reservationId);
         Task<List<InvoiceViewModel>> GetInvoicesByCustomerIdAsync(int customerId);
+
+        Task<Invoice> GetInvoiceEntityByIdAsync(int id);
     }
 }

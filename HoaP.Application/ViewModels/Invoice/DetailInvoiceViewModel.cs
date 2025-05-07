@@ -23,8 +23,16 @@ namespace HoaP.Application.ViewModels.Invoice
         public bool IsCanceled { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public decimal ReservationTotal { get; set; }
+        public string? CurrencySymbol { get; set; }
+
 
         public int CurrencyId { get; set; }
+
+        public List<InvoiceItemViewModel> Items { get; set; } = new();
+
+
+
 
     }
 

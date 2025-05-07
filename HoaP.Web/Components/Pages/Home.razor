@@ -189,7 +189,7 @@
 
     private void SearchCustomers(ChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
+        searchTerm = e.Value?.ToString();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

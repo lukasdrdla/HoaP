@@ -20,5 +20,6 @@ namespace HoaP.Application.Interfaces
         Task<List<ReservationViewModel>> GetReservationsByCustomerIdAsync(int customerId);
         Task<List<ReservationViewModel>> GetReservationsByRoomIdAsync(int roomId);
 
+
     }
 }

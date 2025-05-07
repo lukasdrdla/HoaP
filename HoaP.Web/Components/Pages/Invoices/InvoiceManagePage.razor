@@ -68,7 +68,7 @@
                                         @selected.CheckIn.ToShortDateString() až @selected.CheckOut.ToShortDateString()
                                         (@selected.RoomNumber)
                                     </div>
-                                    <button class="btn btn-sm btn-danger"
+                                    <button class="btn btn-sm btn-danger" type="button"
                                     @onclick="() => ToggleReservationSelection(selected)">
                                         Odebrat
                                     </button>
@@ -101,12 +101,12 @@
                         <div class="form-group mb-3">
                             <label for="Currency" class="form-label">Měna</label>
                             <select class="form-select" @onchange="OnCurrencyChange">
-                                <option value="">Vyberte měnu</option>
                                 @foreach (var currency in currencies)
                                 {
                                     <option value="@currency.Id" selected="@(currency.Id == invoice.CurrencyId)">
-                                        @currency.Name
+                                        @currency.Name (@currency.Symbol)
                                     </option>
+
                                 }
                             </select>
 
@@ -121,8 +121,15 @@
                     </div>
                     <div class="col-md-3">
                         <label for="price" class="form-label">Cena</label>
-                        <InputNumber min="0" id="price" class="form-control" @bind-Value="invoice.Price" />
+                        <div class="input-group">
+                            <InputNumber min="0" id="price" class="form-control" @bind-Value="invoice.Price" />
+                            <span class="input-group-text">
+                                @(currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId)?.Symbol ?? "")
+                            </span>
+                        </div>
                     </div>
+
+
                 </div>
 
 
@@ -136,6 +143,26 @@
                     <button type="submit" class="btn btn-primary">@(invoiceId == null ? "Vytvořit fakturu" : "Uložit fakturu")</button>
                     <a href="/faktury" class="btn btn-outline-secondary">Zpět na seznam</a>
                 </div>
+
+                <h5>Dodatečné položky</h5>
+                @foreach (var item in invoice.Items)
+                {
+                    <div class="mb-3 border p-2">
+                        <label>Popis</label>
+                        <InputText class="form-control" @bind-Value="item.Description" />
+                        <label>Cena</label>
+                        <div class="input-group">
+                            <InputNumber class="form-control" @bind-Value="item.Price" />
+                            <span class="input-group-text">
+                                @(currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId)?.Symbol ?? "")
+                            </span>
+                        </div>
+                        <button type="button" class="btn btn-danger mt-1" @onclick="@(() => RemoveItem(item))">Odebrat</button>
+                    </div>
+                }
+                <button type="button" class="btn btn-outline-primary mt-2" @onclick="AddItem">+ Přidat položku</button>
+
+
             </EditForm>
 
         </div>
@@ -157,48 +184,56 @@
     private List<CurrencyViewModel> currencies { get; set; } = new List<CurrencyViewModel>();
     private string? searchTerm { get; set; }
     private decimal OriginalPrice { get; set; }
+    private int? lastCurrencyId;
+
 
     private string? errorMessage { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        lastCurrencyId = invoice.CurrencyId;
+
         if (invoiceId != null)
         {
-            invoice = Mapper.Map<InvoiceFormViewModel>(await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value));
+            var invoiceEntity = await InvoiceService.GetInvoiceEntityByIdAsync(invoiceId.Value);
+            invoice = Mapper.Map<InvoiceFormViewModel>(invoiceEntity);
             OriginalPrice = invoice.Price;
 
-            var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
-            if (reservation.Customer != null)
-            {
-                searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-            }
-            else
-            {
-                searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-            }
+            
             currencies = await CurrencyService.GetCurrenciesAsync();
         }
         else if (reservationId != null)
         {
-            var reservation = await ReservationService.GetReservationByIdAsync(reservationId.Value);
-            if (!invoice.ReservationIds.Contains(reservation.Id))
-            {
-                invoice.ReservationIds.Add(reservation.Id);
-            }
-            invoice.Price = reservation.TotalPrice;
-            OriginalPrice = reservation.TotalPrice;
+            var allReservations = await ReservationService.GetReservationsAsync();
+            var reservation = allReservations.FirstOrDefault(r => r.Id == reservationId.Value);
 
-            if (reservation.Customer != null)
+            if (reservation is not null)
             {
-                searchTerm = $"{reservation.CustomerName} (ID: {reservation.Customer.Id}, {reservation.Customer.Email}, RČ: {reservation.Customer.PersonalIdentificationNumber}) - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
-            }
-            else
-            {
-                searchTerm = $"Rezervace č. {reservation.Id} - {reservation.CheckIn.ToShortDateString()} až {reservation.CheckOut.ToShortDateString()} - Pokoj: {reservation.RoomNumber}";
+                if (!invoice.ReservationIds.Contains(reservation.Id))
+                {
+                    invoice.ReservationIds.Add(reservation.Id);
+                }
+
+                if (!invoice.Reservations.Any(r => r.Id == reservation.Id))
+                {
+                    invoice.Reservations.Add(reservation);
+                }
+
+                invoice.Price = reservation.TotalPrice;
+                OriginalPrice = reservation.TotalPrice;
+
+                searchTerm = !string.IsNullOrEmpty(reservation.CustomerName)
+                    ? $"{reservation.CustomerName} – {reservation.CheckIn:dd.MM.yyyy} až {reservation.CheckOut:dd.MM.yyyy} – Pokoj: {reservation.RoomNumber}"
+                    : $"Rezervace č. {reservation.Id} – {reservation.CheckIn:dd.MM.yyyy} až {reservation.CheckOut:dd.MM.yyyy} – Pokoj: {reservation.RoomNumber}";
             }
 
             currencies = await CurrencyService.GetCurrenciesAsync();
         }
+
+
+
+
+
 
         reservations = await ReservationService.GetReservationsAsync();
         filteredReservations = new List<ReservationViewModel>();
@@ -208,7 +243,7 @@
 
 
         currencies = await CurrencyService.GetCurrenciesAsync();
-        invoice.CurrencyId = currencies.FirstOrDefault(c => c.Name == "CZK")?.Id ?? 1;
+        invoice.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? 1;
 
     }
 
@@ -221,9 +256,25 @@
         }
         else
         {
+            if (invoice.Reservations.Count > 0)
+            {
+                var referenceCurrency = invoice.Reservations.First().CurrencySymbol;
+                if (reservation.CurrencySymbol != referenceCurrency)
+                {
+                    errorMessage = $"Nelze přidat rezervaci v jiné měně ({reservation.CurrencySymbol}) než již přidané ({referenceCurrency}).";
+                    return;
+                }
+            }
+
             invoice.ReservationIds.Add(reservation.Id);
             invoice.Reservations.Add(reservation);
+
+            if (invoice.Reservations.Count == 1)
+            {
+                invoice.CurrencyId = currencies.FirstOrDefault(c => c.Symbol == reservation.CurrencySymbol)?.Id ?? invoice.CurrencyId;
+            }
         }
+
         searchTerm = string.Empty;
         filteredReservations.Clear();
 
@@ -238,6 +289,16 @@
     }
 
 
+    private void AddItem()
+    {
+        invoice.Items.Add(new InvoiceItemViewModel());
+    }
+
+    private void RemoveItem(InvoiceItemViewModel item)
+    {
+        invoice.Items.Remove(item);
+        _ = RecalculatePrice();
+    }
 
 
 
@@ -290,32 +351,82 @@
     }
 
  
-	private async Task OnCurrencyChange(ChangeEventArgs e)
-	{
-		invoice.CurrencyId = int.Parse(e.Value.ToString());
-		await RecalculatePrice();
-	}
+    private async Task OnCurrencyChange(ChangeEventArgs e)
+    {
+        var newCurrencyId = int.Parse(e.Value.ToString());
+        var newCurrency = currencies.FirstOrDefault(c => c.Id == newCurrencyId);
+        var oldCurrency = currencies.FirstOrDefault(c => c.Id == lastCurrencyId);
+
+        if (newCurrency != null && oldCurrency != null && newCurrency.Id != oldCurrency.Id)
+        {
+            // přepočet všech ručně zadaných položek
+            foreach (var item in invoice.Items)
+            {
+                if (oldCurrency.Rate > 0)
+                {
+                    decimal valueInCZK = item.Price * oldCurrency.Rate;
+                    item.Price = Math.Round(valueInCZK / newCurrency.Rate, 2);
+                }
+            }
+        }
+
+        invoice.CurrencyId = newCurrencyId;
+        lastCurrencyId = newCurrencyId;
+
+        await RecalculatePrice();
+    }
+
 
 
     private async Task RecalculatePrice()
     {
         var selectedCurrency = currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId);
         if (selectedCurrency is null || selectedCurrency.Rate <= 0)
+        {
+            errorMessage = "Nepodařilo se najít měnu faktury nebo kurz je neplatný.";
             return;
+        }
 
-        var basePriceCZK = OriginalPrice;
+        decimal basePriceCZK = 0;
 
+        // Přepočítej každou rezervaci do CZK podle její měny
+        foreach (var reservation in invoice.Reservations)
+        {
+            var reservationCurrency = currencies.FirstOrDefault(c => c.Symbol == reservation.CurrencySymbol);
+            if (reservationCurrency == null || reservationCurrency.Rate <= 0)
+            {
+                errorMessage = $"Nelze najít kurz měny {reservation.CurrencySymbol} pro rezervaci č. {reservation.Id}.";
+                return;
+            }
+
+            basePriceCZK += reservation.TotalPrice * reservationCurrency.Rate;
+        }
+
+        // Přičti ručně zadané položky – ty jsou považovány za CZK
+        if (invoice.Items != null && invoice.Items.Any())
+        {
+            basePriceCZK += invoice.Items.Sum(i => i.Price);
+        }
+
+        // Aplikuj slevu
         if (invoice.Discount > 0)
+        {
             basePriceCZK -= basePriceCZK * invoice.Discount / 100;
+        }
 
+        // Odečti zálohu
         if (invoice.Prepayment > 0)
+        {
             basePriceCZK -= invoice.Prepayment;
+        }
 
         if (basePriceCZK < 0)
             basePriceCZK = 0;
 
+        // Přepočet z CZK do měny faktury
         invoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
- 
     }
+
+
 
 }

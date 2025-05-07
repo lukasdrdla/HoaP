@@ -24,7 +24,18 @@
                     <QuickGrid Items="filteredPayments.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="ID platby" Property="@(x => x.Id)" Sortable="true" />
                         <PropertyColumn Title="ID faktury" Property="@(x => x.InvoiceNumber)" Sortable="true" />
-                        <PropertyColumn Title="Částka" Property="@(x => x.TotalAmount.ToString("C"))" Sortable="true" />
+						<TemplateColumn Title="Částka">
+							<div>
+								@if (context.CurrencySymbol != null)
+								{
+									@($"{context.TotalAmount:0.00} {context.CurrencySymbol}")
+								}
+								else
+								{
+									@($"{context.TotalAmount:0.00}")
+								}
+						    </div>
+						</TemplateColumn>
                         <PropertyColumn Title="Metoda" Property="@(x => x.PaymentMethodName)" Sortable="true" />
 						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
                         <PropertyColumn Title="Datum" Property="@(x => x.PaymentDate.ToShortDateString())" Sortable="true" />

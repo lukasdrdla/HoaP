@@ -43,6 +43,10 @@
                 <li class="nav-item">
 					<a class="@GetNavLinkClass(9)" @onclick="() => SelectTab(9)">Statusy pokojů</a>
                 </li>
+                <li class="nav-item">
+                    <a class="@GetNavLinkClass(10)" @onclick="() => SelectTab(10)">Služby</a>
+                </li>
+
 
 
 
@@ -78,6 +82,11 @@
                     case 9:
                     <RoomStatusesComponent />
                         break;
+					case 10:
+                    <ServicesComponent />
+                    break;
+
+
                 }
             </div>
         </div>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HoaP.Application.Interfaces;
 using HoaP.Application.ViewModels.Invoice;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Services
 {
@@ -62,6 +63,10 @@ namespace HoaP.Application.Services
             return await _invoiceRepository.GetInvoicesByCustomerIdAsync(customerId);
         }
 
+        public async Task<Invoice> GetInvoiceEntityByIdAsync(int id)
+        {
+            return await _invoiceRepository.GetInvoiceEntityByIdAsync(id);
+        }
 
 
 

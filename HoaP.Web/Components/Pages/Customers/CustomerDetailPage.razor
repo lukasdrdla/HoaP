@@ -81,7 +81,18 @@
                         <PropertyColumn Title="Check-In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="Check-Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
-						<PropertyColumn Title="Cena" Property="@(x => x.TotalPrice.ToString("C0"))" Sortable="true" />
+						<TemplateColumn Title="Cena">
+							<div>
+								@if (context.CurrencySymbol != null)
+								{
+									@($"{context.TotalPrice:0.00} {context.CurrencySymbol}")
+								}
+								else
+								{
+									@($"{context.TotalPrice:0.00}")
+								}
+							</div>
+                        </TemplateColumn>
                         <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
                         <TemplateColumn Title="Akce">
                             <div class="d-inline-flex gap-2">

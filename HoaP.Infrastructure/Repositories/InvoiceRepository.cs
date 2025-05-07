@@ -29,16 +29,59 @@ namespace HoaP.Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<Invoice> GetInvoiceEntityByIdAsync(int id)
+        {
+            return await _context.Invoices
+                .Include(i => i.InvoiceReservations)
+                    .ThenInclude(ir => ir.Reservation)
+                        .ThenInclude(r => r.ReservationCustomers)
+                            .ThenInclude(rc => rc.Customer)
+                .Include(i => i.InvoiceReservations)
+                    .ThenInclude(ir => ir.Reservation)
+                        .ThenInclude(r => r.Room)
+                            .ThenInclude(room => room.RoomType)
+                .Include(i => i.Currency)
+                .Include(i => i.AppUser)
+                .Include(i => i.Items)
+                .FirstOrDefaultAsync(i => i.Id == id);
+        }
+
+
+
         public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
         {
             // Namapuj view model na entitu
             var entity = _mapper.Map<Invoice>(invoice);
 
+            // Před uložením spočítej celkovou cenu (v CZK)
+            decimal total = invoice.Reservations.Sum(r => r.TotalPrice);
+
+            // Připočti ruční položky
+            if (invoice.Items != null && invoice.Items.Any())
+            {
+                total += invoice.Items.Sum(i => i.Price);
+            }
+
+            // Sleva
+            if (invoice.Discount > 0)
+                total -= total * invoice.Discount / 100;
+
+            // Záloha
+            if (invoice.Prepayment > 0)
+                total -= invoice.Prepayment;
+
+            // Zajištění, že cena není záporná
+            if (total < 0)
+                total = 0;
+
+            // Ulož výslednou cenu
+            entity.Price = total;
+
             // Přidej fakturu do databáze
             await _context.Invoices.AddAsync(entity);
             await _context.SaveChangesAsync(); // entity.Id je nyní k dispozici
 
-            // Přidej M:N vztahy do spojovací tabulky
+            // Vložení M:N vazeb na rezervace
             foreach (var reservationId in invoice.ReservationIds)
             {
                 _context.InvoiceReservations.Add(new InvoiceReservation
@@ -48,16 +91,15 @@ namespace HoaP.Infrastructure.Repositories
                 });
             }
 
-            await _context.SaveChangesAsync(); // ulož vazby
-
+            await _context.SaveChangesAsync();
         }
+
 
         public async Task CancelInvoiceAsync(int id)
         {
             var existingInvoice = await _context.Invoices.FindAsync(id);
             if (existingInvoice != null)
             {
-                //check if invoice is already paid
                 if (existingInvoice.IsPaid)
                 {
                     throw new Exception("Fakturu nelze stornovat, protože je již zaplacena.");
@@ -77,14 +119,21 @@ namespace HoaP.Infrastructure.Repositories
         {
             var invoice = await _context.Invoices
                 .Include(i => i.InvoiceReservations)
-                .ThenInclude(ir => ir.Reservation)
-                .ThenInclude(r => r.Customer)
+                    .ThenInclude(ir => ir.Reservation)
+                        .ThenInclude(r => r.ReservationCustomers)
+                            .ThenInclude(rc => rc.Customer)
+                .Include(i => i.InvoiceReservations)
+                    .ThenInclude(ir => ir.Reservation)
+                        .ThenInclude(r => r.Room)
+                            .ThenInclude(room => room.RoomType)
                 .Include(i => i.Currency)
                 .Include(i => i.AppUser)
+                .Include(i => i.Items)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             return _mapper.Map<DetailInvoiceViewModel>(invoice);
         }
+
 
         public async Task<List<InvoiceViewModel>> GetInvoiceByReservationIdAsync(int reservationId)
         {
@@ -101,11 +150,12 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<InvoiceViewModel>> GetInvoicesAsync()
         {
             var invoices = await _context.Invoices
-                .Include(i => i.InvoiceReservations)
+            .Include(i => i.InvoiceReservations)
                 .ThenInclude(ir => ir.Reservation)
-                .ThenInclude(r => r.Customer)
-                .Include(i => i.Currency)
-                .ToListAsync();
+                    .ThenInclude(r => r.ReservationCustomers)
+                        .ThenInclude(rc => rc.Customer)
+            .Include(i => i.Currency)
+            .ToListAsync();
 
             return _mapper.Map<List<InvoiceViewModel>>(invoices);
         }

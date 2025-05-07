@@ -45,8 +45,9 @@
 											<strong>Termín:</strong> @invoice.IssueDate.ToShortDateString() - @invoice.DueDate.ToShortDateString()
                                         </div>
                                         <div>
-                                            <strong>Cena:</strong> @invoice.Price.ToString("C")
+                                            <strong>Cena:</strong> @invoice.Price.ToString("0.00") @invoice.CurrencySymbol
                                         </div>
+
                                     </li>
                                 }
                             </ul>
@@ -56,8 +57,12 @@
 
                 <div class="mb-3">
                     <label for="amount" class="form-label">Částka</label>
-                    <InputNumber id="amount" class="form-control" @bind-Value="payment.TotalAmount" />
+                    <div class="input-group">
+                        <InputNumber id="amount" class="form-control" @bind-Value="payment.TotalAmount" />
+                        <span class="input-group-text">@selectedInvoice?.CurrencySymbol</span>
+                    </div>
                 </div>
+
 
                 <div class="mb-3">
                     <label for="paymentDate" class="form-label">Datum platby</label>
@@ -96,6 +101,8 @@
     private PaymentFormViewModel payment { get; set; } = new PaymentFormViewModel();
     private List<InvoiceViewModel> invoices = new List<InvoiceViewModel>();
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
+    private InvoiceViewModel? selectedInvoice;
+
 
     private List<PaymentMethodViewModel> paymentMethods { get; set; } = new List<PaymentMethodViewModel>();
 	private string? errorMessage;
@@ -113,16 +120,23 @@
 			var invoice = await InvoiceService.GetInvoiceByIdAsync(payment.InvoiceId);
 			searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
 		}
-		else if (invoiceId != null)
-		{
-			payment.InvoiceId = invoiceId.Value;
-			var invoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value);
-			searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
-			payment.TotalAmount = invoice.Price;
-		}
+        else if (invoiceId != null)
+        {
+            payment.InvoiceId = invoiceId.Value;
+
+            var detailInvoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value);
+            selectedInvoice = Mapper.Map<InvoiceViewModel>(detailInvoice);
+
+            searchTerm = $"#{selectedInvoice.Id} - {selectedInvoice.CustomerName ?? "Neznámý zákazník"} ({selectedInvoice.CurrencySymbol})";
+            payment.TotalAmount = selectedInvoice.Price;
+        }
 
 
-        invoices = await InvoiceService.GetInvoicesAsync() ?? new List<InvoiceViewModel>();
+
+
+        invoices = (await InvoiceService.GetInvoicesAsync() ?? new List<InvoiceViewModel>())
+            .Where(i => !i.IsPaid)
+            .ToList();
         filteredInvoices = new List<InvoiceViewModel>();
         paymentMethods = await PaymentMethodService.GetPaymentMethodsAsync();
     }
@@ -143,6 +157,7 @@
 
     private void SelectInvoice(InvoiceViewModel invoice)
     {
+		selectedInvoice = invoice;
 		searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
         payment.InvoiceId = invoice.Id;
         payment.TotalAmount = invoice.Price;

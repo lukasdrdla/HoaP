@@ -4,22 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HoaP.Domain.Entities
+namespace HoaP.Application.ViewModels.ServiceR
 {
-    public class ServiceReservation : AuditableEntity<int>
+    public class ServiceReservationViewModel
     {
-
-        public int ReservationId { get; set; }
-        public Reservation? Reservation { get; set; }
-
         public int ServiceId { get; set; }
-        public Service? Service { get; set; }
-
+        public string? ServiceName { get; set; }
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal OriginalUnitPrice { get; set; }
+        public string? Note { get; set; }
+        public bool IsPerNight { get; set; }
 
-
-        public string? Note { get; set; } = string.Empty;
     }
 }

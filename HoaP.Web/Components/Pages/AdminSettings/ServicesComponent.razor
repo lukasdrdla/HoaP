@@ -1,0 +1,75 @@
+﻿@inject ServiceService serviceService
+
+<h5>Služby k rezervaci</h5>
+
+<QuickGrid Items="services.AsQueryable()" Pagination="pagination" Class="table table-bordered mt-3 w-100">
+    <PropertyColumn Title="Název" Property="@(x => x.Name)" />
+    <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("0.00 Kč"))" />
+    <PropertyColumn Title="Popis" Property="@(x => x.Description)" />
+    <TemplateColumn Title="Akce">
+        <button class="btn btn-sm btn-primary" @onclick="() => EditService(context)">Upravit</button>
+        <button class="btn btn-sm btn-danger" @onclick="() => DeleteService(context.Id)">Smazat</button>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="pagination" />
+
+<EditForm Model="currentService" OnValidSubmit="SaveService">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="mb-3">
+        <label for="name" class="form-label">Název služby</label>
+        <InputText id="name" class="form-control" @bind-Value="currentService.Name" />
+    </div>
+    <div class="mb-3">
+        <label for="price" class="form-label">Cena (Kč)</label>
+        <InputNumber id="price" class="form-control" @bind-Value="currentService.Price" />
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Popis</label>
+        <InputTextArea id="description" class="form-control" @bind-Value="currentService.Description" />
+    </div>
+    <button class="btn btn-success" type="submit">Uložit</button>
+</EditForm>
+
+@code {
+    private List<ServiceViewModel> services = new();
+    private ServiceViewModel currentService = new();
+    private PaginationState pagination = new() { ItemsPerPage = 10 };
+    private bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        services = await serviceService.GetAllAsync();
+    }
+
+    private void EditService(ServiceViewModel service)
+    {
+        currentService = new ServiceViewModel
+            {
+                Id = service.Id,
+                Name = service.Name,
+                Price = service.Price,
+                Description = service.Description
+            };
+        isEdit = true;
+    }
+
+    private async Task DeleteService(int id)
+    {
+        await serviceService.DeleteAsync(id);
+        services = await serviceService.GetAllAsync();
+    }
+
+    private async Task SaveService()
+    {
+        if (isEdit)
+            await serviceService.UpdateAsync(currentService);
+        else
+            await serviceService.CreateAsync(currentService);
+
+        currentService = new ServiceViewModel();
+        services = await serviceService.GetAllAsync();
+        isEdit = false;
+    }
+}

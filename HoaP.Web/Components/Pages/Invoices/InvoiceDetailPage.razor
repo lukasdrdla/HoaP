@@ -2,6 +2,7 @@
 @using HoaP.Application.ViewModels.Invoice
 @inject InvoiceService InvoiceService
 @inject NavigationManager NavigationManager
+@inject CurrencyService CurrencyService
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
@@ -41,29 +42,65 @@
             <span class="value">@invoice.DueDate.ToShortDateString()</span>
         </div>
         <div class="summary-item">
-            <span class="label">Celková částka:</span>
-            <span class="value">@invoice.Price.ToString("C")</span>
+            <span class="label">Rezervace celkem:</span>
+            <span class="value">@invoice.ReservationTotal @GetCurrencySymbol()</span>
         </div>
+
         <div class="summary-item">
-            <span class="label">Stav:</span>
-            <span class="value
-                @(invoice.IsCanceled ? "status-canceled" : invoice.IsPaid ? "status-paid" : "status-unpaid")">
-                @(invoice.IsCanceled ? "Stornováno" : invoice.IsPaid ? "Zaplaceno" : "Nezaplaceno")
-            </span>
+            <span class="label">Celková částka:</span>
+            <span class="value">@invoice.Price @GetCurrencySymbol()</span>
         </div>
+
+      
         <div class="summary-item">
             <span class="label">Sleva:</span>
-            <span class="value">@invoice.Discount.ToString("C")</span>
+            <span class="value">@invoice.Discount @GetCurrencySymbol()</span>
         </div>
         <div class="summary-item">
             <span class="label">Předplatba:</span>
-            <span class="value">@invoice.Prepayment.ToString("C")</span>
+            <span class="value">@invoice.Prepayment @GetCurrencySymbol()</span>
         </div>
-        <div class="summary-footer">
-            <span class="footer-label">Vystavil:</span>
-            <span class="footer-value">@invoice.CreatedBy</span>
+        <div class="summary-item">
+        <span class="label">Stav:</span>
+            <span class="value
+                        @(invoice.IsCanceled ? "status-canceled" : invoice.IsPaid ? "status-paid" : "status-unpaid")">
+                @(invoice.IsCanceled ? "Stornováno" : invoice.IsPaid ? "Zaplaceno" : "Nezaplaceno")
+            </span>
         </div>
+        
     </div>
+
+    <div class="summary-footer">
+        <span class="footer-label">Vystavil:</span>
+        <span class="footer-value">@invoice.CreatedBy</span>
+    </div>
+
+    @if (invoice.Items != null && invoice.Items.Any())
+    {
+        <h4 class="mt-4">Položky faktury</h4>
+        <table class="table table-bordered mt-2">
+            <thead>
+                <tr>
+                    <th>Popis</th>
+                    <th>Cena</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in invoice.Items)
+                {
+                    <tr>
+                        <td>@item.Description</td>
+                        <td>@item.Price @GetCurrencySymbol()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="mt-4 text-muted">Faktura neobsahuje žádné položky.</p>
+    }
+
 
     <div class="d-flex gap-3">
 		<button class="btn btn-danger flex-grow-1" @onclick="() => CancleInvoice(invoice.Id)">Stornovat fakturu</button>
@@ -77,6 +114,7 @@
 	public int InvoiceId { get; set; }
 
     private DetailInvoiceViewModel invoice = new DetailInvoiceViewModel();
+	private List<CurrencyViewModel> currencies = new List<CurrencyViewModel>();
 	private string ErrorMessage = string.Empty;
 
 
@@ -84,6 +122,7 @@
 	protected override async Task OnInitializedAsync()
 	{
 		invoice = await InvoiceService.GetInvoiceByIdAsync(InvoiceId);
+		currencies = await CurrencyService.GetCurrenciesAsync();
 	}
 
 	private async Task CancleInvoice(int invoiceId)
@@ -102,6 +141,15 @@
             }
 		}
 	}
+
+    private string GetCurrencySymbol()
+    {
+        return currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId)?.Symbol ?? "";
+    }
+
+
+  
+
 
 	private async Task DeleteInvoice(int invoiceId)
     {

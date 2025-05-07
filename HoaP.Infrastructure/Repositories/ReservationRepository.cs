@@ -59,6 +59,19 @@ namespace HoaP.Infrastructure.Repositories
                 }
             }
 
+            foreach (var service in reservation.SelectedServices)
+            {
+                newReservation.ServiceReservations.Add(new ServiceReservation
+                {
+                    ServiceId = service.ServiceId,
+                    Quantity = service.Quantity,
+                    UnitPrice = service.UnitPrice,
+                    OriginalUnitPrice = service.OriginalUnitPrice,
+                    Note = service.Note
+                });
+            }
+
+
             await _context.Reservations.AddAsync(newReservation);
             await _context.SaveChangesAsync();
         }
@@ -79,12 +92,16 @@ namespace HoaP.Infrastructure.Repositories
         {
             var reservation = await _context.Reservations
                 .Include(r => r.ReservationStatus)
+                .Include(r => r.ServiceReservations)
+                    .ThenInclude(sr => sr.Service)
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                     .ThenInclude(rt => rt.RoomType)
                 .Include(r => r.ReservationCustomers)
                     .ThenInclude(rc => rc.Customer)
                 .Include(r => r.MealPlan)
+                .Include(r => r.Currency)
+
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             var result = _mapper.Map<DetailReservationViewModel>(reservation);
@@ -104,10 +121,11 @@ namespace HoaP.Infrastructure.Repositories
         public async Task<List<ReservationViewModel>> GetReservationsAsync()
         {
             var reservations = await _context.Reservations
+                .Include(r => r.ReservationCustomers)
+                    .ThenInclude(rc => rc.Customer)
+                .Include(r => r.Room)
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Currency)
-                .Include(r => r.Customer)
-                .Include(r => r.Room)
                 .ToListAsync();
             return _mapper.Map<List<ReservationViewModel>>(reservations);
         }
@@ -138,7 +156,10 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task UpdateReservationAsync(ReservationFormViewModel reservation)
         {
-            var existingReservation = await _context.Reservations.FindAsync(reservation.Id);
+            var existingReservation = await _context.Reservations
+                .Include(r => r.ServiceReservations)
+                .Include(r => r.ReservationCustomers)
+                .FirstOrDefaultAsync(r => r.Id == reservation.Id);
 
             if (existingReservation != null)
             {
@@ -167,5 +188,7 @@ namespace HoaP.Infrastructure.Repositories
                 await _context.SaveChangesAsync();
             }
         }
+
+       
     }
 }

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HoaP.Application.ViewModels.Customer;
 using HoaP.Application.ViewModels.MealPlan;
+using HoaP.Application.ViewModels.ServiceR;
 using HoaP.Domain.Entities;
 
 namespace HoaP.Application.ViewModels
@@ -35,9 +36,14 @@ namespace HoaP.Application.ViewModels
         public bool HasInvoice { get; set; }
         public bool IsInvoicePaid { get; set; }
 
+        public int CurrencyId { get; set; }
+        public string CurrencySymbol { get; set; } = string.Empty;
+
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
         public ICollection<CustomerViewModel> Guests { get; set; } = null!;
+        public List<ServiceReservationViewModel> Services { get; set; } = new();
+
 
         public CustomerViewModel Customer { get; set; } = new();
 

@@ -46,7 +46,14 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task<DetailCustomerViewModel> GetCustomerByIdAsync(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _context.Customers
+                .Include(c => c.ReservationCustomers)
+                .ThenInclude(rc => rc.Reservation)
+                .ThenInclude(r => r.Currency)
+
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+
             if (customer != null)
             {
                 return _mapper.Map<DetailCustomerViewModel>(customer);

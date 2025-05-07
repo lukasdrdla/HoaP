@@ -31,6 +31,8 @@ namespace HoaP.Domain.Entities
 
         public ICollection<ReservationCustomer> ReservationCustomers { get; set; } = new List<ReservationCustomer>();
         public ICollection<InvoiceReservation> InvoiceReservations { get; set; } = new List<InvoiceReservation>();
+        public ICollection<ServiceReservation> ServiceReservations { get; set; } = new List<ServiceReservation>();
+
 
     }
 }

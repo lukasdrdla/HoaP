@@ -106,27 +106,35 @@
 
     private async Task HandleModalClose(bool result)
     {
-        var reservation = reservations.FirstOrDefault(r => r.Id == reservationIdToDelete);
         isDeleteModalVisible = false;
 
         if (result)
         {
-			try
-			{
+            try
+            {
+                var reservation = reservations.FirstOrDefault(r => r.Id == reservationIdToDelete);
+
+                if (reservation == null)
+                {
+                    errorMessage = "Rezervace nebyla nalezena.";
+                    return;
+                }
+
                 await ReservationService.DeleteReservationAsync(reservationIdToDelete);
                 reservations.Remove(reservation);
                 filteredReservations = reservations;
             }
             catch (Exception ex)
-			{
-				errorMessage = ex.Message;
-			}
+            {
+                errorMessage = ex.Message;
+            }
         }
     }
 
+
     private void SearchReservations(ChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
+        searchTerm = e?.Value?.ToString();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {

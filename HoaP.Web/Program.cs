@@ -29,6 +29,7 @@ builder.Services.AddAutoMapper(typeof(ReservationStatusProfile));
 builder.Services.AddAutoMapper(typeof(TaskProfile));
 builder.Services.AddAutoMapper(typeof(AccountProfile));
 builder.Services.AddAutoMapper(typeof(ReviewProfile));
+builder.Services.AddAutoMapper(typeof(ServiceProfile));
 
 
 // Add services to the container.
@@ -36,7 +37,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     .EnableSensitiveDataLogging()
     );
 
@@ -114,6 +115,9 @@ builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<ReviewService>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<ServiceService>();
 
 
 

@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace HoaP.Domain.Entities
 {
-    public class ReservationCustomer
+    public class ReservationCustomer : AuditableEntity<int>
     {
         public int ReservationId { get; set; }
-        public Reservation Reservation { get; set; }
+        public Reservation? Reservation { get; set; }
 
         public int CustomerId { get; set; }
-        public Customer Customer { get; set; }
+        public Customer? Customer { get; set; }
 
         public bool IsMainGuest { get; set; }
     }
