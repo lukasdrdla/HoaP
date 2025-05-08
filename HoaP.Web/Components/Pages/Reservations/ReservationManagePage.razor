@@ -698,11 +698,12 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	protected override async Task OnInitializedAsync()
 	{
-		checkInText = reservation.CheckIn.ToShortDateString();
-		checkOutText = reservation.CheckOut.ToShortDateString();
+		
 
 		reservation.CheckIn = DateTime.Now;
 		reservation.CheckOut = DateTime.Now.AddDays(1);
+		checkInText = reservation.CheckIn.ToShortDateString();
+		checkOutText = reservation.CheckOut.ToShortDateString();
 
 		customers = await CustomerService.GetCustomersAsync();
 		filteredCustomers = new List<CustomerViewModel>();
