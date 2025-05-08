@@ -5,6 +5,8 @@ using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using HoaP.Infrastructure.Repositories;
 using HoaP.Web.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -64,6 +66,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 
 });
+
+builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
 
 

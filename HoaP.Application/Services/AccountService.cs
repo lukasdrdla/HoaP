@@ -26,11 +26,6 @@ namespace HoaP.Application.Services
             return await _accountRepository.LoginAsync(model);
         }
 
-        public async Task<AppUser> FetchLoggedInUserAsync()
-        {
-            return await _accountRepository.FetchLoggedInUserAsync();
-        }
-
         public async Task UpdateUserAsync(UpdateEmployeeViewModel model)
         {
             await _accountRepository.UpdateUserProfileAsync(model);

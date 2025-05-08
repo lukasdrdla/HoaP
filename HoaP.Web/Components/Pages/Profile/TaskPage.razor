@@ -1,8 +1,12 @@
 ﻿@page "/ukoly"
 @using HoaP.Application.ViewModels.Task
+@using System.Security.Claims
 @inject AccountService AccountService
 @inject TaskService TaskService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 <div class="container mt-5">
     <div class="card border-0 shadow-sm mx-auto">
@@ -43,20 +47,43 @@
 @code {
     private string newTask;
     private List<TaskViewModel> tasks = new List<TaskViewModel>();
-    private AppUser user;
+	private string? userId;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        user = await AccountService.FetchLoggedInUserAsync();
-        tasks = await TaskService.GetTasksForEmployeeAsync(user.Id);
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: true })
+        {
+			var id = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+			userId = id;
+
+			if (!string.IsNullOrEmpty(userId))
+			{
+				tasks = await TaskService.GetTasksForEmployeeAsync(userId);
+			}
+			else
+			{
+				NavigationManager.NavigateTo("/login");
+			}
+
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
     }
 
     private async Task AddTask()
     {
-        if (!string.IsNullOrWhiteSpace(newTask))
+        if (!string.IsNullOrWhiteSpace(newTask) && !string.IsNullOrEmpty(userId))
         {
             var task = new TaskViewModel { Title = newTask, IsCompleted = false };
-            await TaskService.CreateTask(task, user.Id);
+            await TaskService.CreateTask(task, userId);
             tasks.Add(task);
             newTask = string.Empty;
         }
@@ -71,6 +98,6 @@
     private async Task DeleteTask(TaskViewModel task)
     {
         tasks.Remove(task);
-		await TaskService.DeleteTask(task.Id);
+        await TaskService.DeleteTask(task.Id);
     }
 }

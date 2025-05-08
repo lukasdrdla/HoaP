@@ -10,6 +10,7 @@ using HoaP.Application.ViewModels.Employee;
 using HoaP.Application.ViewModels.Role;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -21,29 +22,18 @@ namespace HoaP.Infrastructure.Repositories
         private readonly ApplicationDbContext _context;
         private readonly UserManager<AppUser> _userManager;
         private readonly SignInManager<AppUser> _signInManager;
-        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
         private readonly RoleManager<AppRole> _roleManager;
+        private readonly AuthenticationStateProvider _authenticationStateProvider;
 
-
-        public AccountRepository(ApplicationDbContext context, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IHttpContextAccessor httpContextAccessor, IMapper mapper, RoleManager<AppRole> roleManager)
+        public AccountRepository(ApplicationDbContext context, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IMapper mapper, RoleManager<AppRole> roleManager, AuthenticationStateProvider authenticationStateProvider)
         {
             _context = context;
             _userManager = userManager;
             _signInManager = signInManager;
-            _httpContextAccessor = httpContextAccessor;
             _mapper = mapper;
             _roleManager = roleManager;
-        }
-
-
-
-
-        public async Task<AppUser> FetchLoggedInUserAsync()
-        {
-            var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
-            
-            return user;
+            _authenticationStateProvider = authenticationStateProvider;
         }
 
         public async Task<List<RoleViewModel>> GetRolesAsync()

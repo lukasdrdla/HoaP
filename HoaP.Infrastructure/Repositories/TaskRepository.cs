@@ -53,7 +53,10 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task<List<TaskViewModel>> GetTasksForEmployeeAsync(string employeeId)
         {
-            var tasks = await _context.TaskItems.Where(t => t.EmployeeId == employeeId).ToListAsync();
+            var tasks = await _context.TaskItems
+                .Where(t => t.EmployeeId == employeeId)
+                .ToListAsync();
+
             return _mapper.Map<List<TaskViewModel>>(tasks);
 
         }

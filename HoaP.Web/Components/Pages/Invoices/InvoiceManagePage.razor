@@ -4,13 +4,14 @@
 @using HoaP.Application.ViewModels.Currency
 @using HoaP.Application.ViewModels.Invoice
 @using HoaP.Application.ViewModels.Payment
+@using System.Security.Claims
 @inject InvoiceService InvoiceService
 @inject NavigationManager NavigationManager
 @inject CustomerService CustomerService
 @inject ReservationService ReservationService
 @inject IMapper Mapper
 @inject CurrencyService CurrencyService
-@inject AccountService AccountService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(errorMessage))
@@ -179,6 +180,10 @@
 
     private InvoiceFormViewModel invoice { get; set; } = new InvoiceFormViewModel();
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+
     private List<ReservationViewModel> reservations { get; set; } = new List<ReservationViewModel>();
     private List<ReservationViewModel> filteredReservations { get; set; } = new List<ReservationViewModel>();
     private List<CurrencyViewModel> currencies { get; set; } = new List<CurrencyViewModel>();
@@ -234,15 +239,30 @@
 
         }
 
-
-
-
-
-
         reservations = await ReservationService.GetReservationsAsync();
         filteredReservations = new List<ReservationViewModel>();
-        var user = await AccountService.FetchLoggedInUserAsync();
-        invoice.UserId = user.Id;
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity is { IsAuthenticated: true })
+        {
+            var userId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                invoice.UserId = userId;
+            }
+            else
+            {
+                errorMessage = "Nepodařilo se zjistit ID uživatele.";
+                return;
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
 
 
         if (invoice.CurrencyId == 0 || !currencies.Any(c => c.Id == invoice.CurrencyId))
