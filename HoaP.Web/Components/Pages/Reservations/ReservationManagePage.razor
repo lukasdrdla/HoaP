@@ -214,7 +214,11 @@
 						<div class="form-group mb-3">
 							<label for="RoomId" class="form-label">Pokoj</label>
 							<div class="form-group position-relative">
-								<input type="text" class="form-control" placeholder="Hledat pokoj" @bind="searchRoomTerm" @bind:event="oninput" @bind:after="FilterRooms" @onblur="HideRoomList" />
+								<input type="text" class="form-control" placeholder="Hledat pokoj"
+								@bind="searchRoomTerm"
+								@bind:event="oninput"
+								@onfocus="ShowAllRooms"
+								@onblur="HideRoomList" />
 
 								@if (filteredRooms.Any())
 								{
@@ -247,19 +251,39 @@
 						<div class="col-md-6">
 							<label for="CheckIn" class="form-label">Check In</label>
 							<div class="input-group">
-								<input type="text" class="form-control" placeholder="Vyberte datum"
-									   value="@reservation.CheckIn.ToShortDateString()"
-									   @onclick="OpenCheckInCalendar" readonly style="cursor: pointer;" />
+								<InputText class="form-control"
+								@bind-Value="checkInText"
+								@oninput="ValidateCheckInText" />
+
+
+								<button type="button" class="btn btn-outline-secondary" @onclick="OpenCheckInCalendar">
+									<i class="bi bi-calendar"></i>
+								</button>
 							</div>
+
+							@if (isCheckInCalendarVisible)
+							{
+								<div class="calendar-overlay" @onclick="CloseCalendars">
+									<div class="calendar-popup" @onclick:stopPropagation>
+										<Picker DisableDates="unavailableDates" OnDateSelected="OnDateSelectIn" />
+									</div>
+								</div>
+							}
+
 						</div>
 
 						<div class="col-md-6">
 							<label for="CheckOut" class="form-label">Check Out</label>
 							<div class="input-group">
-								<input type="text" class="form-control" placeholder="Vyberte datum"
-									   value="@reservation.CheckOut.ToShortDateString()"
-									   @onclick="OpenCheckOutCalendar" readonly style="cursor: pointer;" />
+								<InputText class="form-control"
+										   @bind-Value="checkOutText"
+										   oninput="ValidateCheckOutText" />
+
+								<button type="button" class="btn btn-outline-secondary" @onclick="OpenCheckOutCalendar">
+									<i class="bi bi-calendar"></i>
+								</button>
 							</div>
+
 						</div>
 					</div>
 
@@ -459,21 +483,21 @@
 							<strong>@service.Name</strong><br />
 							<label>Množství:</label>
 							<input type="number" class="form-control"
-								   value="@selected.Quantity"
-								   @oninput="e => OnQuantityChanged(selected, e.Value?.ToString())" />
+							value="@selected.Quantity"
+							@oninput="e => OnQuantityChanged(selected, e.Value?.ToString())" />
 
 
 
 							<label>Cena za jednotku:</label>
 							<div class="input-group">
 								<input type="number" class="form-control"
-									   step="any"
-									   value="@selected.UnitPrice.ToString("0.##", CultureInfo.InvariantCulture)"
-									   @oninput="e => OnUnitPriceChanged(selected, e.Value?.ToString())" />
+								step="any"
+								value="@selected.UnitPrice.ToString("0.##", CultureInfo.InvariantCulture)"
+								@oninput="e => OnUnitPriceChanged(selected, e.Value?.ToString())" />
 								<span class="input-group-text">@GetCurrencySymbol()</span>
 							</div>
 
-				
+
 
 
 
@@ -506,23 +530,23 @@ OnCustomerAdded="OnCustomerAdded" />
 
 <style>
 	.calendar-overlay {
-		position: fixed;
-		top: 0;
-		left: 0;
-		width: 100vw;
-		height: 100vh;
-		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 2000;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 2000;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 	}
 
 	.calendar-popup {
-		background-color: white;
-		padding: 20px;
-		border-radius: 12px;
-		box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+	background-color: white;
+	padding: 20px;
+	border-radius: 12px;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 	}
 
 
@@ -539,6 +563,9 @@ OnCustomerAdded="OnCustomerAdded" />
 	public int? customerId { get; set; }
 	[Parameter]
 	public int? roomId { get; set; }
+
+	private string? checkInText;
+	private string? checkOutText;
 
 
 	private ReservationFormViewModel reservation = new ReservationFormViewModel();
@@ -603,9 +630,12 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void AddService(ServiceViewModel service)
 	{
-		var quantity = service.IsPerNight
-		? (int)(reservation.CheckOut - reservation.CheckIn).TotalDays
-		: 1;
+		int numberOfNights = (int)(reservation.CheckOut - reservation.CheckIn).TotalDays;
+		int numberOfGuests = reservation.Adults + reservation.Children;
+
+		int quantity = service.IsPerNight
+			? numberOfGuests * numberOfNights
+			: 1; // nebo jiné pravidlo pro jednorázové služby
 
 		var baseCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
 		var currentCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
@@ -623,9 +653,9 @@ OnCustomerAdded="OnCustomerAdded" />
 				IsPerNight = service.IsPerNight
 			});
 
-
-	CalculateTotalPrice();
+		CalculateTotalPrice();
 	}
+
 
 
 
@@ -645,6 +675,15 @@ OnCustomerAdded="OnCustomerAdded" />
 		return currency?.Symbol ?? "";
 	}
 
+	private void ShowAllRooms()
+	{
+		searchRoomTerm = string.Empty;
+		filteredRooms = rooms
+			.Where(x => x.IsDisable == false)
+			.ToList();
+	}
+
+
 
 
 
@@ -659,6 +698,9 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	protected override async Task OnInitializedAsync()
 	{
+		checkInText = reservation.CheckIn.ToShortDateString();
+		checkOutText = reservation.CheckOut.ToShortDateString();
+
 		reservation.CheckIn = DateTime.Now;
 		reservation.CheckOut = DateTime.Now.AddDays(1);
 
@@ -716,6 +758,37 @@ OnCustomerAdded="OnCustomerAdded" />
 		}
 
 	}
+
+	private void ValidateCheckInText(ChangeEventArgs e)
+	{
+		checkInText = e.Value?.ToString() ?? "";
+		if (DateTime.TryParse(checkInText, out var date))
+		{
+			reservation.CheckIn = date;
+			CalculateTotalPrice();
+		}
+		else
+		{
+			checkInText = reservation.CheckIn.ToShortDateString();
+		}
+	}
+
+	private void ValidateCheckOutText(ChangeEventArgs e)
+	{
+		checkOutText = e.Value?.ToString() ?? "";
+		if (DateTime.TryParse(checkOutText, out var date))
+		{
+			reservation.CheckOut = date;
+			CalculateTotalPrice();
+		}
+		else
+		{
+			checkOutText = reservation.CheckOut.ToShortDateString();
+		}
+	}
+
+
+
 
 	private void FilterGuestCustomers()
 	{
@@ -849,6 +922,9 @@ OnCustomerAdded="OnCustomerAdded" />
 
 		selectedRoom = room;
 		await OnRoomSelected();
+		CalculateTotalPrice();
+		StateHasChanged();      // vynutí rerender stránky
+
 	}
 
 	private void SelectRoomByRoom(RoomViewModel room)
@@ -858,6 +934,7 @@ OnCustomerAdded="OnCustomerAdded" />
 		searchRoomTerm = $"{room.RoomNumber}";
 		filteredRooms.Clear();
 		CalculateTotalPrice();
+
 	}
 
 	private void CalculateTotalPrice()
@@ -962,11 +1039,13 @@ OnCustomerAdded="OnCustomerAdded" />
 		if (date.HasValue)
 		{
 			reservation.CheckOut = date.Value;
+			checkOutText = date.Value.ToShortDateString();
+			CalculateTotalPrice();
 		}
 		isCheckOutCalendarVisible = false;
 		isCheckOutCalendarVisibleFromDateFirst = false;
-		CalculateTotalPrice();
 	}
+
 
 	private async Task LoadAvailableRooms()
 	{
@@ -1049,19 +1128,19 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private void FilterRooms()
 	{
-
 		var term = searchRoomTerm ?? string.Empty;
 
 		filteredRooms = rooms
 			.Where(x => x.IsDisable == false &&
-						(x.RoomNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+						(string.IsNullOrEmpty(term) ||
+							x.RoomNumber.Contains(term, StringComparison.OrdinalIgnoreCase) ||
 							x.RoomTypeName.Contains(term, StringComparison.OrdinalIgnoreCase) ||
 							x.Price.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
 							x.MaxAdults.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
-							x.MaxChildren.ToString().Contains(term, StringComparison.OrdinalIgnoreCase) ||
 							x.MaxChildren.ToString().Contains(term, StringComparison.OrdinalIgnoreCase)))
 			.ToList();
 	}
+
 
 
 	private void FilterRoomsByDate()
