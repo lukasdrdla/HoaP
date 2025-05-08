@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 
 
-<AuthorizeView>
+@* <AuthorizeView>
     <Authorized>
         <div class="page">
             <div class="sidebar">
@@ -26,7 +26,20 @@
             @Body
         }
     </NotAuthorized>
-</AuthorizeView>
+</AuthorizeView> *@
+
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <main>
+        <article class="content px-4">
+            <TopBar />
+            @Body
+        </article>
+    </main>
+</div>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
