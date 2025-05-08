@@ -189,7 +189,7 @@ namespace HoaP.Infrastructure.Data
             modelBuilder.Entity<Currency>().HasData(
                 new Currency { Id = 1, Name = "Americký dolar", Symbol = "$", Code = "USD", Rate = 22.50m },
                 new Currency { Id = 2, Name = "Euro", Symbol = "€", Code = "EUR", Rate = 24.80m },
-                new Currency { Id = 5, Name = "Česká koruna", Symbol = "Kč", Code = "CZK", Rate = 1.00m }
+                new Currency { Id = 3, Name = "Česká koruna", Symbol = "Kč", Code = "CZK", Rate = 1.00m }
             );
 
 
@@ -232,10 +232,10 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<Room>().HasData(
-                new Room { Id = 1, RoomNumber = "101", RoomTypeId = 1, RoomStatusId = 1, Description = "Jednolůžkový pokoj s výhledem na zahradu", Price = 2200, MaxAdults = 1, MaxChildren = 0 },
-                new Room { Id = 2, RoomNumber = "102", RoomTypeId = 2, RoomStatusId = 1, Description = "Dvoulůžkový pokoj", Price = 2700, MaxAdults = 2, MaxChildren = 1 },
-                new Room { Id = 3, RoomNumber = "103", RoomTypeId = 3, RoomStatusId = 1, Description = "Třílůžkový pokoj s výhledem na moře", Price = 3800, MaxAdults = 3, MaxChildren = 2 },
-                new Room { Id = 4, RoomNumber = "104", RoomTypeId = 4, RoomStatusId = 1, Description = "Rodinný pokoj", Price = 4500, MaxAdults = 4, MaxChildren = 3 }
+                new Room { Id = 1, RoomNumber = "101", RoomTypeId = 1, RoomStatusId = 1, Description = "Jednolůžkový pokoj s výhledem na zahradu", Price = 2200, CurrencyId = 3, MaxAdults = 1, MaxChildren = 0 },
+                new Room { Id = 2, RoomNumber = "102", RoomTypeId = 2, RoomStatusId = 1, Description = "Dvoulůžkový pokoj", Price = 2700, MaxAdults = 2, CurrencyId = 3, MaxChildren = 1 },
+                new Room { Id = 3, RoomNumber = "103", RoomTypeId = 3, RoomStatusId = 1, Description = "Třílůžkový pokoj s výhledem na moře", Price = 3800, CurrencyId = 3, MaxAdults = 3, MaxChildren = 2 },
+                new Room { Id = 4, RoomNumber = "104", RoomTypeId = 4, RoomStatusId = 1, Description = "Rodinný pokoj", Price = 4500, MaxAdults = 4, MaxChildren = 3, CurrencyId = 3 }
             );
 
             modelBuilder.Entity<Customer>().HasData(
@@ -252,19 +252,17 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
-                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
-                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
-                new Reservation { Id = 4, RoomId = 4, CheckIn = new DateTime(2025, 1, 5), CheckOut = new DateTime(2025, 1, 13), TotalPrice = 22500, ReservationStatusId = 1, CustomerId = 4, Adults = 4, Children = 3, MealPlanId = 4, SpecialRequest = "Elktro mobil", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 },
-                new Reservation { Id = 5, RoomId = 1, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 5), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 5, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 5 }
+                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 },
+                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 },
+                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 }
                 );
 
             modelBuilder.Entity<Invoice>().HasData(
-                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 5, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
+                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
+                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
                 );
             modelBuilder.Entity<Service>().HasData(
                 new Service { Id = 1, Name = "Wellness vstup", Price = 500, IsPerNight = false },
@@ -276,9 +274,7 @@ namespace HoaP.Infrastructure.Data
             modelBuilder.Entity<InvoiceReservation>().HasData(
                 new InvoiceReservation { Id = 1, InvoiceId = 1, ReservationId = 1},
                 new InvoiceReservation { Id = 2, InvoiceId = 2, ReservationId = 2},
-                new InvoiceReservation { Id = 3, InvoiceId = 3, ReservationId = 3 },
-                new InvoiceReservation { Id = 4, InvoiceId = 4, ReservationId = 4},
-                new InvoiceReservation { Id = 5, InvoiceId = 5, ReservationId = 5}
+                new InvoiceReservation { Id = 3, InvoiceId = 3, ReservationId = 3 }
             );
 
 
@@ -295,6 +291,7 @@ namespace HoaP.Infrastructure.Data
                 new ReservationCustomer { Id = 4, ReservationId = 2, CustomerId = 7, IsMainGuest = false },
                 new ReservationCustomer { Id = 5, ReservationId = 3, CustomerId = 3, IsMainGuest = true },
                 new ReservationCustomer { Id = 6, ReservationId = 3, CustomerId = 8, IsMainGuest = false }
+
             );
 
             modelBuilder.Entity<InvoiceItem>().HasData(
@@ -303,6 +300,20 @@ namespace HoaP.Infrastructure.Data
                 new InvoiceItem { Id = 3, InvoiceId = 2, Description = "Pokoj 102 (minibar)", Price = 13500 },
                 new InvoiceItem { Id = 4, InvoiceId = 2, Description = "Bar", Price = 2500 }
             );
+
+            modelBuilder.Entity<Payment>().HasData(
+                new Payment { Id = Guid.NewGuid(), InvoiceId = 1, TotalAmount = 7100, PaymentDate = DateTime.Now.AddDays(-5), PaymentMethodId = 1, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+                new Payment { Id = Guid.NewGuid(), InvoiceId = 2, TotalAmount = 16000, PaymentDate = DateTime.Now.AddDays(-10), PaymentMethodId = 2, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+            );
+
+            modelBuilder.Entity<Review>().HasData(
+                new Review { Id = 1, CustomerId = 1, RoomId = 1, Rating = 5, Comment = "Skvělý pobyt, čistota na jedničku!", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+                new Review { Id = 2, CustomerId = 2, RoomId = 2, Rating = 4, Comment = "Příjemný personál a dobré jídlo.", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+                new Review { Id = 3, CustomerId = 3, RoomId = 3, Rating = 3, Comment = "Hezký pokoj, ale trochu hlučný soused.", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+            );
+
+
+
 
 
 
