@@ -93,29 +93,27 @@ namespace HoaP.Infrastructure.Repositories
             return _mapper.Map<List<EmployeeViewModel>>(employees);
         }
 
-        public async Task UpdateEmployeeAsync(EmployeeFormViewModel employee)
+        public async Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee)
         {
             var existingEmployee = await _context.Users.FindAsync(employee.Id);
 
             if (existingEmployee == null)
-            {
                 return;
-            }
 
+            // Update role
             var currentRoles = await _userManager.GetRolesAsync(existingEmployee);
             await _userManager.RemoveFromRolesAsync(existingEmployee, currentRoles);
+
             var role = await _roleManager.FindByIdAsync(employee.RoleId);
             if (role != null)
-            {
                 await _userManager.AddToRoleAsync(existingEmployee, role.Name);
-            }
-
             _mapper.Map(employee, existingEmployee);
+
+
+
+            // Uložení změn
             _context.Users.Update(existingEmployee);
             await _context.SaveChangesAsync();
-
-
-
         }
     }
 }

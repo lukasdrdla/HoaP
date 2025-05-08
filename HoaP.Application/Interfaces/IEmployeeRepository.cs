@@ -13,7 +13,7 @@ namespace HoaP.Application.Interfaces
         Task<DetailEmployeeViewModel> GetEmployeeByIdAsync(string id);
         Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email);
 
-        Task UpdateEmployeeAsync(EmployeeFormViewModel employee);
+        Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee);
 
         Task DeleteEmployeeAsync(string id);
     }

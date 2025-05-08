@@ -1,5 +1,4 @@
-﻿@page "/spravovat-zamestnance/{Id}"
-@page "/vytvorit-zamestnance"
+﻿@page "/vytvorit-zamestnance"
 @using Microsoft.AspNetCore.Identity
 @inject NavigationManager NavigationManager
 @inject InsuranceCompanyService InsuranceCompanyService
@@ -11,8 +10,6 @@
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin, Manager")]
 
-
-
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">
@@ -20,11 +17,10 @@
     </div>
 }
 
-
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
-            <h3 class="card-title text-center mb-4 page-title">@(Id == null ? "Vytvořit zaměstnance" : "Upravit zaměstnance")</h3>
+            <h3 class="card-title text-center mb-4 page-title">Vytvořit zaměstnance</h3>
             <EditForm Model="employee" OnValidSubmit="HandleValidSubmit" FormName="AddCustomer">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
@@ -32,7 +28,7 @@
                     <div class="col-md-6">
                         <label for="profilePicture" class="form-label">Profilový obrázek</label>
                         <InputFile id="profilePicture" class="form-control" OnChange="HandleFileSelected" />
-						<p>@message</p>
+                        <p>@message</p>
                     </div>
 
                     <div class="col-md-6">
@@ -40,12 +36,12 @@
                         <InputText id="Email" class="form-control" @bind-Value="employee.Email" />
                     </div>
                 </div>
+
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="insurenceId" class="form-label">Pojištovna</label>
                         <div class="form-group position-relative">
                             <input type="text" class="form-control" placeholder="Hledat pojištovnu.." @bind="searchTerm" @oninput="OnInputChange" @onblur="HideCompanyList" />
-
                             @if (filteredInsuranceCompanies.Any())
                             {
                                 <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
@@ -71,35 +67,28 @@
                 </div>
 
                 <div class="mb-3 row">
-                 
-					<div class="col-md-12">
-						<label for="username" class="form-label">Uživatelské jméno</label>
-						<InputText id="username" class="form-control" @bind-Value="employee.UserName" />
+                    <div class="col-md-12">
+                        <label for="username" class="form-label">Uživatelské jméno</label>
+                        <InputText id="username" class="form-control" @bind-Value="employee.UserName" />
                     </div>
-               </div>
+                </div>
 
-
-                @if(Id == null)
-                {
-                    <div class="mb-3 row">
-                        <div class="col-md-6">
-                            <label for="password" class="form-label">Heslo</label>
-                            <InputText id="password" class="form-control" type="password" @bind-Value="employee.Password" />
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="confirmPassword" class="form-label">Potvrďte heslo</label>
-                            <InputText id="confirmPassword" class="form-control" type="password" @bind-Value="employee.ConfirmPassword" />
-                        </div>
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Heslo</label>
+                        <InputText id="password" class="form-control" type="password" @bind-Value="employee.Password" />
                     </div>
-                }
+                    <div class="col-md-6">
+                        <label for="confirmPassword" class="form-label">Potvrďte heslo</label>
+                        <InputText id="confirmPassword" class="form-control" type="password" @bind-Value="employee.ConfirmPassword" />
+                    </div>
+                </div>
 
                 <div class="mb-3 row">
                     <div class="col-md-6">
                         <label for="firstName" class="form-label">Jméno</label>
                         <InputText id="firstName" class="form-control" @bind-Value="employee.FirstName" />
                     </div>
-
                     <div class="col-md-6">
                         <label for="lastName" class="form-label">Příjmení</label>
                         <InputText id="lastName" class="form-control" @bind-Value="employee.LastName" />
@@ -111,12 +100,10 @@
                         <label for="personalId" class="form-label">Osobní číslo</label>
                         <InputText id="personalId" class="form-control" @bind-Value="employee.PersonalIdentificationNumber" />
                     </div>
-
                     <div class="col-md-6">
                         <label for="phoneNumber" class="form-label">Telefon</label>
                         <InputText id="phoneNumber" class="form-control" @bind-Value="employee.PhoneNumber" />
                     </div>
-
                 </div>
 
                 <div class="mb-3 row">
@@ -135,7 +122,6 @@
                         <label for="city" class="form-label">Město</label>
                         <InputText id="city" class="form-control" @bind-Value="employee.City" />
                     </div>
-
                     <div class="col-md-6">
                         <label for="postalCode" class="form-label">PSČ</label>
                         <InputText id="postalCode" class="form-control" @bind-Value="employee.PostalCode" />
@@ -147,7 +133,6 @@
                         <label for="country" class="form-label">Země</label>
                         <InputText id="country" class="form-control" @bind-Value="employee.Country" />
                     </div>
-
                     <div class="col-md-6">
                         <label for="jobTitle" class="form-label">Pozice</label>
                         <InputText id="jobTitle" class="form-control" @bind-Value="employee.JobTitle" />
@@ -175,11 +160,7 @@
                             }
                         </InputSelect>
                     </div>
-
-
-                   
                 </div>
-
 
                 <div class="mb-3">
                     <label class="form-check-label">
@@ -188,16 +169,8 @@
                     </label>
                 </div>
 
-
-
-
-
-
-
-
-
                 <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">@(Id == null ? "Vytvořit" : "Uložit")</button>
+                    <button type="submit" class="btn btn-primary">Vytvořit</button>
                     <a href="/zamestnanci" class="btn btn-outline-secondary">Zpět na seznam</a>
                 </div>
             </EditForm>
@@ -205,82 +178,51 @@
     </div>
 </div>
 
-
-
-
 @code {
-    [Parameter]
-    public string? Id { get; set; }
-
-    [SupplyParameterFromForm]
     private EmployeeFormViewModel employee { get; set; } = new EmployeeFormViewModel();
-    private List<InsuranceCompanyViewModel> insuranceCompanies = new List<InsuranceCompanyViewModel>();
+    private List<InsuranceCompanyViewModel> insuranceCompanies = new();
     private string searchTerm = string.Empty;
-    private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
+    private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new();
     private List<RoleViewModel> roles = new();
-    private string? selectedRoleId;
     private List<CurrencyViewModel> currencies = new();
 
-
-
     private byte[] profilePictureBytes;
-	private string message;
-
-	private string? errorMessage;
+    private string message;
+    private string? errorMessage;
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-		var file = e.File;
-        try {
-			profilePictureBytes = await FileUploadService.HandleFileUploadAsync(file);
-			employee.ProfilePicture = profilePictureBytes;
-
-			message = "Obrázek byl úspěšně nahrán.";
+        var file = e.File;
+        try
+        {
+            profilePictureBytes = await FileUploadService.HandleFileUploadAsync(file);
+            employee.ProfilePicture = profilePictureBytes;
+            message = "Obrázek byl úspěšně nahrán.";
         }
-		catch (Exception ex)
-		{
-			message = "Nahrání obrázku selhalo.";
+        catch
+        {
+            message = "Nahrání obrázku selhalo.";
         }
-
     }
 
-	private string GetCurrencySymbol()
-	{
-		var currency = currencies.FirstOrDefault(c => c.Id == employee.CurrencyId);
-		return currency != null ? currency.Symbol : string.Empty;
-	}
-
+    private string GetCurrencySymbol()
+    {
+        var currency = currencies.FirstOrDefault(c => c.Id == employee.CurrencyId);
+        return currency != null ? currency.Symbol : string.Empty;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         insuranceCompanies = await InsuranceCompanyService.GetInsuranceCompaniesAsync();
-        filteredInsuranceCompanies = new List<InsuranceCompanyViewModel>();
         roles = await AccountService.GetRolesAsync();
-		currencies = await CurrencyService.GetCurrenciesAsync();
+        currencies = await CurrencyService.GetCurrenciesAsync();
         employee.CurrencyId = currencies.FirstOrDefault(c => c.Code == "CZK")?.Id ?? 0;
-		employee.IsEmployed = true;
-
-        if (Id != null)
-        {
-            employee = Mapper.Map<EmployeeFormViewModel>(await EmployeeService.GetEmployeeByIdAsync(Id));
-			var company = await InsuranceCompanyService.GetInsuranceCompanyByIdAsync(employee.InsuranceCompanyId);
-			searchTerm = company.Name;
-            Console.WriteLine($"DEBUG - Loaded role: {employee.RoleId}");
-
-
-
-        }
-
-		
-
-        
+        employee.IsEmployed = true;
     }
-
-	
 
     private void OnInputChange(ChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
+        searchTerm = e.Value?.ToString() ?? string.Empty;
         filteredInsuranceCompanies = insuranceCompanies.Where(x => x.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
@@ -298,29 +240,24 @@
 
     private async Task HandleValidSubmit()
     {
-       
-		try {
-
-            if (Id == null)
+        try
+        {
+            if (string.IsNullOrWhiteSpace(employee.Password) || employee.Password != employee.ConfirmPassword)
             {
-                await AccountService.RegisterEmployeeAsync(employee);
-            }
-            else
-            {
-                await EmployeeService.UpdateEmployeeAsync(employee);
+                errorMessage = "Heslo je povinné a musí se shodovat.";
+                return;
             }
 
-
+            await AccountService.RegisterEmployeeAsync(employee);
             NavigationManager.NavigateTo("/zamestnanci");
         }
-		catch (DbUpdateException dbEx)
-		{
-			errorMessage = "Chyba při aktualizaci databáze. Zkontrolujte, zda jsou všechny povinné údaje vyplněny správně.";
-		}
-		catch (Exception ex)
-		{
-			errorMessage = "Nastala chyba při zpracování požadavku.: " + errorMessage;
-		}
+        catch (DbUpdateException)
+        {
+            errorMessage = "Chyba při aktualizaci databáze. Zkontrolujte, zda jsou všechny povinné údaje vyplněny správně.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Nastala chyba při zpracování požadavku: " + ex.Message;
+        }
     }
-
 }

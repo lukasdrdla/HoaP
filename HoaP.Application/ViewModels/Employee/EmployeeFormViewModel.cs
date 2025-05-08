@@ -24,17 +24,15 @@ namespace HoaP.Application.ViewModels.Employee
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Zadejte heslo.")]
         [StringLength(100, ErrorMessage = "Heslo musí mít alespoň {2} znaků.", MinimumLength = 8)]
         [RegularExpression(@"^(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
     ErrorMessage = "Heslo musí obsahovat minimálně 1 velké písmeno, 1 číslo a 1 speciální znak.")]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = "";
+        public string? Password { get; set; }
 
-        [Required(ErrorMessage = "Potvrďte heslo.")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Hesla se neshodují.")]
-        public string ConfirmPassword { get; set; } = "";
+        public string? ConfirmPassword { get; set; }
 
 
         [Required]

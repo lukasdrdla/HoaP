@@ -29,7 +29,7 @@ namespace HoaP.Application.Services
             return await _employeeRepository.GetEmployeeByIdAsync(id);
         }
 
-        public async Task UpdateEmployeeAsync(EmployeeFormViewModel employee)
+        public async Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee)
         {
             await _employeeRepository.UpdateEmployeeAsync(employee);
         }

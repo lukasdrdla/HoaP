@@ -1,0 +1,275 @@
+﻿@page "/upravit-zamestnance/{Id}"
+@inject NavigationManager NavigationManager
+@inject InsuranceCompanyService InsuranceCompanyService
+@inject CurrencyService CurrencyService
+@inject AccountService AccountService
+@inject EmployeeService EmployeeService
+@inject IFileUploadService FileUploadService
+@inject IMapper Mapper
+@attribute [Authorize(Roles = "Admin, Manager")]
+@rendermode InteractiveServer
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">
+        <strong>Chyba:</strong> @errorMessage
+    </div>
+}
+
+@if (employee != null)
+{
+    <div class="container mt-2">
+        <div class="card border-0 shadow-sm mx-auto">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4 page-title">Upravit zaměstnance</h3>
+                <EditForm Model="employee" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="profilePicture" class="form-label">Profilový obrázek</label>
+                            @if (!string.IsNullOrEmpty(profileImageBase64))
+                            {
+                                <div class="mt-2">
+                                    <img src="@profileImageBase64" class="img-thumbnail" style="max-height: 150px;" />
+                                </div>
+                            }
+                            <InputFile id="profilePicture" class="form-control" OnChange="HandleFileSelected" />
+                            
+                            <p>@message</p>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="Email" class="form-label">Email</label>
+                            <InputText id="Email" class="form-control" @bind-Value="employee.Email" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="insurenceId" class="form-label">Pojišťovna</label>
+                            <div class="form-group position-relative">
+                                <input type="text" class="form-control" placeholder="Hledat pojišťovnu.." @bind="searchTerm" @oninput="OnInputChange" @onblur="HideCompanyList" />
+
+                                @if (filteredInsuranceCompanies.Any())
+                                {
+                                    <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
+                                        @foreach (var company in filteredInsuranceCompanies)
+                                        {
+                                            <li class="list-group-item list-group-item-action" @onmousedown="@(() => SelectCompany(company))">@company.Name</li>
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="role" class="form-label">Role</label>
+                            <select id="role" class="form-select" @bind="employee.RoleId">
+                                <option value="">Vyberte roli</option>
+                                @foreach (var role in roles)
+                                {
+                                    <option value="@role.Id">@role.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-12">
+                            <label for="username" class="form-label">Uživatelské jméno</label>
+                            <InputText id="username" class="form-control" @bind-Value="employee.UserName" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="firstName" class="form-label">Jméno</label>
+                            <InputText id="firstName" class="form-control" @bind-Value="employee.FirstName" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lastName" class="form-label">Příjmení</label>
+                            <InputText id="lastName" class="form-control" @bind-Value="employee.LastName" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="personalId" class="form-label">Osobní číslo</label>
+                            <InputText id="personalId" class="form-control" @bind-Value="employee.PersonalIdentificationNumber" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="phoneNumber" class="form-label">Telefon</label>
+                            <InputText id="phoneNumber" class="form-control" @bind-Value="employee.PhoneNumber" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="placeOfBirth" class="form-label">Místo narození</label>
+                            <InputText id="placeOfBirth" class="form-control" @bind-Value="employee.PlaceOfBirth" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="address" class="form-label">Adresa</label>
+                            <InputText id="address" class="form-control" @bind-Value="employee.Address" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="city" class="form-label">Město</label>
+                            <InputText id="city" class="form-control" @bind-Value="employee.City" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="postalCode" class="form-label">PSČ</label>
+                            <InputText id="postalCode" class="form-control" @bind-Value="employee.PostalCode" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-6">
+                            <label for="country" class="form-label">Země</label>
+                            <InputText id="country" class="form-control" @bind-Value="employee.Country" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="jobTitle" class="form-label">Pozice</label>
+                            <InputText id="jobTitle" class="form-control" @bind-Value="employee.JobTitle" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Datum začátku</label>
+                            <InputDate id="startDate" class="form-control" @bind-Value="employee.StartDate" />
+                        </div>
+                        <div class="col-md-6">
+                            <label for="salary" class="form-label">Plat</label>
+                            <div class="input-group">
+                                <InputNumber id="salary" class="form-control" @bind-Value="employee.Salary" />
+                                <span class="input-group-text">@GetCurrencySymbol()</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="CurrencyId" class="form-label">Měna</label>
+                            <InputSelect id="CurrencyId" class="form-select" @bind-Value="employee.CurrencyId">
+                                @foreach (var currency in currencies)
+                                {
+                                    <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
+                                }
+                            </InputSelect>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-check-label">
+                            <InputCheckbox class="form-check-input" @bind-Value="employee.IsEmployed" />
+                            Zaměstnán
+                        </label>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary">Uložit</button>
+                        <a href="/zamestnanci" class="btn btn-outline-secondary">Zpět na seznam</a>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <p>Načítání...</p>
+}
+
+@code {
+    [Parameter] public string Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private UpdateEmployeeViewModel employee { get; set; } = new UpdateEmployeeViewModel();
+    private List<RoleViewModel> roles = new();
+    private List<CurrencyViewModel> currencies = new();
+    private List<InsuranceCompanyViewModel> insuranceCompanies = new();
+    private List<InsuranceCompanyViewModel> filteredInsuranceCompanies = new();
+    private string searchTerm = "";
+    private string? message;
+    private string? errorMessage;
+	private string? profileImageBase64;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            roles = await AccountService.GetRolesAsync();
+            currencies = await CurrencyService.GetCurrenciesAsync();
+            insuranceCompanies = await InsuranceCompanyService.GetInsuranceCompaniesAsync();
+
+            var detail = await EmployeeService.GetEmployeeByIdAsync(Id);
+            employee = Mapper.Map<UpdateEmployeeViewModel>(detail);
+            searchTerm = insuranceCompanies.FirstOrDefault(c => c.Id == employee.InsuranceCompanyId)?.Name ?? "";
+
+            if (employee.ProfilePicture != null && employee.ProfilePicture.Length > 0)
+            {
+                profileImageBase64 = $"data:image/png;base64,{Convert.ToBase64String(employee.ProfilePicture)}";
+            }
+
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Chyba při načítání dat: {ex.Message}";
+        }
+    }
+
+    private string GetCurrencySymbol()
+    {
+        var currency = currencies.FirstOrDefault(c => c.Id == employee?.CurrencyId);
+        return currency?.Symbol ?? "";
+    }
+
+    private void OnInputChange(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        filteredInsuranceCompanies = insuranceCompanies
+            .Where(c => c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private void HideCompanyList() => filteredInsuranceCompanies.Clear();
+
+    private void SelectCompany(InsuranceCompanyViewModel company)
+    {
+        employee!.InsuranceCompanyId = company.Id;
+        searchTerm = company.Name;
+        filteredInsuranceCompanies.Clear();
+    }
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            var result = await FileUploadService.HandleFileUploadAsync(file);
+            employee!.ProfilePicture = result;
+            profileImageBase64 = $"data:image/png;base64,{Convert.ToBase64String(result)}";
+
+            message = "Obrázek byl nahrán.";
+        }
+        catch
+        {
+            message = "Nahrání obrázku selhalo.";
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            await EmployeeService.UpdateEmployeeAsync(employee!);
+            NavigationManager.NavigateTo("/zamestnanci");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Chyba při ukládání: {ex.Message}";
+        }
+    }
+}
