@@ -119,7 +119,6 @@
     private DetailCustomerViewModel customer { get; set; } = new DetailCustomerViewModel();
     private List<ReservationViewModel> reservations = new List<ReservationViewModel>();
     private List<ReservationViewModel> filteredReservations = new List<ReservationViewModel>();
-    private string? searchTerm;
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 10 };
 
     private bool isDeleteModalVisible = false;

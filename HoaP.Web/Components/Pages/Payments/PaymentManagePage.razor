@@ -191,7 +191,7 @@
             }
             NavigationManager.NavigateTo("/platby");
         }
-		catch (DbUpdateException dbEx)
+		catch (DbUpdateException)
 		{
 			errorMessage = "Nepodařilo se uložit platbu do databáze. Zkuste to prosím znovu.";
 		}

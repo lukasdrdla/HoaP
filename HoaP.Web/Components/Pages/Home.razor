@@ -179,10 +179,6 @@
         {
             selectedDayBookings = selectedDayBookings.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-        else
-        {
-            selectedDayBookings = selectedDayBookings;
-        }
 
     }
 

@@ -263,7 +263,7 @@
 
             NavigationManager.NavigateTo("/pokoje");
         }
-        catch (DbUpdateException dbEx)
+        catch (DbUpdateException)
         {
             errorMessage = "Nepodařilo se uložit rezervaci do databáze. Zkuste to prosím znovu.";
         }
@@ -274,7 +274,7 @@
 
     }
 
-    private async Task SearchRoom(ChangeEventArgs e)
+    private void SearchRoom(ChangeEventArgs e)
     {
         searchTerm = e.Value.ToString();
 		if (!string.IsNullOrWhiteSpace(searchTerm))

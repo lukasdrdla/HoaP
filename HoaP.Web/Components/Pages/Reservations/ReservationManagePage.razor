@@ -1010,7 +1010,7 @@ OnCustomerAdded="OnCustomerAdded" />
 
 			NavigationManager.NavigateTo("/rezervace");
 		}
-		catch (DbUpdateException dbEx)
+		catch (DbUpdateException)
 		{
 			errorMessage = "Chyba při ukládání rezervace. Zkontrolujte, zda jsou všechna pole vyplněna správně.";
 		}

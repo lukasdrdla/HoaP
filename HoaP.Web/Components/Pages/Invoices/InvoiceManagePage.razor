@@ -305,7 +305,7 @@
         filteredReservations.Clear();
 
         UpdateOriginalPrice();
-        _ = RecalculatePrice();
+        RecalculatePrice();
     }
 
     private void UpdateOriginalPrice()
@@ -323,7 +323,7 @@
     private void RemoveItem(InvoiceItemViewModel item)
     {
         invoice.Items.Remove(item);
-        _ = RecalculatePrice();
+        RecalculatePrice();
     }
 
 
@@ -344,7 +344,7 @@
 
             NavigationManager.NavigateTo("/faktury");
         }
-		catch (DbUpdateException dbEx)
+		catch (DbUpdateException)
 		{
 			errorMessage = "Nepodařilo se uložit fakturu do databáze.Zkuste to prosím znovu.";
         }
@@ -355,7 +355,7 @@
 
     }
 
-    private async Task SearchReservation(ChangeEventArgs e)
+    private void SearchReservation(ChangeEventArgs e)
     {
         searchTerm = e.Value?.ToString() ?? "";
 
@@ -370,13 +370,13 @@
     }
 
 
-    private async void HideReservationList()
+    private void HideReservationList()
     {
         filteredReservations.Clear();
     }
 
  
-    private async Task OnCurrencyChange(ChangeEventArgs e)
+    private void OnCurrencyChange(ChangeEventArgs e)
     {
         var newCurrencyId = int.Parse(e.Value.ToString());
         var newCurrency = currencies.FirstOrDefault(c => c.Id == newCurrencyId);
@@ -398,12 +398,12 @@
         invoice.CurrencyId = newCurrencyId;
         lastCurrencyId = newCurrencyId;
 
-        await RecalculatePrice();
+        RecalculatePrice();
     }
 
 
 
-    private async Task RecalculatePrice()
+    private void RecalculatePrice()
     {
         var selectedCurrency = currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId);
         if (selectedCurrency is null || selectedCurrency.Rate <= 0)

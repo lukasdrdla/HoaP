@@ -114,7 +114,6 @@
     private List<RoomType> RoomTypes = new List<RoomType>();
     private List<RoomStatus> RoomStatuses = new List<RoomStatus>();
     private ICollection<RoomViewModel> filteredRooms;
-    private bool isAvailable;
     private int? VisibleRoomId { get; set; } = null;
 	private ElementReference optionsMenu;
 
@@ -123,9 +122,7 @@
 
     private bool isModalVisible = false;
     private int deleteRoomId;
-    private string Title;
-    private string modalMessage;
-    private string ActionType;
+
 
 
     private void NavigateToSettingRoomPage()
