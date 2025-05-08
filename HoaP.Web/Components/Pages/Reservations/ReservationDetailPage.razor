@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
+@attribute [Authorize]
 
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">

@@ -10,7 +10,8 @@
 @inject IFileUploadService FileUploadService
 @inject IMapper Mapper
 @rendermode InteractiveServer
-@attribute [Authorize(Roles = "Admin, Manager")]
+@attribute [Authorize]
+
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {

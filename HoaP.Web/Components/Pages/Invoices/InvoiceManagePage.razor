@@ -13,6 +13,7 @@
 @inject CurrencyService CurrencyService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {

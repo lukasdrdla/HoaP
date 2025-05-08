@@ -5,6 +5,7 @@
 @inject CurrencyService CurrencyService
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 
 @if (!string.IsNullOrEmpty(ErrorMessage))

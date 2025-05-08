@@ -2,6 +2,7 @@
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
+@attribute [Authorize]
 
 
 @if (!string.IsNullOrEmpty(errorMessage))

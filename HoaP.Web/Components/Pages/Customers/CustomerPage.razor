@@ -3,6 +3,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
 
 <div class="container mt-5" @onmousedown="HideOptions">
     <div class="row">

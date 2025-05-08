@@ -9,6 +9,7 @@
 @inject IMapper Mapper
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {

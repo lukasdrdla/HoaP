@@ -3,6 +3,7 @@
 @inject ReservationService ReservationService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
+@attribute [Authorize]
 
 <div class="container mt-4">
     @if (customer == null)

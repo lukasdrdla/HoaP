@@ -4,6 +4,8 @@
 @inject IJSRuntime jsRuntime
 @inject NavigationManager NavigationManager
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
+@attribute [Authorize]
+
 
 
 <style>
