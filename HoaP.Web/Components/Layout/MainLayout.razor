@@ -2,46 +2,31 @@
 @inject NavigationManager NavigationManager
 
 
-@* <CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <div class="page">
-                <div class="sidebar">
-                    <NavMenu />
-                </div>
-                <main>
-                    <article class="content px-4">
-                        <TopBar />
-                        @Body
-                    </article>
-                </main>
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
             </div>
-        </Authorized>
-        <NotAuthorized>
-            @if (!IsLoginPage)
-            {
-                <RedirectToLogin />
-            }
-            else
-            {
-                @Body
-            }
-	    </NotAuthorized>
-    </AuthorizeView>
-</CascadingAuthenticationState> *@
-
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
-    <main>
-        <article class="content px-4">
-            @* <TopBar /> *@
+            <main>
+                <article class="content px-4">
+                    <TopBar />
+                    @Body
+                </article>
+            </main>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        @if (!IsLoginPage)
+        {
+            NavigationManager.NavigateTo("/login", forceLoad: true);
+        }
+        else
+        {
             @Body
-        </article>
-    </main>
-</div>
-
+        }
+    </NotAuthorized>
+</AuthorizeView>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.

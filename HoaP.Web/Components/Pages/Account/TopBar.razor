@@ -1,7 +1,9 @@
-﻿@page "/account/test"
-@inject AccountService AccountService
+﻿@using System.Security.Claims
 @inject IServiceScopeFactory ServiceScopeFactory
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject EmployeeService EmployeeService
+@inject IMapper Mapper
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 @if (user != null)
@@ -54,8 +56,12 @@ else
 @code {
     private bool isFocused = false;
 
-    private AppUser user = new();
     private string searchQuery = "";
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private DetailEmployeeViewModel? user;
+
 
     private string SearchQuery
     {
@@ -119,6 +125,29 @@ else
     protected override async Task OnInitializedAsync()
     {
         using var scope = ServiceScopeFactory.CreateScope();
-        var accountService = scope.ServiceProvider.GetRequiredService<AccountService>();
+        var employeeService = scope.ServiceProvider.GetRequiredService<EmployeeService>();
+        var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdentity = authState.User;
+
+        if (userIdentity.Identity is { IsAuthenticated: true })
+        {
+            var email = userIdentity.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
+            if (!string.IsNullOrEmpty(email))
+            {
+                var employee = await employeeService.GetEmployeeByEmail(email);
+                user = mapper.Map<DetailEmployeeViewModel>(employee);
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
     }
+
 }
