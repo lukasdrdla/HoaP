@@ -2,8 +2,11 @@
 @using AutoMapper
 @using HoaP.Application.ViewModels.Employee
 @using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
 @inject AccountService AccountService
 @inject EmployeeService EmployeeService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IMapper Mapper
 @rendermode InteractiveServer
 
@@ -112,24 +115,43 @@
 
 	private string profilePictureBase64;
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
 
 
     protected override async Task OnInitializedAsync()
     {
-		
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userIdentity = authState.User;
 
-		userProfileModel = Mapper.Map<UpdateEmployeeViewModel>(await AccountService.FetchLoggedInUserAsync());
-        if (userProfileModel.ProfilePicture != null)
+        if (userIdentity.Identity is { IsAuthenticated: true })
         {
-            profilePictureBase64 = Convert.ToBase64String(userProfileModel.ProfilePicture);
-        }
-		
+            var email = userIdentity.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
 
+            if (!string.IsNullOrEmpty(email))
+            {
+                var employee = await EmployeeService.GetEmployeeByEmail(email);
+                userProfileModel = Mapper.Map<UpdateEmployeeViewModel>(employee);
+
+                if (userProfileModel.ProfilePicture != null)
+                {
+                    profilePictureBase64 = Convert.ToBase64String(userProfileModel.ProfilePicture);
+                }
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/login");
+        }
     }
 
     private async Task HandleValidSubmit()
     {
-		await AccountService.UpdateUserAsync(userProfileModel);
+        await AccountService.UpdateUserAsync(userProfileModel);
     }
 
 

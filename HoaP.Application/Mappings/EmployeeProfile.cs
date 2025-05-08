@@ -32,6 +32,9 @@ namespace HoaP.Application.Mappings
 
             CreateMap<AppUser, UpdateEmployeeViewModel>();
 
+            CreateMap<DetailEmployeeViewModel, UpdateEmployeeViewModel>().ReverseMap();
+
+
 
         }
     }
