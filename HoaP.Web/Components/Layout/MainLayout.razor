@@ -2,7 +2,7 @@
 @inject NavigationManager NavigationManager
 
 
-<CascadingAuthenticationState>
+@* <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
             <div class="page">
@@ -28,7 +28,19 @@
             }
 	    </NotAuthorized>
     </AuthorizeView>
-</CascadingAuthenticationState>
+</CascadingAuthenticationState> *@
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+    <main>
+        <article class="content px-4">
+            <TopBar />
+            @Body
+        </article>
+    </main>
+</div>
 
 
 <div id="blazor-error-ui">

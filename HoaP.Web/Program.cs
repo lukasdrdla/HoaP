@@ -60,7 +60,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(1);
     options.SlidingExpiration = false;
     options.Cookie.HttpOnly = true;
-    options.LoginPath = "/Account/LoginPage";
+    options.LoginPath = "/login";
+
 
 });
 
