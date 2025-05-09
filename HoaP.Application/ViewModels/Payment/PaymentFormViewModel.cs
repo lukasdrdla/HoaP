@@ -28,6 +28,8 @@ namespace HoaP.Application.ViewModels.Payment
         [Required]
         public int PaymentMethodId { get; set; }
 
+        public int CurrencyId { get; set; }
+
         public List<PaymentMethodViewModel> PaymentMethods { get; set; } = new();
 
 

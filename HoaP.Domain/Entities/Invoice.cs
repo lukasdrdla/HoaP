@@ -18,7 +18,7 @@ namespace HoaP.Domain.Entities
         public decimal Prepayment { get; set; } = 0.0m;
         public bool IsCanceled { get; set; } = false;
 
-        public ICollection<InvoiceReservation> InvoiceReservations { get; set; } = new List<InvoiceReservation>();
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
         public List<InvoiceItem> Items { get; set; } = new();
 
         public Currency? Currency { get; set; }

@@ -36,9 +36,16 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task CreateRoomAsync(RoomFormViewModel room)
         {
-            await _context.Rooms.AddAsync(_mapper.Map<Room>(room));
+            var entity = _mapper.Map<Room>(room);
+
+            entity.RoomAmenities = room.Amenities
+                .Select(a => new RoomAmenity { AmenityId = a.Id })
+                .ToList();
+
+            await _context.Rooms.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
+
 
         public async Task DisableRoom(int id)
         {
@@ -77,12 +84,14 @@ namespace HoaP.Infrastructure.Repositories
             var room = await _context.Rooms
                 .Include(r => r.RoomType)
                 .Include(r => r.RoomStatus)
-                .Include(r => r.RoomAmenities)
-                .ThenInclude(ra => ra.Amenity)
                 .Include(r => r.Currency)
+                .Include(r => r.RoomAmenities)
+                    .ThenInclude(ra => ra.Amenity)
                 .FirstOrDefaultAsync(r => r.Id == id);
+
             return _mapper.Map<DetailRoomViewModel>(room);
         }
+
 
         public async Task<List<RoomViewModel>> GetRooomsAsync()
         {
@@ -129,9 +138,7 @@ namespace HoaP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(r => r.Id == room.Id);
 
             if (existingRoom == null)
-            {
                 return;
-            }
 
             existingRoom.RoomNumber = room.RoomNumber;
             existingRoom.RoomTypeId = room.RoomTypeId;
@@ -143,18 +150,15 @@ namespace HoaP.Infrastructure.Repositories
             existingRoom.MaxChildren = room.MaxChildren;
             existingRoom.CurrencyId = room.CurrencyId;
 
-
+            _context.RoomAmenities.RemoveRange(existingRoom.RoomAmenities);
 
             existingRoom.RoomAmenities = room.Amenities.Select(a => new RoomAmenity
             {
+                RoomId = existingRoom.Id,
                 AmenityId = a.Id
             }).ToList();
 
-
-            _context.Rooms.Update(existingRoom);
             await _context.SaveChangesAsync();
-
-
         }
 
         public async Task DeleteRoomAsync(int id)

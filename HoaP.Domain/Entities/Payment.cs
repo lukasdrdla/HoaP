@@ -14,6 +14,10 @@ namespace HoaP.Domain.Entities
         public int PaymentMethodId { get; set; }
 
         public PaymentMethod? PaymentMethod { get; set; }
-        public Invoice? Invoice { get; set; } 
+        public Invoice? Invoice { get; set; }
+
+        public int CurrencyId { get; set; }
+        public Currency Currency { get; set; }
+
     }
 }

@@ -19,7 +19,7 @@ namespace HoaP.Application.ViewModels
         public string CustomerName { get; set; } = string.Empty;
         public string CurrencySymbol { get; set; } = "";
 
-        public bool HasInvoice { get; set; }
+        public int? InvoiceId { get; set; }
 
 
         public int Guests { get; set; }

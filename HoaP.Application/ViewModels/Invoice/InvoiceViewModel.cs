@@ -14,6 +14,7 @@ namespace HoaP.Application.ViewModels.Invoice
         public string CurrencyName { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
         public string CurrencySymbol { get; set; } = string.Empty;
+        public int CurrencyId { get; set; }
         public bool IsCanceled { get; set; }
         public DateTime IssueDate { get; set; } = DateTime.Now;
         public DateTime DueDate { get; set; } = DateTime.Now.AddDays(14);

@@ -29,6 +29,8 @@
 	</div>
 }
 
+
+
 <div class="container mt-2">
 	<div class="card border-0 shadow-sm mx-auto">
 		<div class="card-body">
@@ -277,12 +279,17 @@
 							<div class="input-group">
 								<InputText class="form-control"
 										   @bind-Value="checkOutText"
-										   oninput="ValidateCheckOutText" />
+										   @oninput="ValidateCheckOutText" />
 
 								<button type="button" class="btn btn-outline-secondary" @onclick="OpenCheckOutCalendar">
 									<i class="bi bi-calendar"></i>
 								</button>
 							</div>
+
+							@if (!string.IsNullOrEmpty(validationError))
+							{
+								<div class="alert alert-warning">@validationError</div>
+							}
 
 						</div>
 					</div>
@@ -566,6 +573,8 @@ OnCustomerAdded="OnCustomerAdded" />
 
 	private string? checkInText;
 	private string? checkOutText;
+	private string? validationError;
+
 
 
 	private ReservationFormViewModel reservation = new ReservationFormViewModel();
@@ -621,6 +630,30 @@ OnCustomerAdded="OnCustomerAdded" />
 		searchCustomerTerm = $"";
 
 	}
+
+	private void ValidateCheckOutText(ChangeEventArgs e)
+	{
+		checkOutText = e.Value?.ToString() ?? "";
+		if (DateTime.TryParse(checkOutText, out var date))
+		{
+			if (date <= reservation.CheckIn)
+			{
+				validationError = "Check-out musí být po check-inu.";
+				reservation.TotalPrice = 0;
+			}
+			else
+			{
+				reservation.CheckOut = date;
+				validationError = null;
+				CalculateTotalPrice();
+			}
+		}
+		else
+		{
+			checkOutText = reservation.CheckOut.ToShortDateString();
+		}
+	}
+
 
 	private void CloseCalendars()
 	{
@@ -772,21 +805,20 @@ OnCustomerAdded="OnCustomerAdded" />
 		{
 			checkInText = reservation.CheckIn.ToShortDateString();
 		}
-	}
-
-	private void ValidateCheckOutText(ChangeEventArgs e)
-	{
-		checkOutText = e.Value?.ToString() ?? "";
-		if (DateTime.TryParse(checkOutText, out var date))
+		if (reservation.CheckOut > reservation.CheckIn)
 		{
-			reservation.CheckOut = date;
-			CalculateTotalPrice();
+			validationError = null;
 		}
 		else
 		{
-			checkOutText = reservation.CheckOut.ToShortDateString();
+			validationError = "Check-out musí být po check-inu.";
+			reservation.TotalPrice = 0;
 		}
+
 	}
+
+	
+
 
 
 

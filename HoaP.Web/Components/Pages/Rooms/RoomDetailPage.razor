@@ -101,7 +101,7 @@
 								<PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
 								<PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
 								<PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-								<TemplateColumn Title="Cena">
+								<TemplateColumn Title="Cena" Sortable="true" SortBy="GridSort<ReservationViewModel>.ByDescending(x => x.TotalPrice)">
 									@context.TotalPrice @context.CurrencySymbol
 								</TemplateColumn>
 
@@ -300,12 +300,18 @@
 		}
 	}
 
-	private void DeleteReview(int reviewId)
+	private async Task DeleteReview(int reviewId)
 	{
-		ReviewService.DeleteReviewAsync(reviewId);
-		filteredReviews = ReviewService.GetRoomReviewsAsync(roomId).Result;
+		await ReviewService.DeleteReviewAsync(reviewId);
+
+		filteredReviews = await ReviewService.GetRoomReviewsAsync(roomId);
+
+		CurrentPage = 1;
 		UpdatePagination();
+
+		StateHasChanged();
 	}
+
 
 	private void NavigateToUpdateRoom(int roomId)
 	{

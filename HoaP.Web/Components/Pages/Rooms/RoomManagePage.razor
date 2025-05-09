@@ -1,6 +1,5 @@
-﻿@page "/spravovat-pokoj/{roomId:int}"
+﻿@page "/spravovat-pokoj/{roomId:int?}"
 @page "/vytvorit-pokoj"
-@using HoaP.Application.ViewModels.Amenity
 @inject RoomService RoomService
 @inject RoomTypeService RoomTypeService
 @inject AmenityService AmenityService
@@ -12,7 +11,6 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 
-
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger">
@@ -20,17 +18,13 @@
     </div>
 }
 
-
-
 <div class="container mt-2">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
             <h3 class="card-title text-center mb-4 page-title">@(roomId.HasValue ? "Upravit pokoj" : "Vytvořit pokoj")</h3>
-            <EditForm Model="room" OnValidSubmit="HandleValidSubmit" FormName="AddRoom">
+            <EditForm Model="room" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
-
-
 
                 <div class="mb-3 row">
                     <div class="col-md-6">
@@ -45,74 +39,55 @@
                     </div>
                 </div>
 
-
                 <div class="mb-3 row">
                     <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="roomType" class="form-label">Typ pokoje</label>
-                            <div class="form-group position-relative">
-                                <input type="text" class="form-control" placeholder="Vyhledat pokoj..." @bind="searchTerm" @oninput="SearchRoom" @onblur="HideRoomList" />
-
-                                @if (filteredRoomTypes.Any())
-                                {
-                                    <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
-                                        @foreach (var room in filteredRoomTypes)
-                                        {
-                                            <li class="list-group-item list-group-item-action" @onmousedown="@(() => SelectRoomType(room))">@room.Name</li>
-                                        }
-                                    </ul>
-                                }
-                            </div>
-                        </div>
+                        <label for="RoomTypeId" class="form-label">Typ pokoje</label>
+                        <InputSelect id="RoomTypeId" class="form-select" @bind-Value="room.RoomTypeId">
+                            @foreach (var type in roomTypes)
+                            {
+                                <option value="@type.Id">@type.Name</option>
+                            }
+                        </InputSelect>
                     </div>
-
                     <div class="col-md-6">
-                        <div class="form-group mb-3">
-                            <label for="RoomStatus" class="form-label">Status</label>
-                            <InputSelect id="RoomStatus" class="form-control" @bind-Value="room.RoomStatusId">
-                                @foreach (var status in roomStatuses)
-                                {
-                                    <option value="@status.Id">@status.Name</option>
-                                }
-                            </InputSelect>
-                        </div>
+                        <label for="RoomStatusId" class="form-label">Stav</label>
+                        <InputSelect id="RoomStatusId" class="form-select" @bind-Value="room.RoomStatusId">
+                            @foreach (var status in roomStatuses)
+                            {
+                                <option value="@status.Id">@status.Name</option>
+                            }
+                        </InputSelect>
                     </div>
                 </div>
+
                 <div class="mb-4 row">
                     <div class="col-md-6">
-                        <label for="MaxAdults" class="form-label">Max Dospělí</label>
+                        <label for="MaxAdults" class="form-label">Max dospělých</label>
                         <InputNumber id="MaxAdults" class="form-control" @bind-Value="room.MaxAdults" />
                     </div>
                     <div class="col-md-6">
-                        <label for="MaxChildren" class="form-label">Max Děti</label>
+                        <label for="MaxChildren" class="form-label">Max dětí</label>
                         <InputNumber id="MaxChildren" class="form-control" @bind-Value="room.MaxChildren" />
                     </div>
-
                 </div>
 
-                <h3>Vybavení pokoje</h3>
+                <h4>Vybavení pokoje</h4>
                 <div class="d-flex flex-wrap mb-4">
                     @foreach (var amenity in amenities)
                     {
-                        <div class="amenity-item">
-                            <input type="checkbox" @bind="@amenity.isSelected" />
-                            <label>@amenity.Name</label>
+                        <div class="form-check me-4 mb-2">
+                            <input type="checkbox" class="form-check-input" @bind="amenity.isSelected" />
+                            <label class="form-check-label">@amenity.Name</label>
                         </div>
                     }
                 </div>
 
-
                 <div class="mb-4 row">
-                    <div class="form-group col-md-6">
+                    <div class="col-md-6">
                         <label for="Price" class="form-label">Cena</label>
-                        <div class="input-group">
-                            <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
-                            <span class="input-group-text">@GetCurrencySymbol()</span>
-                        </div>
+                        <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
                     </div>
-
-
-                    <div class="form-group col-md-6">
+                    <div class="col-md-6">
                         <label for="CurrencyId" class="form-label">Měna</label>
                         <InputSelect id="CurrencyId" class="form-select" @bind-Value="room.CurrencyId">
                             @foreach (var currency in currencies)
@@ -120,14 +95,10 @@
                                 <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
                             }
                         </InputSelect>
-
-
                     </div>
                 </div>
 
-
-
-                <div class="form-group mb-3">
+                <div class="mb-3">
                     <label for="Description" class="form-label">Popis</label>
                     <InputTextArea id="Description" class="form-control" @bind-Value="room.Description" />
                 </div>
@@ -141,164 +112,94 @@
     </div>
 </div>
 
-
-
 @code {
     [Parameter]
     public int? roomId { get; set; }
 
-
-    private string currencySymbol = "";
-
-
-
-
-    [SupplyParameterFromForm]
-    private RoomFormViewModel room { get; set; } = new RoomFormViewModel();
-
-    private string searchTerm;
-    private List<RoomTypeViewModel> roomTypes = new List<RoomTypeViewModel>();
-    private List<RoomTypeViewModel> filteredRoomTypes = new List<RoomTypeViewModel>();
-    private List<AmenityViewModel> amenities = new List<AmenityViewModel>();
-
+    private RoomFormViewModel room = new();
+    private List<RoomTypeViewModel> roomTypes = new();
+    private List<RoomStatusViewModel> roomStatuses = new();
     private List<CurrencyViewModel> currencies = new();
+    private List<AmenityViewModel> amenities = new();
 
-
-    private List<RoomStatusViewModel> roomStatuses = new List<RoomStatusViewModel>();
-
-	private byte[] imageBytes;
     private string message;
     private string? errorMessage;
 
-
-	private async void HandleFileSelected(InputFileChangeEventArgs e)
-	{
-		var file = e.File;
-        try
-        {
-            imageBytes = await FileUploadService.HandleFileUploadAsync(file);
-			room.Image = imageBytes;
-
-            message = "Soubor byl úspěšně nahrán!";
-        }
-        catch (Exception ex)
-        {
-            message = ex.Message;
-        }
-	}
-
-    private string GetCurrencySymbol()
-    {
-        return currencies.FirstOrDefault(c => c.Id == room.CurrencyId)?.Symbol ?? "";
-    }
-
-
-
+    private byte[] imageBytes;
 
     protected override async Task OnInitializedAsync()
     {
-        currencies = await CurrencyService.GetCurrenciesAsync();
-
-        roomStatuses = await RoomStatusService.GetRoomStatusesAsync();
         roomTypes = await RoomTypeService.GetRoomTypesAsync();
-        filteredRoomTypes = new List<RoomTypeViewModel>();
-		amenities = await AmenityService.GetAmenitiesAsync();
+        roomStatuses = await RoomStatusService.GetRoomStatusesAsync();
+        currencies = await CurrencyService.GetCurrenciesAsync();
+        amenities = await AmenityService.GetAmenitiesAsync();
+
+        if (roomId.HasValue)
+        {
+            var detailRoom = await RoomService.GetRoomByIdAsync(roomId.Value);
+			room = Mapper.Map<RoomFormViewModel>(detailRoom);
 
 
-		if (roomId.HasValue)
-		{
+            var selectedIds = room.Amenities.Select(a => a.Id).ToHashSet();
 
-			room = Mapper.Map<RoomFormViewModel>(await RoomService.GetRoomByIdAsync(roomId.Value));
-            currencySymbol = currencies.FirstOrDefault(c => c.Id == room.CurrencyId)?.Symbol ?? "";
+            foreach (var amenity in amenities)
+            {
+                amenity.isSelected = selectedIds.Contains(amenity.Id);
+            }
 
-
-
-			var roomType = roomTypes.FirstOrDefault(r => r.Id == room.RoomTypeId);
-			if (roomType != null)
-			{
-				searchTerm = $"{roomType.Name}";
-			}
-
-            
+			Console.WriteLine($"RoomAmenities count: {room.Amenities.Count}");
+            foreach (var ra in room.Amenities)
+            {
+				Console.WriteLine($"AmenityId: {ra.Id}, Name: {ra.Name}");
+            }
 
 
-
-
-			var roomAmenities = await AmenityService.GetAmenitiesByRoomIdAsync(roomId.Value);
-
-			foreach (var amenity in amenities)
-			{
-				amenity.isSelected = roomAmenities.Any(a => a.Id == amenity.Id);
-			}
-
-
-		}
-		else
-		{
+        }
+        else
+        {
             var defaultCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
             room = new RoomFormViewModel
-            {
-                CurrencyId = defaultCurrency?.Id ?? 1
-            };
-
-			room.RoomStatusId = roomStatuses.FirstOrDefault(r => r.Name == "Volný")?.Id ?? 1;
+                {
+                    CurrencyId = defaultCurrency?.Id ?? 1,
+                    RoomStatusId = roomStatuses.FirstOrDefault(r => r.Name == "Volný")?.Id ?? 1
+                };
         }
-
-
     }
 
     private async void HandleValidSubmit()
     {
-		try
+        try
         {
-            room.Amenities = amenities.Where(a => a.isSelected).Select(a => new AmenityViewModel { Id = a.Id }).ToList();
+            room.Amenities = amenities
+                .Where(a => a.isSelected)
+                .Select(a => new AmenityViewModel { Id = a.Id })
+                .ToList();
 
             if (roomId.HasValue)
-            {
                 await RoomService.UpdateRoomAsync(room);
-            }
             else
-            {
                 await RoomService.CreateRoomAsync(room);
-            }
 
             NavigationManager.NavigateTo("/pokoje");
         }
-        catch (DbUpdateException)
+        catch (Exception ex)
         {
-            errorMessage = "Nepodařilo se uložit rezervaci do databáze. Zkuste to prosím znovu.";
+            errorMessage = $"Nepodařilo se uložit pokoj: {ex.Message}";
         }
-		catch (Exception ex)
-		{
-            errorMessage = "Nastala chyba při ukládání rezervace. Zkuste to prosím znovu. : " + ex.Message;
-		}
-
     }
 
-    private void SearchRoom(ChangeEventArgs e)
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
-		if (!string.IsNullOrWhiteSpace(searchTerm))
-		{
-			filteredRoomTypes = roomTypes.Where(r => r.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-		}
-		else
-		{
-			filteredRoomTypes = new List<RoomTypeViewModel>();
-		}
+        try
+        {
+            var file = e.File;
+            imageBytes = await FileUploadService.HandleFileUploadAsync(file);
+            room.Image = imageBytes;
+            message = "Soubor nahrán.";
+        }
+        catch (Exception ex)
+        {
+            message = "Chyba při nahrávání souboru: " + ex.Message;
+        }
     }
-
-    private void SelectRoomType(RoomTypeViewModel roomType)
-    {
-        room.RoomTypeId = roomType.Id;
-		searchTerm = $"{roomType.Name}";
-        filteredRoomTypes = new List<RoomTypeViewModel>();
-    }
-
-    private void HideRoomList()
-    {
-        filteredRoomTypes.Clear();
-    }
-
-   
 }

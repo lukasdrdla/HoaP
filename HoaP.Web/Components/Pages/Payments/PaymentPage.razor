@@ -26,7 +26,7 @@
                     <QuickGrid Items="filteredPayments.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="ID platby" Property="@(x => x.Id)" Sortable="true" />
                         <PropertyColumn Title="ID faktury" Property="@(x => x.InvoiceNumber)" Sortable="true" />
-						<TemplateColumn Title="Částka">
+						<TemplateColumn Title="Cena" Sortable="true" SortBy="GridSort<PaymentViewModel>.ByDescending(x => x.TotalAmount)">
 							<div>
 								@if (context.CurrencySymbol != null)
 								{

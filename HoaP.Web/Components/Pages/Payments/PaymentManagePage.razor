@@ -27,14 +27,17 @@
                 <ValidationSummary />
 
                 <div class="mb-3">
-                    <label for="invoiceId" class="form-label">Faktura</label>
                     <div class="form-group position-relative">
                         @if (isEditMode)
                         {
-                            <p class="form-control-plaintext fw-semibold">
-                                @searchTerm
-                            </p>
+                            <div class="mb-3">
+                                <label class="form-label">Faktura</label>
+                                <div class="form-control bg-light text-dark fw-semibold" style="pointer-events: none;">
+                                    @searchTerm
+                                </div>
+                            </div>
                         }
+
                         else
                         {
                             <input type="text" class="form-control" placeholder="Hledat fakturu..." @bind="searchTerm" @oninput="SearchInvoice" @onblur="HideInvoices" />
@@ -66,7 +69,6 @@
                         <span class="input-group-text">@selectedInvoice?.CurrencySymbol</span>
                     </div>
                 </div>
-
 
                 <div class="mb-3">
                     <label for="paymentDate" class="form-label">Datum platby</label>
@@ -124,8 +126,11 @@
 		{
             payment = Mapper.Map<PaymentFormViewModel>(await PaymentService.GetPaymentByIdAsync(paymentIdGuid.Value));
 			var invoice = await InvoiceService.GetInvoiceByIdAsync(payment.InvoiceId);
-			searchTerm = $"#{invoice.Id} - {invoice.CustomerName ?? "Neznámý zákazník"}";
-		}
+			searchTerm = $"{invoice.CustomerName ?? "Neznámý zákazník"}";
+            selectedInvoice = Mapper.Map<InvoiceViewModel>(invoice);
+
+            payment.CurrencyId = selectedInvoice.CurrencyId;
+        }
         else if (invoiceId != null)
         {
             payment.InvoiceId = invoiceId.Value;
@@ -133,7 +138,7 @@
             var detailInvoice = await InvoiceService.GetInvoiceByIdAsync(invoiceId.Value);
             selectedInvoice = Mapper.Map<InvoiceViewModel>(detailInvoice);
 
-            searchTerm = $"#{selectedInvoice.Id} - {selectedInvoice.CustomerName ?? "Neznámý zákazník"} ({selectedInvoice.CurrencySymbol})";
+            searchTerm = $"{selectedInvoice.CustomerName ?? "Neznámý zákazník"} ({selectedInvoice.CurrencySymbol})";
             payment.TotalAmount = selectedInvoice.Price;
         }
 

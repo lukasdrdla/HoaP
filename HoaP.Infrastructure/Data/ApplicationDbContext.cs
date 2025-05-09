@@ -37,7 +37,6 @@ namespace HoaP.Infrastructure.Data
         public DbSet<ReservationCustomer> ReservationCustomers { get; set; }
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceReservation> ReservationServices { get; set; }
-        public DbSet<InvoiceReservation> InvoiceReservations { get; set; }
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
 
 
@@ -45,16 +44,23 @@ namespace HoaP.Infrastructure.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<InvoiceReservation>()
-            .HasOne(ir => ir.Invoice)
-            .WithMany(i => i.InvoiceReservations)
-            .HasForeignKey(ir => ir.InvoiceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Reservation>()
+                .HasOne(r => r.Invoice)
+                .WithMany(i => i.Reservations)
+                .HasForeignKey(r => r.InvoiceId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<InvoiceReservation>()
-                .HasOne(ir => ir.Reservation)
-                .WithMany(r => r.InvoiceReservations)
-                .HasForeignKey(ir => ir.ReservationId)
+            builder.Entity<Payment>()
+                .HasOne(p => p.Invoice)
+                .WithMany(i => i.Payments)
+                .HasForeignKey(p => p.InvoiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+
+            builder.Entity<Reservation>()
+                .HasOne(r => r.Invoice)
+                .WithMany(i => i.Reservations)
+                .HasForeignKey(r => r.InvoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -219,11 +225,17 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<MealPlan>().HasData(
-                new MealPlan { Id = 1, Name = "Bez stravy" },
-                new MealPlan { Id = 2, Name = "Snídaně" },
-                new MealPlan { Id = 3, Name = "Polopenze" },
-                new MealPlan { Id = 4, Name = "Plná penze" }
+                new MealPlan { Id = 1, Name = "Bez stravy", Price = 0 },
+                new MealPlan { Id = 2, Name = "Snídaně", Price = 200 },
+                new MealPlan { Id = 3, Name = "Polopenze", Price = 500 },
+                new MealPlan { Id = 4, Name = "Plná penze", Price = 1000 }
             );
+
+            modelBuilder.Entity<Amenity>().HasData(
+                new Amenity { Id = 1, Name = "Wi-Fi", Icon = "bi bi-wifi" },
+                new Amenity { Id = 2, Name = "Klimatizace", Icon = "bi bi-snow" },
+                new Amenity { Id = 3, Name = "TV", Icon = "bi bi-tv" }
+                );
 
             modelBuilder.Entity<InsuranceCompany>().HasData(
                 new InsuranceCompany { Id = 1, Name = "Česká pojišťovna" },
@@ -271,12 +283,6 @@ namespace HoaP.Infrastructure.Data
                 new Service { Id = 4, Name = "Služba žehlení", Price = 150, IsPerNight = false }
             );
 
-            modelBuilder.Entity<InvoiceReservation>().HasData(
-                new InvoiceReservation { Id = 1, InvoiceId = 1, ReservationId = 1},
-                new InvoiceReservation { Id = 2, InvoiceId = 2, ReservationId = 2},
-                new InvoiceReservation { Id = 3, InvoiceId = 3, ReservationId = 3 }
-            );
-
 
             modelBuilder.Entity<ServiceReservation>().HasData(
                 new ServiceReservation { Id = 1, ReservationId = 1, ServiceId = 1, Quantity = 1, UnitPrice = 500, Note = "Wellness pro 1 osobu" },
@@ -302,8 +308,8 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<Payment>().HasData(
-                new Payment { Id = Guid.NewGuid(), InvoiceId = 1, TotalAmount = 7100, PaymentDate = DateTime.Now.AddDays(-5), PaymentMethodId = 1, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Payment { Id = Guid.NewGuid(), InvoiceId = 2, TotalAmount = 16000, PaymentDate = DateTime.Now.AddDays(-10), PaymentMethodId = 2, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+                new Payment { Id = Guid.NewGuid(), InvoiceId = 1, CurrencyId = 3, TotalAmount = 7100, PaymentDate = DateTime.Now.AddDays(-5), PaymentMethodId = 1, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
+                new Payment { Id = Guid.NewGuid(), InvoiceId = 2, CurrencyId = 3, TotalAmount = 16000, PaymentDate = DateTime.Now.AddDays(-10), PaymentMethodId = 2, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
             );
 
             modelBuilder.Entity<Review>().HasData(

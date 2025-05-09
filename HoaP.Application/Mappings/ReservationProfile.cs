@@ -36,7 +36,7 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src =>
                     src.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.FirstName + " " +
                     src.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.LastName))
-                .ForMember(dest => dest.HasInvoice, opt => opt.MapFrom(src => src.InvoiceReservations.Any()));
+                .ForMember(dest => dest.InvoiceId, opt => opt.MapFrom(src => src.InvoiceId));
 
 
 
@@ -52,10 +52,9 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.CustomerEmail, opt => opt.MapFrom(src => src.Customer.Email))
                 .ForMember(dest => dest.MealPlanName, opt => opt.MapFrom(src => src.MealPlan.Name))
                 .ForMember(dest => dest.RoomTypeId, opt => opt.MapFrom(src => src.Room.RoomTypeId))
-                .ForMember(dest => dest.HasInvoice, opt => opt.MapFrom(src => src.InvoiceReservations.Any()))
+                .ForMember(dest => dest.HasInvoice, opt => opt.MapFrom(src => src.Invoice != null))
                 .ForMember(dest => dest.Services, opt => opt.MapFrom(src => src.ServiceReservations))
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
-                .ForMember(dest => dest.HasInvoice, opt => opt.MapFrom(src => src.InvoiceReservations.Any()))
                 .ForMember(dest => dest.Services,
                     opt => opt.MapFrom(src =>
                         src.ServiceReservations.Select(sr => new ServiceReservationViewModel
@@ -67,7 +66,7 @@ namespace HoaP.Application.Mappings
                         }).ToList()
                     )
                 )
-                .ForMember(dest => dest.IsInvoicePaid, opt => opt.MapFrom(src => src.InvoiceReservations.Any() && src.InvoiceReservations.FirstOrDefault().Invoice.IsPaid))
+                .ForMember(dest => dest.IsInvoicePaid, opt => opt.MapFrom(src => src.Invoice != null && src.Invoice.IsPaid))
                 .ForMember(dest => dest.Customer, opt => opt.MapFrom(src => src.Customer));
 
 

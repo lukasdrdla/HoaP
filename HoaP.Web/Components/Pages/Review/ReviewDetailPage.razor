@@ -10,7 +10,7 @@
     <div class="card border-0 shadow-sm mx-auto w-75">
         <div class="card-body">
 			<div class="d-flex justify-content-end gap-2 py-2 align-items-center">
-                <a href="/spravovat-review/@Id" class="btn btn-outline-primary">Upravit</a>
+                <a href="/spravovat-recenzi/@Id" class="btn btn-outline-primary">Upravit</a>
 				<button class="btn btn-danger" @onclick="() => DeleteReview(Id)">Odstranit recenzi</button>
             </div>
             <h3 class="text-center mb-4 page-title">Detail Recenze</h3>
@@ -47,7 +47,7 @@
             }
 
             <div class="text-center mt-4">
-                <a href="/reviews" class="btn btn-outline-secondary">Zpět na seznam recenzí</a>
+                <a href="/recenze" class="btn btn-outline-secondary">Zpět na seznam recenzí</a>
             </div>
         </div>
     </div>
@@ -70,7 +70,7 @@
         if (result)
         {
             await ReviewService.DeleteReviewAsync(id);
-            NavigationManager.NavigateTo("/reviews");
+            NavigationManager.NavigateTo("/recenze");
         }
     }
 }

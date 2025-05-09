@@ -26,11 +26,11 @@
                     <QuickGrid Items="filteredInvoices.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Číslo faktury" Property="@(x => x.Id)" Sortable="true" />
 						<PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName ?? "Neznámý zákazník")" Sortable="true" />
-                        <TemplateColumn Title="Cena">
+                        <TemplateColumn Title="Cena" Sortable="true" SortBy="GridSort<InvoiceViewModel>.ByDescending(x => x.Price)">
                             <div>@($"{context.Price} {context.CurrencySymbol}")</div>
                         </TemplateColumn>                        
                         <PropertyColumn Title="Datum vydání" Property="@(x => x.IssueDate.ToShortDateString())" Sortable="true" />
-                        <TemplateColumn Title="Stav" Sortable="true">
+						<TemplateColumn Title="Stav" Sortable="true" SortBy="GridSort<InvoiceViewModel>.ByDescending(x => x.IsPaid)">
 
 							@if (context.IsCanceled)
 							{

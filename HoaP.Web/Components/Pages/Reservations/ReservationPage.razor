@@ -33,7 +33,7 @@
                         <PropertyColumn Title="CheckIn" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="CheckOut" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
                         <PropertyColumn Title="Pokoj" Property="@(x => x.RoomNumber)" Sortable="true" />
-                        <TemplateColumn Title="Cena">
+						<TemplateColumn Title="Cena" Sortable="true" SortBy="GridSort<ReservationViewModel>.ByDescending(x => x.TotalPrice)">
                             <div>@($"{context.TotalPrice} {context.CurrencySymbol}")</div>
                         </TemplateColumn>
 

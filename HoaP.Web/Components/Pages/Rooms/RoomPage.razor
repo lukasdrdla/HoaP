@@ -65,7 +65,7 @@
                             </PropertyColumn>
                             <PropertyColumn Title="Typ pokoje" Property="@(r => r.RoomTypeName)" Sortable="true" />
                             <PropertyColumn Title="Status" Property="@(r => r.RoomStatusName)" Sortable="true" />
-							<TemplateColumn Title="Cena">
+							<TemplateColumn Title="Cena" Sortable="true" SortBy="GridSort<RoomViewModel>.ByDescending(x => x.Price)">
 								@context.Price @context.CurrencySymbol
                             </TemplateColumn>
                             <PropertyColumn Title="Max Dospělí" Property="@(r => r.MaxAdults)" Sortable="true" />

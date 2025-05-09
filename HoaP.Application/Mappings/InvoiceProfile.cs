@@ -16,7 +16,8 @@ namespace HoaP.Application.Mappings
             CreateMap<Invoice, InvoiceViewModel>()
                 .ForMember(dest => dest.CurrencyName, opt => opt.MapFrom(src => src.Currency.Name))
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.InvoiceReservations.FirstOrDefault().Reservation.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.FirstName + " " + src.InvoiceReservations.FirstOrDefault().Reservation.ReservationCustomers.FirstOrDefault(rc => rc.IsMainGuest).Customer.LastName));
+                .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Reservations.FirstOrDefault().Customer.FirstName + " " + src.Reservations.FirstOrDefault().Customer.LastName));
 
             CreateMap<InvoiceFormViewModel, Invoice>();
             CreateMap<InvoiceItemViewModel, InvoiceItem>();
@@ -31,9 +32,9 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.AppUser.FirstName + " " + src.AppUser.LastName))
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.Items))
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
-                .ForMember(dest => dest.ReservationTotal, opt => opt.MapFrom(src => src.InvoiceReservations.FirstOrDefault().Reservation.TotalPrice))
+                .ForMember(dest => dest.ReservationTotal, opt => opt.MapFrom(src => src.Reservations.FirstOrDefault().TotalPrice))
 
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.InvoiceReservations.FirstOrDefault().Reservation.Customer.FirstName + " " + src.InvoiceReservations.FirstOrDefault().Reservation.Customer.LastName));
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Reservations.FirstOrDefault().Customer.FirstName + " " + src.Reservations.FirstOrDefault().Customer.LastName));
 
 
             CreateMap<InvoiceFormViewModel, DetailInvoiceViewModel>()
@@ -43,6 +44,7 @@ namespace HoaP.Application.Mappings
 
             CreateMap<InvoiceFormViewModel, Invoice>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Reservations, opt => opt.Ignore())
                 .ForMember(dest => dest.IssueDate, opt => opt.MapFrom(src => src.IssueDate))
                 .ForMember(dest => dest.DueDate, opt => opt.MapFrom(src => src.DueDate))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
@@ -53,10 +55,13 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.AppUserId, opt => opt.MapFrom(src => src.UserId));
 
             CreateMap<Invoice, InvoiceFormViewModel>()
-                .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.InvoiceReservations.Select(ri => ri.Reservation)))
+                .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.Reservations))
                 .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
-                .ForMember(dest => dest.ReservationIds, opt => opt.MapFrom(src => src.InvoiceReservations.Select(ri => ri.ReservationId)));
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+                .ForMember(dest => dest.ReservationIds, opt => opt.MapFrom(src => src.Reservations.Select(r => r.Id).ToList()));
+
+            CreateMap<DetailInvoiceViewModel, InvoiceViewModel>();
 
 
 

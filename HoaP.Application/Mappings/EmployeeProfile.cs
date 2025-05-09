@@ -13,7 +13,6 @@ namespace HoaP.Application.Mappings
     {
         public EmployeeProfile()
         {
-            // Detail -> Form (např. při editaci)
             CreateMap<DetailEmployeeViewModel, EmployeeFormViewModel>()
                 .ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForMember(dest => dest.ConfirmPassword, opt => opt.Ignore());
@@ -48,27 +47,17 @@ namespace HoaP.Application.Mappings
                 .ForMember(dest => dest.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture));
 
 
-
-
-
-
-
-
-
-            // Form -> AppUser (při registraci nového zaměstnance)
             CreateMap<EmployeeFormViewModel, AppUser>()
-                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Identity to nastaví samo
+                .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.UserName))
                 .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId));
 
-            // AppUser -> Detail
             CreateMap<AppUser, DetailEmployeeViewModel>()
                 .ForMember(dest => dest.InsuranceCompanyName, opt => opt.MapFrom(src => src.InsuranceCompany.Name))
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol))
                 .ForMember(dest => dest.CurrencyId, opt => opt.MapFrom(src => src.CurrencyId))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.PhoneNumber));
 
-            // AppUser -> EmployeeViewModel (seznam)
             CreateMap<AppUser, EmployeeViewModel>()
                 .ForMember(dest => dest.CurrencySymbol, opt => opt.MapFrom(src => src.Currency.Symbol));
         }

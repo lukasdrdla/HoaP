@@ -25,7 +25,7 @@
                     <QuickGrid Items="filteredEmployees.AsQueryable()" Pagination="paginationState" Class="w-100">
                         <PropertyColumn Title="Jméno" Property="@(x => x.FirstName + " " + x.LastName)" Sortable="true" />
                         <PropertyColumn Title="Pozice" Property="@(x => x.JobTitle)" Sortable="true" />
-                        <TemplateColumn Title="Plat">
+						<TemplateColumn Title="Plat" Sortable="true" SortBy="GridSort<EmployeeViewModel>.ByDescending(x => x.Salary)">
 							@context.Salary @context.CurrencySymbol
                         </TemplateColumn>
                         <PropertyColumn Title="Datum nástupu" Property="@(x => x.StartDate.ToShortDateString())" Sortable="true" />
