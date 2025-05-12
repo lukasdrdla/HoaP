@@ -37,6 +37,13 @@ namespace HoaP.Infrastructure.Repositories
             {
                 if (guest.Id > 0)
                 {
+                    var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == guest.Id);
+                    if (existingCustomer != null)
+                    {
+                        _mapper.Map(guest, existingCustomer);
+                        _context.Customers.Update(existingCustomer);
+                    }
+
                     newReservation.ReservationCustomers.Add(new ReservationCustomer
                     {
                         CustomerId = guest.Id.Value,

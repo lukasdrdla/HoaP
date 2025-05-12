@@ -1060,6 +1060,7 @@ OnCustomerAdded="OnCustomerAdded" />
 	{
 		if (date.HasValue)
 		{
+			checkInText = date.Value.ToShortDateString();
 			reservation.CheckIn = date.Value;
 		}
 		isCheckInCalendarVisible = false;
