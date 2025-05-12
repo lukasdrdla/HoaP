@@ -80,7 +80,7 @@
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Způsob platby</label>
                         <InputSelect id="paymentMethod" class="form-control" @bind-Value="payment.PaymentMethodId">
-                            <option value="">-- Vyberte metodu --</option>
+                            <option value="0">-- Vyberte metodu --</option>
                             @foreach (var method in paymentMethods)
                             {
                                 <option value="@method.Id">@method.Name</option>
