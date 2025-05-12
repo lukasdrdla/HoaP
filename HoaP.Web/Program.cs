@@ -1,3 +1,4 @@
+using System.Globalization;
 using HoaP.Application.Interfaces;
 using HoaP.Application.Mappings;
 using HoaP.Application.Services;
@@ -33,8 +34,13 @@ builder.Services.AddAutoMapper(typeof(AccountProfile));
 builder.Services.AddAutoMapper(typeof(ReviewProfile));
 builder.Services.AddAutoMapper(typeof(ServiceProfile));
 
+builder.Services.AddLocalization();
 
-// Add services to the container.
+// Nastav výchozí kulturu na èeštinu
+var defaultCulture = new CultureInfo("cs-CZ");
+CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

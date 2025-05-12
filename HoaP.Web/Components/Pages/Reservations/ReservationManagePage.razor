@@ -15,10 +15,7 @@
 @inject CurrencyService CurrencyService
 @inject ServiceService ServiceService
 @attribute [Authorize]
-
-
 @inject IMapper Mapper
-
 @rendermode InteractiveServer
 
 
@@ -135,68 +132,83 @@
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Jméno</label>
 									<InputText class="form-control" @bind-Value="guest.FirstName" />
+									<ValidationMessage For="@(() => guest.FirstName)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Příjmení</label>
 									<InputText class="form-control" @bind-Value="guest.LastName" />
+									<ValidationMessage For="@(() => guest.LastName)" />
 								</div>
 
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Číslo dokladu</label>
 									<InputText class="form-control" @bind-Value="guest.DocumentNumber" />
+									<ValidationMessage For="@(() => guest.DocumentNumber)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Datum vydání</label>
 									<InputDate class="form-control" @bind-Value="guest.DateOfIssue" />
+									<ValidationMessage For="@(() => guest.DateOfIssue)" />
 								</div>
 
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Datum expirace</label>
 									<InputDate class="form-control" @bind-Value="guest.DateOfExpiry" />
+									<ValidationMessage For="@(() => guest.DateOfExpiry)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Datum narození</label>
 									<InputDate class="form-control" @bind-Value="guest.DateOfBirth" />
+									<ValidationMessage For="@(() => guest.DateOfBirth)" />
 								</div>
 
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Místo narození</label>
 									<InputText class="form-control" @bind-Value="guest.PlaceOfBirth" />
+									<ValidationMessage For="@(() => guest.PlaceOfBirth)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Rodné číslo</label>
 									<InputText class="form-control" @bind-Value="guest.PersonalIdentificationNumber" />
+									<ValidationMessage For="@(() => guest.PersonalIdentificationNumber)" />
 								</div>
 
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Národnost</label>
 									<InputText class="form-control" @bind-Value="guest.Nationality" />
+									<ValidationMessage For="@(() => guest.Nationality)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Telefon</label>
 									<InputText class="form-control" @bind-Value="guest.Phone" />
+									<ValidationMessage For="@(() => guest.Phone)" />
 								</div>
 
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Email</label>
 									<InputText class="form-control" type="email" @bind-Value="guest.Email" />
+									<ValidationMessage For="@(() => guest.Email)" />
 								</div>
 								<div class="col-md-6 mb-3">
 									<label class="form-label">Adresa</label>
 									<InputText class="form-control" @bind-Value="guest.Address" />
+									<ValidationMessage For="@(() => guest.Address)" />
 								</div>
 
 								<div class="col-md-4 mb-3">
 									<label class="form-label">Město</label>
 									<InputText class="form-control" @bind-Value="guest.City" />
+									<ValidationMessage For="@(() => guest.City)" />
 								</div>
 								<div class="col-md-4 mb-3">
 									<label class="form-label">Země</label>
 									<InputText class="form-control" @bind-Value="guest.Country" />
+									<ValidationMessage For="@(() => guest.Country)" />
 								</div>
 								<div class="col-md-4 mb-3">
 									<label class="form-label">PSČ</label>
 									<InputText class="form-control" @bind-Value="guest.PostalCode" />
+									<ValidationMessage For="@(() => guest.PostalCode)" />
 								</div>
 							</div>
 
@@ -221,6 +233,8 @@
 								@bind:event="oninput"
 								@onfocus="ShowAllRooms"
 								@onblur="HideRoomList" />
+
+								<ValidationMessage For="@(() => reservation.RoomId)" />
 
 								@if (filteredRooms.Any())
 								{
@@ -256,6 +270,8 @@
 								<InputText class="form-control"
 								@bind-Value="checkInText"
 								@oninput="ValidateCheckInText" />
+
+								<ValidationMessage For="@(() => reservation.CheckIn)" />
 
 
 								<button type="button" class="btn btn-outline-secondary" @onclick="OpenCheckInCalendar">
@@ -411,6 +427,7 @@
 					<div class="input-group">
 						<InputNumber id="Total" class="form-control" @bind-Value="reservation.TotalPrice" />
 						<span class="input-group-text">@GetCurrencySymbol()</span>
+						<ValidationMessage For="@(() => reservation.TotalPrice)" />
 					</div>
 				</div>
 
@@ -487,32 +504,49 @@
 					else
 					{
 						<div class="border p-3 mb-2">
-							<strong>@service.Name</strong><br />
-							<label>Množství:</label>
-							<input type="number" class="form-control"
-							value="@selected.Quantity"
-							@oninput="e => OnQuantityChanged(selected, e.Value?.ToString())" />
+							<strong>@service.Name</strong>
+							<div class="text-muted small mb-2">
+								@{
+									var billingInfo = service.IsPerNight && service.IsPerPerson ? "za osobu a noc" :
+									service.IsPerNight ? "za noc" :
+									service.IsPerPerson ? "za osobu" :
+									"jednorázově";
 
+									var quantityLabel = service.IsPerNight && service.IsPerPerson ? "Počet osob × nocí" :
+									service.IsPerNight ? "Počet nocí" :
+									service.IsPerPerson ? "Počet osob" :
+									"Množství";
 
+									var priceLabel = service.IsPerNight && service.IsPerPerson ? "Cena za osobu a noc" :
+									service.IsPerNight ? "Cena za noc" :
+									service.IsPerPerson ? "Cena za osobu" :
+									"Cena celkem / kus";
+								}
+								<em>(Účtování: @billingInfo)</em>
+							</div>
 
-							<label>Cena za jednotku:</label>
-							<div class="input-group">
+							<label>@quantityLabel:</label>
+							<input type="number" class="form-control mb-2"
+								   value="@selected.Quantity"
+								   @oninput="e => OnQuantityChanged(selected, e.Value?.ToString())" />
+
+							<label>@priceLabel:</label>
+							<div class="input-group mb-2">
 								<input type="number" class="form-control"
-								step="any"
-								value="@selected.UnitPrice.ToString("0.##", CultureInfo.InvariantCulture)"
-								@oninput="e => OnUnitPriceChanged(selected, e.Value?.ToString())" />
+									   step="any"
+									   value="@selected.UnitPrice.ToString("0.##", CultureInfo.InvariantCulture)"
+									   @oninput="e => OnUnitPriceChanged(selected, e.Value?.ToString())" />
 								<span class="input-group-text">@GetCurrencySymbol()</span>
 							</div>
 
-
-
-
-
 							<label>Poznámka:</label>
-							<input type="text" class="form-control" @bind="selected.Note" />
+							<input type="text" class="form-control mb-2" @bind="selected.Note" />
 
-							<button class="btn btn-danger mt-2" type="button" @onclick="@(() => RemoveService(service.Id))">Odebrat službu</button>
+							<button class="btn btn-danger mt-2" type="button" @onclick="@(() => RemoveService(service.Id))">
+								<i class="bi bi-trash me-1"></i> Odebrat službu
+							</button>
 						</div>
+
 					}
 				}
 
@@ -664,15 +698,23 @@ OnCustomerAdded="OnCustomerAdded" />
 	private void AddService(ServiceViewModel service)
 	{
 		int numberOfNights = (int)(reservation.CheckOut - reservation.CheckIn).TotalDays;
-		int numberOfGuests = reservation.Adults + reservation.Children;
+		int numberOfPeople = 1 + reservation.Guests.Count;
 
-		int quantity = service.IsPerNight
-			? numberOfGuests * numberOfNights
-			: 1; // nebo jiné pravidlo pro jednorázové služby
+		int quantity = 1;
 
+		if (service.IsPerNight && service.IsPerPerson)
+			quantity = numberOfNights * numberOfPeople;
+		else if (service.IsPerNight)
+			quantity = numberOfNights;
+		else if (service.IsPerPerson)
+			quantity = numberOfPeople;
+		else if (service.IsOneTime)
+			quantity = 1;
+
+
+		// Převod měny
 		var baseCurrency = currencies.FirstOrDefault(c => c.Code == "CZK");
 		var currentCurrency = currencies.FirstOrDefault(c => c.Id == reservation.CurrencyId);
-
 		var convertedPrice = baseCurrency != null && currentCurrency != null
 			? service.Price * baseCurrency.Rate / currentCurrency.Rate
 			: service.Price;
@@ -683,7 +725,9 @@ OnCustomerAdded="OnCustomerAdded" />
 				Quantity = quantity,
 				UnitPrice = convertedPrice,
 				OriginalUnitPrice = service.Price,
-				IsPerNight = service.IsPerNight
+				IsPerNight = service.IsPerNight,
+				IsPerPerson = service.IsPerPerson,
+				IsOneTime = service.IsOneTime
 			});
 
 		CalculateTotalPrice();
@@ -711,10 +755,17 @@ OnCustomerAdded="OnCustomerAdded" />
 	private void ShowAllRooms()
 	{
 		searchRoomTerm = string.Empty;
+
+		int requiredAdults = 1 + reservation.Guests.Count(g => g.DateOfBirth == null || g.DateOfBirth <= DateTime.Now.AddYears(-18));
+		int requiredChildren = reservation.Guests.Count(g => g.DateOfBirth != null && g.DateOfBirth > DateTime.Now.AddYears(-18));
+
 		filteredRooms = rooms
-			.Where(x => x.IsDisable == false)
+			.Where(x => x.IsDisable == false &&
+						x.MaxAdults >= requiredAdults &&
+						x.MaxChildren >= requiredChildren)
 			.ToList();
 	}
+
 
 
 
@@ -999,9 +1050,13 @@ OnCustomerAdded="OnCustomerAdded" />
 			{
 				var mealPrice = mealPlan.Price * baseCurrency.Rate / targetCurrency.Rate;
 				reservation.MealPlanConvertedPrice = mealPrice;
-				reservation.TotalPrice += mealPrice * numberOfNights;
+
+				int personCount = 1 + reservation.Guests.Count; // 1 hlavní + hosté
+
+				reservation.TotalPrice += mealPrice * numberOfNights * personCount;
 			}
 		}
+
 
 		// Přepočet služeb
 		if (reservation.SelectedServices != null && reservation.SelectedServices.Any())

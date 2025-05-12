@@ -41,7 +41,7 @@
                         else
                         {
                             <input type="text" class="form-control" placeholder="Hledat fakturu..." @bind="searchTerm" @oninput="SearchInvoice" @onblur="HideInvoices" />
-
+							<ValidationMessage For="@(() => payment.InvoiceId)" />
                         }
 
                         @if (filteredInvoices.Any())
@@ -67,23 +67,26 @@
                     <div class="input-group">
                         <InputNumber id="amount" class="form-control" @bind-Value="payment.TotalAmount" />
                         <span class="input-group-text">@selectedInvoice?.CurrencySymbol</span>
+						<ValidationMessage For="@(() => payment.TotalAmount)" />
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label for="paymentDate" class="form-label">Datum platby</label>
                     <InputDate id="paymentDate" class="form-control" @bind-Value="payment.PaymentDate" />
+					<ValidationMessage For="@(() => payment.PaymentDate)" />
                 </div>
                 <div class="mb-3">
                     <div class="mb-3">
                         <label for="paymentMethod" class="form-label">Způsob platby</label>
-                        <select id="paymentMethod" class="form-control" @bind="payment.PaymentMethodId">
+                        <InputSelect id="paymentMethod" class="form-control" @bind-Value="payment.PaymentMethodId">
                             <option value="">-- Vyberte metodu --</option>
                             @foreach (var method in paymentMethods)
                             {
                                 <option value="@method.Id">@method.Name</option>
                             }
-                        </select>
+                        </InputSelect>
+						<ValidationMessage For="@(() => payment.PaymentMethodId)" />
                     </div>
                 </div>
 
@@ -195,7 +198,17 @@
             {
                 await PaymentService.UpdatePaymentAsync(payment);
             }
-            NavigationManager.NavigateTo("/platby");
+
+            if (payment.InvoiceId != null)
+            {
+                NavigationManager.NavigateTo($"/faktura/{payment.InvoiceId}");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/platby");
+            }
+
+
         }
 		catch (DbUpdateException)
 		{

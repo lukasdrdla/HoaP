@@ -31,11 +31,13 @@
                         <label for="RoomImg" class="form-label">Obrázek</label>
                         <InputFile id="RoomImg" class="form-control" OnChange="HandleFileSelected" />
                         <p>@message</p>
+						<ValidationMessage For="@(() => room.Image)" />
                     </div>
 
                     <div class="col-md-6">
                         <label for="RoomNumber" class="form-label">Číslo pokoje</label>
                         <InputText id="RoomNumber" class="form-control" @bind-Value="room.RoomNumber" />
+						<ValidationMessage For="@(() => room.RoomNumber)" />
                     </div>
                 </div>
 
@@ -43,6 +45,7 @@
                     <div class="col-md-6">
                         <label for="RoomTypeId" class="form-label">Typ pokoje</label>
                         <InputSelect id="RoomTypeId" class="form-select" @bind-Value="room.RoomTypeId">
+							<option value="0">Vyberte typ pokoje</option>
                             @foreach (var type in roomTypes)
                             {
                                 <option value="@type.Id">@type.Name</option>
@@ -57,6 +60,7 @@
                                 <option value="@status.Id">@status.Name</option>
                             }
                         </InputSelect>
+						<ValidationMessage For="@(() => room.RoomStatusId)" />
                     </div>
                 </div>
 
@@ -64,11 +68,37 @@
                     <div class="col-md-6">
                         <label for="MaxAdults" class="form-label">Max dospělých</label>
                         <InputNumber id="MaxAdults" class="form-control" @bind-Value="room.MaxAdults" />
+						<ValidationMessage For="@(() => room.MaxAdults)" />
                     </div>
                     <div class="col-md-6">
                         <label for="MaxChildren" class="form-label">Max dětí</label>
                         <InputNumber id="MaxChildren" class="form-control" @bind-Value="room.MaxChildren" />
+						<ValidationMessage For="@(() => room.MaxChildren)" />
                     </div>
+                </div>
+
+                <div class="mb-4 row">
+                    <div class="col-md-6">
+                        <label for="Price" class="form-label">Cena</label>
+                        <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
+						<ValidationMessage For="@(() => room.Price)" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="CurrencyId" class="form-label">Měna</label>
+                        <InputSelect id="CurrencyId" class="form-select" @bind-Value="room.CurrencyId">
+                            @foreach (var currency in currencies)
+                            {
+                                <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
+                            }
+                        </InputSelect>
+						<ValidationMessage For="@(() => room.CurrencyId)" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="Description" class="form-label">Popis</label>
+                    <InputTextArea id="Description" class="form-control" @bind-Value="room.Description" />
+					<ValidationMessage For="@(() => room.Description)" />
                 </div>
 
                 <h4>Vybavení pokoje</h4>
@@ -80,27 +110,6 @@
                             <label class="form-check-label">@amenity.Name</label>
                         </div>
                     }
-                </div>
-
-                <div class="mb-4 row">
-                    <div class="col-md-6">
-                        <label for="Price" class="form-label">Cena</label>
-                        <InputNumber id="Price" class="form-control" @bind-Value="room.Price" />
-                    </div>
-                    <div class="col-md-6">
-                        <label for="CurrencyId" class="form-label">Měna</label>
-                        <InputSelect id="CurrencyId" class="form-select" @bind-Value="room.CurrencyId">
-                            @foreach (var currency in currencies)
-                            {
-                                <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
-                            }
-                        </InputSelect>
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="Description" class="form-label">Popis</label>
-                    <InputTextArea id="Description" class="form-control" @bind-Value="room.Description" />
                 </div>
 
                 <div class="text-center mt-4">

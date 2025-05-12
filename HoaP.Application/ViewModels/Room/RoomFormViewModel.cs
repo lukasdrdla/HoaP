@@ -14,40 +14,38 @@ namespace HoaP.Application.ViewModels.Room
     {
         public int? Id { get; set; }
 
-        [Required(ErrorMessage = "Room number is required.")]
-        [StringLength(50, ErrorMessage = "Room number cannot exceed 50 characters.")]
+        [Required(ErrorMessage = "Číslo pokoje je povinné.")]
+        [StringLength(50, ErrorMessage = "Číslo pokoje nesmí být delší než 50 znaků.")]
         public string RoomNumber { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Room type is required.")]
+        [Required(ErrorMessage = "Typ pokoje je povinný.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Vyberte typ pokoje.")]
+
         public int RoomTypeId { get; set; }
 
-        [Required(ErrorMessage = "Room status is required.")]
+        [Required(ErrorMessage = "Stav pokoje je povinný.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Vyberte stav pokoje.")]
         public int RoomStatusId { get; set; }
 
-        [StringLength(500, ErrorMessage = "Description cannot exceed 500 characters.")]
+        [StringLength(500, ErrorMessage = "Popis nesmí být delší než 500 znaků.")]
         public string Description { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Price is required.")]
-        [Range(0.01, 10000.00, ErrorMessage = "Price must be between 0.01 and 10000.00.")]
+        [Required(ErrorMessage = "Cena je povinná.")]
+        [Range(0.01, 10000.00, ErrorMessage = "Cena musí být v rozmezí 0.01 až 10000.00.")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Image is required.")]
+        [Required(ErrorMessage = "Obrázek je povinný.")]
         public byte[] Image { get; set; } = null!;
 
-        [Required(ErrorMessage = "Max adults value is required.")]
-        [Range(1, 10, ErrorMessage = "Max adults must be between 1 and 10.")]
+        [Required(ErrorMessage = "Zadejte maximální počet dospělých.")]
+        [Range(1, 10, ErrorMessage = "Maximální počet dospělých musí být mezi 1 a 10.")]
         public int MaxAdults { get; set; }
 
-        [Required(ErrorMessage = "Max children value is required.")]
-        [Range(0, 10, ErrorMessage = "Max children must be between 0 and 10.")]
+        [Required(ErrorMessage = "Zadejte maximální počet dětí.")]
+        [Range(0, 10, ErrorMessage = "Maximální počet dětí musí být mezi 0 a 10.")]
         public int MaxChildren { get; set; }
 
-        [DataType(DataType.DateTime)]
-        public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-        [DataType(DataType.DateTime)]
-        public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [ForeignKey("RoomStatusId")]
         public RoomStatus? RoomStatus { get; set; }
@@ -56,12 +54,12 @@ namespace HoaP.Application.ViewModels.Room
         public RoomType? RoomType { get; set; }
 
         [Required(ErrorMessage = "Vyberte měnu.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Vyberte měnu.")]
         public int CurrencyId { get; set; }
 
         public List<RoomStatusViewModel> RoomStatuses { get; set; } = new();
 
         public List<AmenityViewModel> Amenities { get; set; } = new();
-
-
     }
+
 }

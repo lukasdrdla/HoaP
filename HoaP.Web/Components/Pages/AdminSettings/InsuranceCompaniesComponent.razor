@@ -34,10 +34,32 @@
 			<ValidationSummary />
 
 			<div class="mb-3">
-				<label for="name" class="form-label">Name</label>
+				<label for="name" class="form-label">Název pojišťovny</label>
 				<InputText id="name" class="form-control" @bind-Value="currentInsuranceCompany.Name" />
+				<ValidationMessage For="@(() => currentInsuranceCompany.Name)" />
 			</div>
-			<button class="btn btn-success" type="submit">Save</button>
+			<div class="mb-3">
+				<label for="address" class="form-label">Adresa</label>
+				<InputText id="address" class="form-control" @bind-Value="currentInsuranceCompany.Address" />
+				<ValidationMessage For="@(() => currentInsuranceCompany.Address)" />
+			</div>
+			<div class="mb-3">
+				<label for="phone" class="form-label">Telefon</label>
+				<InputText id="phone" class="form-control" @bind-Value="currentInsuranceCompany.PhoneNumber" />
+				<ValidationMessage For="@(() => currentInsuranceCompany.PhoneNumber)" />
+			</div>
+			<div class="mb-3">
+				<label for="email" class="form-label">E-mail</label>
+				<InputText id="email" class="form-control" @bind-Value="currentInsuranceCompany.Email" />
+				<ValidationMessage For="@(() => currentInsuranceCompany.Email)" />
+			</div>
+			<div class="mb-3">
+				<label for="website" class="form-label">Webová stránka</label>
+				<InputText id="website" class="form-control" @bind-Value="currentInsuranceCompany.Website" />
+				<ValidationMessage For="@(() => currentInsuranceCompany.Website)" />
+			</div>
+
+			<button class="btn btn-success" type="submit">Uložit</button>
 		</EditForm>
 	</div>
 </div>

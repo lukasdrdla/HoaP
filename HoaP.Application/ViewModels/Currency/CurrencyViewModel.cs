@@ -10,6 +10,7 @@ namespace HoaP.Application.ViewModels.Currency
     public class CurrencyViewModel
     {
         public int Id { get; set; }
+        [Required(ErrorMessage = "Kód je povinný")]
         public string Code { get; set; } = string.Empty;
         [Required(ErrorMessage = "Název je povinný")]
         public string Name { get; set; } = string.Empty;

@@ -12,6 +12,8 @@ namespace HoaP.Domain.Entities
         public decimal Price { get; set; }
         public string? Description { get; set; } = string.Empty;
         public bool IsPerNight { get; set; }
+        public bool IsPerPerson { get; set; }
+        public bool IsOneTime { get; set; }
     }
 
 }

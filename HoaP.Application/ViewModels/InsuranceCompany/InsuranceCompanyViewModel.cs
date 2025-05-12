@@ -15,8 +15,10 @@ namespace HoaP.Application.ViewModels.InsuranceCompany
         [Required(ErrorMessage = "Adresa je povinná")]
         public string Address { get; set; } = string.Empty;
         [Required(ErrorMessage = "Telefonní číslo je povinné")]
+        [RegularExpression(@"^\+?[0-9\s\-()]*$", ErrorMessage = "Telefonní číslo není platné")]
         public string PhoneNumber { get; set; } = string.Empty;
         [Required(ErrorMessage = "E-mail je povinný")]
+        [EmailAddress(ErrorMessage = "E-mail není platný")]
         public string Email { get; set; } = string.Empty;
 
         public string Website { get; set; } = string.Empty;

@@ -7,8 +7,12 @@
     <PropertyColumn Title="Cena" Property="@(x => x.Price.ToString("0.00 Kč"))" />
     <PropertyColumn Title="Popis" Property="@(x => x.Description)" />
     <TemplateColumn Title="Akce">
-        <button class="btn btn-sm btn-primary" @onclick="() => EditService(context)">Upravit</button>
-        <button class="btn btn-sm btn-danger" @onclick="() => DeleteService(context.Id)">Smazat</button>
+        <button class="btn btn-sm btn-primary" @onclick="() => EditService(context)">
+			<i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-danger" @onclick="() => DeleteService(context.Id)">
+            <i class="bi bi-trash"></i>
+        </button>
     </TemplateColumn>
 </QuickGrid>
 
@@ -20,15 +24,38 @@
     <div class="mb-3">
         <label for="name" class="form-label">Název služby</label>
         <InputText id="name" class="form-control" @bind-Value="currentService.Name" />
+		<ValidationMessage For="@(() => currentService.Name)" />
     </div>
     <div class="mb-3">
         <label for="price" class="form-label">Cena (Kč)</label>
         <InputNumber id="price" class="form-control" @bind-Value="currentService.Price" />
+		<ValidationMessage For="@(() => currentService.Price)" />
     </div>
     <div class="mb-3">
         <label for="description" class="form-label">Popis</label>
         <InputTextArea id="description" class="form-control" @bind-Value="currentService.Description" />
     </div>
+
+    <div class="mb-3">
+        <label class="form-label">Způsob účtování:</label>
+
+        <div class="form-check">
+            <InputCheckbox id="isPerNight" class="form-check-input" @bind-Value="currentService.IsPerNight" />
+            <label for="isPerNight" class="form-check-label">Účtovat za noc</label>
+        </div>
+
+        <div class="form-check">
+            <InputCheckbox id="isPerPerson" class="form-check-input" @bind-Value="currentService.IsPerPerson" />
+            <label for="isPerPerson" class="form-check-label">Účtovat za osobu</label>
+        </div>
+
+        <div class="form-check">
+            <InputCheckbox id="isOneTime" class="form-check-input" @bind-Value="currentService.IsOneTime" />
+            <label for="isOneTime" class="form-check-label">Jednorázově</label>
+        </div>
+    </div>
+
+
     <button class="btn btn-success" type="submit">Uložit</button>
 </EditForm>
 
@@ -50,7 +77,10 @@
                 Id = service.Id,
                 Name = service.Name,
                 Price = service.Price,
-                Description = service.Description
+                Description = service.Description,
+                IsPerNight = service.IsPerNight,
+                IsPerPerson = service.IsPerPerson,
+				IsOneTime = service.IsOneTime
             };
         isEdit = true;
     }

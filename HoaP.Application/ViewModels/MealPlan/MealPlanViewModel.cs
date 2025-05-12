@@ -13,6 +13,7 @@ namespace HoaP.Application.ViewModels.MealPlan
         [Required(ErrorMessage = "Název je povinný")]
         public string Name { get; set; } = string.Empty;
         [Required(ErrorMessage = "Cena je povinná")]
+        [Range(0, 1000000, ErrorMessage = "Cena musí být mezi 0 a 1000000")]
         public decimal Price { get; set; }
     }
 }

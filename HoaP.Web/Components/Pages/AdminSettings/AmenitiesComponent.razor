@@ -27,12 +27,14 @@
             <div class="mb-3">
                 <label for="name" class="form-label">Název</label>
                 <InputText id="name" class="form-control" @bind-Value="currentAmenity.Name" />
+				<ValidationMessage For="@(() => currentAmenity.Name)" />
             </div>
             <div class="mb-3">
-                <label for="icon" class="form-label">Icon</label>
+                <label for="icon" class="form-label">Ikona</label>
                 <InputText id="icon" class="form-control" @bind-Value="currentAmenity.Icon" />
+				<ValidationMessage For="@(() => currentAmenity.Icon)" />
             </div>
-            <button class="btn btn-success" type="submit">Save</button>
+            <button class="btn btn-success" type="submit">Uložit</button>
         </EditForm>
     </div>
 </div>

@@ -28,6 +28,16 @@ namespace HoaP.Infrastructure.Repositories
         {
             var entity = _mapper.Map<Payment>(payment);
 
+            if (payment.PaymentMethodId == 0)
+            {
+                throw new ArgumentException("Musíte vybrat způsob platby.");
+            }
+            else if (payment.InvoiceId == 0)
+            {
+                throw new ArgumentException("Musíte vybrat fakturu.");
+            }
+
+
             var invoice = await _context.Invoices.FindAsync(payment.InvoiceId);
             if (invoice != null)
             {
@@ -110,6 +120,8 @@ namespace HoaP.Infrastructure.Repositories
             {
                 _mapper.Map(payment, existingPayment);
                 _context.Payments.Update(existingPayment);
+                existingPayment.UpdatedAt = DateTime.Now;
+
                 await _context.SaveChangesAsync();
             }
 

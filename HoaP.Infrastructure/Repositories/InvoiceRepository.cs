@@ -49,6 +49,11 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
         {
+
+            if (invoice.ReservationIds == null || !invoice.ReservationIds.Any())
+                throw new ArgumentException("Faktura musí obsahovat alespoň jednu rezervaci.");
+
+
             var entity = _mapper.Map<Invoice>(invoice);
 
             var reservations = await _context.Reservations
@@ -186,6 +191,7 @@ namespace HoaP.Infrastructure.Repositories
             if (existingInvoice == null)
                 return;
 
+
             _mapper.Map(invoice, existingInvoice);
 
             var updatedReservations = await _context.Reservations
@@ -240,6 +246,8 @@ namespace HoaP.Infrastructure.Repositories
             // Přepočet zpět do měny faktury
             existingInvoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
             existingInvoice.CurrencyId = selectedCurrency.Id;
+
+            existingInvoice.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
         }

@@ -148,7 +148,7 @@
 
     private void SearchInvoices(ChangeEventArgs e)
     {
-        searchTerm = e.Value.ToString();
+        searchTerm = e.Value?.ToString();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
@@ -156,7 +156,7 @@
                 r => r.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.Price.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                   || r.IssueDate.ToShortDateString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-                  || r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                  || (r.CustomerName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
             ).ToList();
         }
         else
@@ -164,6 +164,7 @@
             filteredInvoices = invoices;
         }
     }
+
 
     protected override async Task OnInitializedAsync()
     {

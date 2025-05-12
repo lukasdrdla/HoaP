@@ -307,6 +307,8 @@ namespace HoaP.Infrastructure.Data
                 new InvoiceItem { Id = 4, InvoiceId = 2, Description = "Bar", Price = 2500 }
             );
 
+
+
             modelBuilder.Entity<Payment>().HasData(
                 new Payment { Id = Guid.NewGuid(), InvoiceId = 1, CurrencyId = 3, TotalAmount = 7100, PaymentDate = DateTime.Now.AddDays(-5), PaymentMethodId = 1, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
                 new Payment { Id = Guid.NewGuid(), InvoiceId = 2, CurrencyId = 3, TotalAmount = 16000, PaymentDate = DateTime.Now.AddDays(-10), PaymentMethodId = 2, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }

@@ -29,23 +29,27 @@
 			<ValidationSummary />
 
 			<div class="mb-3">
-				<label for="code" class="form-label">Code</label>
+				<label for="code" class="form-label">Kód (např. CZK )</label>
 				<InputText id="code" class="form-control" @bind-Value="currentCurrency.Code" />
+				<ValidationMessage For="@(() => currentCurrency.Code)" />
 			</div>
 			<div class="mb-3">
-				<label for="name" class="form-label">Name</label>
+				<label for="name" class="form-label">Název (např. Česká koruna)</label>
 				<InputText id="name" class="form-control" @bind-Value="currentCurrency.Name" />
+				<ValidationMessage For="@(() => currentCurrency.Name)" />
 			</div>
 			<div class="mb-3">
-				<label for="symbol" class="form-label">Symbol</label>
+				<label for="symbol" class="form-label">Symbol (např. Kč)</label>
 				<InputText id="symbol" class="form-control" @bind-Value="currentCurrency.Symbol" />
+				<ValidationMessage For="@(() => currentCurrency.Symbol)" />
 			</div>
 			<div class="mb-3">
 				<label for="rate" class="form-label">Kurz (Rate)</label>
 				<InputNumber id="rate" class="form-control" @bind-Value="currentCurrency.Rate" step="any" />
+				<ValidationMessage For="@(() => currentCurrency.Rate)" />
 			</div>
 
-			<button class="btn btn-success" type="submit">Save</button>
+			<button class="btn btn-success" type="submit">Uložit</button>
 		</EditForm>
 	</div>
 </div>

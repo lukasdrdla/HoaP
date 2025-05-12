@@ -49,6 +49,7 @@
                                         <strong>Rezervace:</strong> č. @reservation.Id –
                                         @reservation.CustomerName, @reservation.CheckIn.ToShortDateString() - @reservation.CheckOut.ToShortDateString()
                                     </li>
+
                                 }
 
                             </ul>
@@ -85,11 +86,13 @@
                     <div class="col-md-6">
                         <label for="issueDate" class="form-label">Datum vystavení</label>
                         <InputDate id="issueDate" class="form-control" @bind-Value="invoice.IssueDate" />
+						<ValidationMessage For="@(() => invoice.IssueDate)" />
                     </div>
 
                     <div class="col-md-6">
                         <label for="dueDate" class="form-label">Datum splatnosti</label>
                         <InputDate id="dueDate" class="form-control" @bind-Value="invoice.DueDate" />
+						<ValidationMessage For="@(() => invoice.DueDate)" />
                     </div>
                 </div>
 
@@ -131,6 +134,7 @@
                             <span class="input-group-text">
                                 @(currencies.FirstOrDefault(c => c.Id == invoice.CurrencyId)?.Symbol ?? "")
                             </span>
+							<ValidationMessage For="@(() => invoice.Price)" />
                         </div>
                     </div>
 
@@ -142,12 +146,10 @@
                 <div class="mb-3">
                     <label for="description" class="form-label">Popis</label>
                     <InputTextArea id="description" class="form-control" @bind-Value="invoice.Description" />
+					<ValidationMessage For="@(() => invoice.Description)" />
                 </div>
 
-                <div class="text-center mt-4">
-                    <button type="submit" class="btn btn-primary">@(invoiceId == null ? "Vytvořit fakturu" : "Uložit fakturu")</button>
-                    <a href="/faktury" class="btn btn-outline-secondary">Zpět na seznam</a>
-                </div>
+                
 
                 <h5>Dodatečné položky</h5>
                 @foreach (var item in invoice.Items)
@@ -167,6 +169,10 @@
                 }
                 <button type="button" class="btn btn-outline-primary mt-2" @onclick="AddItem">+ Přidat položku</button>
 
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary">@(invoiceId == null ? "Vytvořit fakturu" : "Uložit fakturu")</button>
+                    <a href="/faktury" class="btn btn-outline-secondary">Zpět na seznam</a>
+                </div>
 
             </EditForm>
 

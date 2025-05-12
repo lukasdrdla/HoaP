@@ -28,13 +28,13 @@
                     <div class="form-group mb-3">
                         <div class="form-group mb-3">
                             <label for="RoomId" class="form-label">Pokoj</label>
+
                             <div class="form-group position-relative">
                                 <input type="text" class="form-control"
                                        placeholder="Hledat pokoj"
                                        value="@searchRoomTerm"
                                        @oninput="OnRoomInput"
                                        @onfocus="ShowRoomList" />
-
 
                                 @if (filteredRooms.Any())
                                 {
@@ -53,6 +53,7 @@
                                     </ul>
                                 }
 
+
                             </div>
 
                         </div>
@@ -63,6 +64,7 @@
                             <label for="CustomerId" class="form-label">Zákazník</label>
                             <div class="form-group position-relative">
                                 <input type="text" class="form-control" placeholder="Hledat zákazníka" @bind="searchCustomerTerm" @bind:event="oninput" @bind:after="FilterCustomers" @onblur="HideCustomerList" />
+								<ValidationMessage For="@(() => review.CustomerId)" />
                                 @if (filteredCustomers.Any())
                                 {
                                     <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
@@ -98,12 +100,14 @@
                 <div class="col-md-6 mb-3">
                     <label for="Rating" class="form-label">Hodnocení</label>
                     <InputNumber id="Rating" class="form-control" @bind-Value="review.Rating" min="1" max="5" />
+					<ValidationMessage For="@(() => review.Rating)" />
                 </div>
 
                 <div class="mb-3 row">
                     <div class="col-md-12">
                         <label for="Comment" class="form-label">Komentář</label>
                         <InputTextArea id="Comment" class="form-control" @bind-Value="review.Comment" />
+						<ValidationMessage For="@(() => review.Comment)" />
                     </div>
                 </div>
 

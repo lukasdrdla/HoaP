@@ -11,62 +11,66 @@ namespace HoaP.Application.ViewModels.Employee
     {
         public string Id { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Uživatelské jméno je povinné.")]
         public string UserName { get; set; } = string.Empty;
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Email je povinný.")]
+        [EmailAddress(ErrorMessage = "Zadejte platnou emailovou adresu.")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Jméno je povinné.")]
         public string FirstName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Příjmení je povinné.")]
         public string LastName { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Adresa je povinná.")]
         public string Address { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Město je povinné.")]
         public string City { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "PSČ je povinné.")]
         public string PostalCode { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Země je povinná.")]
         public string Country { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Rodné číslo je povinné.")]
         public string PersonalIdentificationNumber { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Telefon je povinný.")]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Místo narození je povinné.")]
         public string PlaceOfBirth { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Pracovní pozice je povinná.")]
         public string JobTitle { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Datum nástupu je povinné.")]
+        [DataType(DataType.Date, ErrorMessage = "Datum nástupu musí být platné datum.")]
         public DateTime StartDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Mzda je povinná.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Mzda musí být větší nebo rovna nule.")]
         public decimal Salary { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Zaměstnanecký stav je povinný.")]
         public bool IsEmployed { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Zdravotní pojišťovna je povinná.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Zdravotní pojišťovna je povinná.")]
         public int InsuranceCompanyId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Měna je povinná.")]
         public int CurrencyId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Role je povinná.")]
         public string RoleId { get; set; } = string.Empty;
 
         public byte[]? ProfilePicture { get; set; }
     }
+
 
 }

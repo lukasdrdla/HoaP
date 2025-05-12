@@ -36,43 +36,41 @@
                                 </div>
                             }
                             <InputFile id="profilePicture" class="form-control" OnChange="HandleFileSelected" />
-                            
                             <p>@message</p>
+							<ValidationMessage For="@(() => employee.ProfilePicture)" />
                         </div>
 
                         <div class="col-md-6">
                             <label for="Email" class="form-label">Email</label>
                             <InputText id="Email" class="form-control" @bind-Value="employee.Email" />
+							<ValidationMessage For="@(() => employee.Email)" />
                         </div>
                     </div>
 
                     <div class="mb-3 row">
                         <div class="col-md-6">
-                            <label for="insurenceId" class="form-label">Pojišťovna</label>
-                            <div class="form-group position-relative">
-                                <input type="text" class="form-control" placeholder="Hledat pojišťovnu.." @bind="searchTerm" @oninput="OnInputChange" @onblur="HideCompanyList" />
-
-                                @if (filteredInsuranceCompanies.Any())
+                            <label for="InsuranceCompanyId" class="form-label">Pojišťovna</label>
+                            <InputSelect id="InsuranceCompanyId" class="form-select" @bind-Value="employee.InsuranceCompanyId">
+                                <option value="0">-- Vyberte pojišťovnu --</option>
+                                @foreach (var company in insuranceCompanies)
                                 {
-                                    <ul class="list-group mt-1" style="max-height: 200px; overflow-y: auto; position: absolute; top: 100%; left: 0; right: 0; z-index: 1000;">
-                                        @foreach (var company in filteredInsuranceCompanies)
-                                        {
-                                            <li class="list-group-item list-group-item-action" @onmousedown="@(() => SelectCompany(company))">@company.Name</li>
-                                        }
-                                    </ul>
+                                    <option value="@company.Id">@company.Name</option>
                                 }
-                            </div>
+                            </InputSelect>
+                            <ValidationMessage For="@(() => employee.InsuranceCompanyId)" />
                         </div>
+
 
                         <div class="col-md-6">
                             <label for="role" class="form-label">Role</label>
-                            <select id="role" class="form-select" @bind="employee.RoleId">
+                            <InputSelect id="role" class="form-select" @bind-Value="employee.RoleId">
                                 <option value="">Vyberte roli</option>
                                 @foreach (var role in roles)
                                 {
                                     <option value="@role.Id">@role.Name</option>
                                 }
-                            </select>
+                            </InputSelect>
+							<ValidationMessage For="@(() => employee.RoleId)" />
                         </div>
                     </div>
 
@@ -80,6 +78,7 @@
                         <div class="col-md-12">
                             <label for="username" class="form-label">Uživatelské jméno</label>
                             <InputText id="username" class="form-control" @bind-Value="employee.UserName" />
+							<ValidationMessage For="@(() => employee.UserName)" />
                         </div>
                     </div>
 
@@ -87,10 +86,12 @@
                         <div class="col-md-6">
                             <label for="firstName" class="form-label">Jméno</label>
                             <InputText id="firstName" class="form-control" @bind-Value="employee.FirstName" />
+							<ValidationMessage For="@(() => employee.FirstName)" />
                         </div>
                         <div class="col-md-6">
                             <label for="lastName" class="form-label">Příjmení</label>
                             <InputText id="lastName" class="form-control" @bind-Value="employee.LastName" />
+							<ValidationMessage For="@(() => employee.LastName)" />
                         </div>
                     </div>
 
@@ -98,10 +99,12 @@
                         <div class="col-md-6">
                             <label for="personalId" class="form-label">Osobní číslo</label>
                             <InputText id="personalId" class="form-control" @bind-Value="employee.PersonalIdentificationNumber" />
+							<ValidationMessage For="@(() => employee.PersonalIdentificationNumber)" />
                         </div>
                         <div class="col-md-6">
                             <label for="phoneNumber" class="form-label">Telefon</label>
                             <InputText id="phoneNumber" class="form-control" @bind-Value="employee.PhoneNumber" />
+							<ValidationMessage For="@(() => employee.PhoneNumber)" />
                         </div>
                     </div>
 
@@ -109,10 +112,12 @@
                         <div class="col-md-6">
                             <label for="placeOfBirth" class="form-label">Místo narození</label>
                             <InputText id="placeOfBirth" class="form-control" @bind-Value="employee.PlaceOfBirth" />
+							<ValidationMessage For="@(() => employee.PlaceOfBirth)" />
                         </div>
                         <div class="col-md-6">
                             <label for="address" class="form-label">Adresa</label>
                             <InputText id="address" class="form-control" @bind-Value="employee.Address" />
+							<ValidationMessage For="@(() => employee.Address)" />
                         </div>
                     </div>
 
@@ -120,10 +125,12 @@
                         <div class="col-md-6">
                             <label for="city" class="form-label">Město</label>
                             <InputText id="city" class="form-control" @bind-Value="employee.City" />
+							<ValidationMessage For="@(() => employee.City)" />
                         </div>
                         <div class="col-md-6">
                             <label for="postalCode" class="form-label">PSČ</label>
                             <InputText id="postalCode" class="form-control" @bind-Value="employee.PostalCode" />
+							<ValidationMessage For="@(() => employee.PostalCode)" />
                         </div>
                     </div>
 
@@ -131,10 +138,12 @@
                         <div class="col-md-6">
                             <label for="country" class="form-label">Země</label>
                             <InputText id="country" class="form-control" @bind-Value="employee.Country" />
+							<ValidationMessage For="@(() => employee.Country)" />
                         </div>
                         <div class="col-md-6">
                             <label for="jobTitle" class="form-label">Pozice</label>
                             <InputText id="jobTitle" class="form-control" @bind-Value="employee.JobTitle" />
+							<ValidationMessage For="@(() => employee.JobTitle)" />
                         </div>
                     </div>
 
@@ -142,12 +151,14 @@
                         <div class="col-md-3">
                             <label for="startDate" class="form-label">Datum začátku</label>
                             <InputDate id="startDate" class="form-control" @bind-Value="employee.StartDate" />
+							<ValidationMessage For="@(() => employee.StartDate)" />
                         </div>
                         <div class="col-md-6">
                             <label for="salary" class="form-label">Plat</label>
                             <div class="input-group">
                                 <InputNumber id="salary" class="form-control" @bind-Value="employee.Salary" />
                                 <span class="input-group-text">@GetCurrencySymbol()</span>
+								<ValidationMessage For="@(() => employee.Salary)" />
                             </div>
                         </div>
                         <div class="col-md-3">
@@ -158,6 +169,7 @@
                                     <option value="@currency.Id">@currency.Code (@currency.Symbol)</option>
                                 }
                             </InputSelect>
+							<ValidationMessage For="@(() => employee.CurrencyId)" />
                         </div>
                     </div>
 

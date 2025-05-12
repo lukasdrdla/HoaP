@@ -205,14 +205,16 @@
 
     private void UpdateSelectedDayBookings()
     {
-        selectedDayBookings = bookings.Where(b => b.CheckIn.Date == selectedDay.Date).ToList();
+        selectedDayBookings = bookings
+            .Where(b => selectedDay.Date >= b.CheckIn.Date && selectedDay.Date < b.CheckOut.Date)
+            .ToList();
     }
 
     private List<List<CalendarDay>> GetCalendarGrid()
     {
         var days = new List<List<CalendarDay>>();
         var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
-var startOfWeek = firstDay;
+        var startOfWeek = firstDay;
 
         for (int week = 0; week < 6; week++)
         {
@@ -225,7 +227,7 @@ var startOfWeek = firstDay;
                         Date = date,
                         IsToday = date.Date == DateTime.Now.Date,
                         IsSelected = date.Date == selectedDay.Date,
-                        HasBookings = bookings.Any(b => b.CheckIn.Date == date.Date)
+                        HasBookings = bookings.Any(b => date.Date >= b.CheckIn.Date && date.Date < b.CheckOut.Date)
                     });
             }
             days.Add(weekDays);

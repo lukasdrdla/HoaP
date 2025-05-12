@@ -78,6 +78,8 @@ namespace HoaP.Infrastructure.Repositories
                 return;
             }
 
+            existingCustomer.UpdatedAt = DateTime.Now;
+
             _mapper.Map(customer, existingCustomer);
             _context.Customers.Update(existingCustomer);
             await _context.SaveChangesAsync();

@@ -36,11 +36,20 @@ namespace HoaP.Infrastructure.Repositories
 
         public async Task CreateRoomAsync(RoomFormViewModel room)
         {
+            bool roomNumberExists = await _context.Rooms
+                .AnyAsync(r => r.RoomNumber == room.RoomNumber);
+
+            if (roomNumberExists)
+            {
+                throw new Exception("Pokoj s tímto číslem již existuje.");
+            }
             var entity = _mapper.Map<Room>(room);
 
             entity.RoomAmenities = room.Amenities
                 .Select(a => new RoomAmenity { AmenityId = a.Id })
                 .ToList();
+
+
 
             await _context.Rooms.AddAsync(entity);
             await _context.SaveChangesAsync();
@@ -140,6 +149,15 @@ namespace HoaP.Infrastructure.Repositories
             if (existingRoom == null)
                 return;
 
+
+            bool roomNumberExists = await _context.Rooms
+                .AnyAsync(r => r.RoomNumber == room.RoomNumber && r.Id != room.Id);
+
+            if (roomNumberExists)
+            {
+                throw new Exception("Pokoj s tímto číslem již existuje.");
+            }
+
             existingRoom.RoomNumber = room.RoomNumber;
             existingRoom.RoomTypeId = room.RoomTypeId;
             existingRoom.RoomStatusId = room.RoomStatusId;
@@ -149,6 +167,8 @@ namespace HoaP.Infrastructure.Repositories
             existingRoom.MaxAdults = room.MaxAdults;
             existingRoom.MaxChildren = room.MaxChildren;
             existingRoom.CurrencyId = room.CurrencyId;
+
+            existingRoom.UpdatedAt = DateTime.Now;
 
             _context.RoomAmenities.RemoveRange(existingRoom.RoomAmenities);
 

@@ -32,12 +32,14 @@
             <ValidationSummary />
 
             <div class="mb-3">
-                <label for="name" class="form-label">Název</label>
+				<label for="name" class="form-label">Název plánu</label>
                 <InputText id="name" class="form-control" @bind-Value="currentMealPlan.Name" />
+				<ValidationMessage For="@(() => currentMealPlan.Name)" />
             </div>
             <div class="mb-3">
-                <label for="description" class="form-label">Cena</label>
+				<label for="description" class="form-label">Cena (Kč) </label>
                 <InputNumber id="description" class="form-control" @bind-Value="currentMealPlan.Price" />
+				<ValidationMessage For="@(() => currentMealPlan.Price)" />
             </div>
             <button class="btn btn-success" type="submit">Uložit</button>
         </EditForm>

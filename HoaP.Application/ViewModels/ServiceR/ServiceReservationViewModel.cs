@@ -15,6 +15,9 @@ namespace HoaP.Application.ViewModels.ServiceR
         public decimal OriginalUnitPrice { get; set; }
         public string? Note { get; set; }
         public bool IsPerNight { get; set; }
+        public bool IsPerPerson { get; set; }
+        public bool IsOneTime { get; set; }
+
 
     }
 }

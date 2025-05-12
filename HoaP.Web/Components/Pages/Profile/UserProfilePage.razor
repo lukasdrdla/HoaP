@@ -43,15 +43,20 @@
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
+						<InputText type="hidden" @bind-Value="userProfileModel.RoleId" />
+
+
                         <div class="mb-3 row">
                             <div class="col-md-6">
                                 <label for="firstName" class="form-label">Jméno</label>
                                 <InputText id="firstName" class="form-control" @bind-Value="userProfileModel.FirstName" readonly />
+								<ValidationMessage For="@(() => userProfileModel.FirstName)" />
                             </div>
 
                             <div class="col-md-6">
                                 <label for="lastName" class="form-label">Příjmení</label>
                                 <InputText id="lastName" class="form-control" @bind-Value="userProfileModel.LastName" readonly />
+								<ValidationMessage For="@(() => userProfileModel.LastName)" />
                             </div>
                         </div>
 
@@ -59,10 +64,12 @@
                             <div class="col-md-6">
                                 <label for="Email" class="form-label">Email</label>
                                 <InputText id="Email" class="form-control" @bind-Value="userProfileModel.Email" readonly />
+								<ValidationMessage For="@(() => userProfileModel.Email)" />
                             </div>
 							<div class="col-md-6">
 								<label for="PhoneNumber" class="form-label">Telefonní číslo</label>
 								<InputText id="PhoneNumber" class="form-control" @bind-Value="userProfileModel.PhoneNumber" />
+								<ValidationMessage For="@(() => userProfileModel.PhoneNumber)" />
                             </div>
                         </div>
 
@@ -70,19 +77,23 @@
                             <div class="col-md-3">
                                 <label for="city" class="form-label">Město</label>
                                 <InputText id="city" class="form-control" @bind-Value="userProfileModel.City" />
+								<ValidationMessage For="@(() => userProfileModel.City)" />
                             </div>
                             <div class="col-md-3">
                                 <label for="address" class="form-label">Adresa</label>
                                 <InputText id="address" class="form-control" @bind-Value="userProfileModel.Address" />
+								<ValidationMessage For="@(() => userProfileModel.Address)" />
                             </div>
 
                             <div class="col-md-3">
                                 <label for="postalCode" class="form-label">PSČ</label>
                                 <InputText id="postalCode" class="form-control" @bind-Value="userProfileModel.PostalCode" />
+								<ValidationMessage For="@(() => userProfileModel.PostalCode)" />
                             </div>
                             <div class="col-md-3">
                                 <label for="country" class="form-label">Země</label>
                                 <InputText id="country" class="form-control" @bind-Value="userProfileModel.Country" />
+								<ValidationMessage For="@(() => userProfileModel.Country)" />
                             </div>
                         </div>
                         <div class="text-center mt-4">
@@ -139,6 +150,12 @@
                 {
                     profilePictureBase64 = Convert.ToBase64String(userProfileModel.ProfilePicture);
                 }
+				var roleClaim = userIdentity.FindFirst(c => c.Type == ClaimTypes.Role);
+                if (roleClaim != null)
+				{
+					userProfileModel.RoleId = roleClaim.Value;
+				}
+
             }
             else
             {
