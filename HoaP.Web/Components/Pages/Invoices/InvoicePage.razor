@@ -6,6 +6,11 @@
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 @attribute [Authorize]
 
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="alert alert-danger">@errorMessage</p>
+}
+
 <div class="container mt-5" @onmousedown="HideOptions">
     <div class="card border-0 shadow-sm mx-auto">
         <div class="card-body">
@@ -82,6 +87,7 @@
     private List<InvoiceViewModel> invoices;
     private List<InvoiceViewModel> filteredInvoices = new List<InvoiceViewModel>();
     private string? searchTerm;
+	private string? errorMessage;
 
 	private bool isDeleteModalVisible = false;
 	private int invoiceIdToDelete;
@@ -106,9 +112,17 @@
 
 		if (isConfirmed)
 		{
-			await InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
-			invoices = await InvoiceService.GetInvoicesAsync();
-			filteredInvoices = invoices;
+            try
+            {
+                await InvoiceService.DeleteInvoiceAsync(invoiceIdToDelete);
+                invoices = await InvoiceService.GetInvoicesAsync();
+                filteredInvoices = invoices;
+                errorMessage = null;
+            }
+            catch
+            {
+                errorMessage = "Fakturu nelze smazat, protože na ni existují platby.";
+            }
 		}
 		
 		isDeleteModalVisible = false;

@@ -258,6 +258,11 @@ namespace HoaP.Infrastructure.Repositories
             var invoice = await _context.Invoices.FindAsync(id);
             if (invoice != null)
             {
+                if (invoice.IsPaid)
+                {
+                    throw new Exception("Fakturu nelze smazat, protože je již zaplacena.");
+                }
+
                 _context.Invoices.Remove(invoice);
                 await _context.SaveChangesAsync();
             }

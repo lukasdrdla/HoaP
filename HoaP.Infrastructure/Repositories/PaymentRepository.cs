@@ -54,6 +54,12 @@ namespace HoaP.Infrastructure.Repositories
             var payment = await _context.Payments.FindAsync(id);
             if (payment != null)
             {
+                var invoice = await _context.Invoices.FindAsync(payment.InvoiceId);
+                if (invoice != null)
+                {
+                    invoice.IsPaid = false;
+                    _context.Invoices.Update(invoice);
+                }
                 _context.Payments.Remove(payment);
                 await _context.SaveChangesAsync();
             }
