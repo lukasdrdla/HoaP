@@ -131,7 +131,7 @@ namespace HoaP.Infrastructure.Data
                 .HasOne(r => r.Currency)
                 .WithMany()
                 .HasForeignKey(r => r.CurrencyId)
-                .OnDelete(DeleteBehavior.Restrict); // nebo .NoAction
+                .OnDelete(DeleteBehavior.Restrict);
 
 
             SeedData(builder);

@@ -31,7 +31,6 @@ namespace HoaP.Application.ViewModels
         public decimal MealPlanConvertedPrice { get; set; }
 
 
-
         public int ReservationStatusId { get; set; }
         public string AdminNote { get; set; } = string.Empty;
         public List<CustomerFormViewModel> Guests { get; set; } = new();
