@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - HoaP
+name: Build and deploy ASP.Net Core app to Azure Web App - hoapApp
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '3.1'
+          dotnet-version: '8.x'
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -54,15 +54,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1153D28B49E24982BAF34ECE16A0DB61 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_FC0F8FB8BE0F4DDAA33B9EB06A456809 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_57481E16EE924508910C83865C760260 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_0CC0FDD45EF54CF69341703A96A73C0C }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_AB27F8CC0BC246C1BAE1FF99264A5129 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_0E7FE39A3CBA4844BD907708E73F9700 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'HoaP'
+          app-name: 'hoapApp'
           slot-name: 'Production'
           package: .
           
