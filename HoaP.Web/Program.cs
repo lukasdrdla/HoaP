@@ -36,7 +36,7 @@ builder.Services.AddAutoMapper(typeof(ServiceProfile));
 
 builder.Services.AddLocalization();
 
-// Nastav výchozí kulturu na èeštinu
+// Nastav vï¿½chozï¿½ kulturu na ï¿½eï¿½tinu
 var defaultCulture = new CultureInfo("cs-CZ");
 CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
 CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
@@ -45,9 +45,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    .EnableSensitiveDataLogging()
-    );
+    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
 
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
