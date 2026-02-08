@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Review;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,27 +13,16 @@ namespace HoaP.Infrastructure.Repositories
     public class ReviewRepository : IReviewRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public ReviewRepository(ApplicationDbContext context, IMapper mapper)
+        public ReviewRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task CreateReviewAsync(ReviewFormViewModel review)
+        public async Task CreateReviewAsync(Review review)
         {
-            try
-            {
-                await _context.Reviews.AddAsync(_mapper.Map<Review>(review));
-                await _context.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
-
+            await _context.Reviews.AddAsync(review);
+            await _context.SaveChangesAsync();
         }
 
         public async Task DeleteReviewAsync(int id)
@@ -48,58 +35,53 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
-        public async Task<ReviewViewModel> GetReviewByIdAsync(int id)
+        public async Task<Review?> GetReviewByIdAsync(int id)
         {
-            var review = await _context.Reviews
+            return await _context.Reviews
+                .AsNoTracking()
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .FirstOrDefaultAsync(r => r.Id == id);
-
-            return _mapper.Map<ReviewViewModel>(review);
         }
 
-        public async Task<List<ReviewViewModel>> GetReviewsAsync()
+        public async Task<List<Review>> GetReviewsAsync()
         {
-            var reviews = await _context.Reviews
+            return await _context.Reviews
+                .AsNoTracking()
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .ToListAsync();
-
-            return _mapper.Map<List<ReviewViewModel>>(reviews);
         }
 
-        public async Task<List<ReviewViewModel>> GetReviewsByCustomerIdAsync(int customerId)
+        public async Task<List<Review>> GetReviewsByCustomerIdAsync(int customerId)
         {
-            var reviews = await _context.Reviews
+            return await _context.Reviews
+                .AsNoTracking()
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .Where(r => r.CustomerId == customerId)
                 .ToListAsync();
-
-            return _mapper.Map<List<ReviewViewModel>>(reviews);
         }
 
-        public async Task<List<ReviewViewModel>> GetRoomReviewsAsync(int roomId)
+        public async Task<List<Review>> GetRoomReviewsAsync(int roomId)
         {
-            var reviews = await _context.Reviews
+            return await _context.Reviews
+                .AsNoTracking()
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .Where(r => r.RoomId == roomId)
                 .ToListAsync();
-            return _mapper.Map<List<ReviewViewModel>>(reviews);
         }
 
-        public async Task UpdateReviewAsync(ReviewFormViewModel review)
+        public async Task UpdateReviewAsync(Review review)
         {
             var existingReview = await _context.Reviews.FindAsync(review.Id);
-
             if (existingReview != null)
             {
                 existingReview.Rating = review.Rating;
                 existingReview.Comment = review.Comment;
                 await _context.SaveChangesAsync();
             }
-
         }
     }
 }

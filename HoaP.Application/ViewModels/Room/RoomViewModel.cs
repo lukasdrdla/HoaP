@@ -11,6 +11,7 @@ namespace HoaP.Application.ViewModels.Room
     {
         public int Id { get; set; }
         public string RoomNumber { get; set; } = string.Empty;
+        public int RoomTypeId { get; set; }
         public string RoomTypeName { get; set; } = string.Empty;
         public string RoomStatusName { get; set; } = string.Empty;
         public bool IsDisable { get; set; } = false;

@@ -1,0 +1,201 @@
+@page "/reports"
+@rendermode InteractiveServer
+@attribute [Authorize]
+
+@using HoaP.Application.ViewModels.Report
+@inject ReportService ReportService
+@inject IJSRuntime JS
+
+<PageTitle>Reporty</PageTitle>
+
+<div class="container-fluid mt-4">
+    <h3 class="mb-4">Reporty a statistiky</h3>
+
+    <!-- Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Od</label>
+                    <input type="date" class="form-control" @bind="filter.StartDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Do</label>
+                    <input type="date" class="form-control" @bind="filter.EndDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Granularita</label>
+                    <select class="form-select" @bind="filter.Granularity">
+                        <option value="monthly">Mesicne</option>
+                        <option value="yearly">Rocne</option>
+                        <option value="daily">Denne</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary w-100" @onclick="LoadData" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                        }
+                        Zobrazit
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (kpi != null)
+    {
+        <!-- KPI Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">RevPAR</h6>
+                        <h3 class="text-primary">@kpi.RevPAR.ToString("N0") Kc</h3>
+                        <small class="text-muted">Trzba na dostupny pokoj</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">ADR</h6>
+                        <h3 class="text-success">@kpi.ADR.ToString("N0") Kc</h3>
+                        <small class="text-muted">Prumerna denni sazba</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Obsazenost</h6>
+                        <h3 class="text-warning">@kpi.OccupancyRate.ToString("N1") %</h3>
+                        <small class="text-muted">@kpi.TotalRoomNightsSold / @kpi.TotalAvailableRoomNights noci</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">Celkove trzby</h6>
+                        <h3 class="text-danger">@kpi.TotalRevenue.ToString("N0") Kc</h3>
+                        <small class="text-muted">V zakladni mene (CZK)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6>Trzby v case</h6>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6>Obsazenost v case</h6>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6>Trzby dle zdroje</h6>
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h6>Trzby dle typu pokoje</h6>
+                        <canvas id="roomTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private ReportFilterViewModel filter = new();
+    private KpiViewModel? kpi;
+    private ReportChartViewModel? chartData;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            kpi = await ReportService.GetKpiAsync(filter);
+            chartData = await ReportService.GetChartDataAsync(filter);
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+
+        if (chartData != null)
+        {
+            await Task.Delay(100); // wait for canvas to render
+            await RenderCharts();
+        }
+    }
+
+    private async Task RenderCharts()
+    {
+        if (chartData == null) return;
+
+        // Revenue + RevPAR + ADR line chart
+        var labels = chartData.RevenueSeries.Select(x => x.Label).ToArray();
+        var datasets = new[]
+        {
+            new { label = "Trzby (Kc)", data = chartData.RevenueSeries.Select(x => (double)x.Value).ToArray() },
+            new { label = "RevPAR (Kc)", data = chartData.RevPARSeries.Select(x => (double)x.Value).ToArray() },
+            new { label = "ADR (Kc)", data = chartData.ADRSeries.Select(x => (double)x.Value).ToArray() }
+        };
+        await JS.InvokeVoidAsync("chartInterop.renderLineChart", "revenueChart", labels, datasets);
+
+        // Occupancy line chart
+        var occDatasets = new[]
+        {
+            new { label = "Obsazenost (%)", data = chartData.OccupancySeries.Select(x => (double)x.Value).ToArray() }
+        };
+        await JS.InvokeVoidAsync("chartInterop.renderLineChart", "occupancyChart", labels, occDatasets);
+
+        // Revenue by source pie chart
+        if (chartData.RevenueBySource.Any())
+        {
+            var sourceLabels = chartData.RevenueBySource.Select(x => x.SourceName).ToArray();
+            var sourceData = chartData.RevenueBySource.Select(x => (double)x.Revenue).ToArray();
+            await JS.InvokeVoidAsync("chartInterop.renderPieChart", "sourceChart", sourceLabels, sourceData);
+        }
+
+        // Revenue by room type bar chart
+        if (chartData.RevenueByRoomType.Any())
+        {
+            var rtLabels = chartData.RevenueByRoomType.Select(x => x.RoomTypeName).ToArray();
+            var rtData = chartData.RevenueByRoomType.Select(x => (double)x.Revenue).ToArray();
+            await JS.InvokeVoidAsync("chartInterop.renderBarChart", "roomTypeChart", rtLabels, rtData, "Trzby (Kc)");
+        }
+    }
+}

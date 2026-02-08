@@ -1,0 +1,191 @@
+@page "/booking/lookup"
+@layout BookingLayout
+@rendermode InteractiveServer
+
+@inject ReservationService ReservationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Vyhledat rezervaci</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Vyhledat rezervaci</h2>
+            <p class="text-muted">Zadejte svuj e-mail a cislo rezervace pro zobrazeni detailu.</p>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <EditForm Model="lookupForm" OnValidSubmit="HandleLookup" FormName="lookupForm">
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">E-mail</label>
+                        <InputText class="form-control" @bind-Value="lookupForm.Email" placeholder="jan.novak@email.cz" />
+                        <ValidationMessage For="@(() => lookupForm.Email)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Cislo rezervace</label>
+                        <InputNumber class="form-control" @bind-Value="lookupForm.ReservationId" placeholder="12345" />
+                        <ValidationMessage For="@(() => lookupForm.ReservationId)" />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" disabled="@isSearching">
+                            @if (isSearching)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            }
+                            Vyhledat
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+
+        @if (hasSearched)
+        {
+            @if (reservation != null)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Rezervace #@reservation.Id</h5>
+                        <span class="badge @GetStatusBadgeClass(reservation.ReservationStatusId)">
+                            @reservation.ReservationStatusName
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Host</small>
+                                <strong>@reservation.CustomerName</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Pokoj</small>
+                                <strong>@reservation.RoomTypeName - @reservation.RoomNumber</strong>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Prijezd</small>
+                                <strong>@reservation.CheckIn.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Odjezd</small>
+                                <strong>@reservation.CheckOut.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Pocet hostu</small>
+                                <strong>@reservation.Adults dospelych@(reservation.Children > 0 ? $", {reservation.Children} deti" : "")</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Datum vytvoreni</small>
+                                <strong>@reservation.CreatedAt.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(reservation.SpecialRequest))
+                        {
+                            <hr />
+                            <div>
+                                <small class="text-muted d-block">Specialni pozadavky</small>
+                                <span>@reservation.SpecialRequest</span>
+                            </div>
+                        }
+
+                        <hr />
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fs-5">Celkova cena:</span>
+                            <span class="fs-4 fw-bold text-primary">@reservation.TotalPrice.ToString("0.##") @reservation.CurrencySymbol</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Rezervace nenalezena. Zkontrolujte prosim e-mail a cislo rezervace.
+                </div>
+            }
+        }
+
+        <div class="text-center mt-3">
+            <a href="/booking" class="btn btn-outline-primary">Zpet na vyhledavani pokoju</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LookupFormModel lookupForm = new();
+    private DetailReservationViewModel? reservation;
+    private bool isSearching = false;
+    private bool hasSearched = false;
+
+    private async Task HandleLookup()
+    {
+        isSearching = true;
+        hasSearched = false;
+        reservation = null;
+        StateHasChanged();
+
+        try
+        {
+            var result = await ReservationService.GetReservationByIdAsync(lookupForm.ReservationId);
+
+            // Verify that the email matches the customer on the reservation
+            if (result != null &&
+                !string.IsNullOrEmpty(result.CustomerEmail) &&
+                result.CustomerEmail.Equals(lookupForm.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                reservation = result;
+            }
+            else
+            {
+                reservation = null;
+            }
+
+            hasSearched = true;
+        }
+        catch (Exception)
+        {
+            reservation = null;
+            hasSearched = true;
+        }
+        finally
+        {
+            isSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private string GetStatusBadgeClass(int statusId)
+    {
+        return statusId switch
+        {
+            1 => "bg-success",       // Potvrzena
+            2 => "bg-danger",        // Zrusena
+            3 => "bg-warning text-dark", // Ceka na potvrzeni
+            4 => "bg-info",          // Ubytovan
+            5 => "bg-secondary",     // Odhlasen
+            6 => "bg-dark",          // No-show
+            _ => "bg-secondary"
+        };
+    }
+
+    public class LookupFormModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "E-mail je povinny.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Zadejte platny e-mail.")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Cislo rezervace je povinne.")]
+        [System.ComponentModel.DataAnnotations.Range(1, int.MaxValue, ErrorMessage = "Zadejte platne cislo rezervace.")]
+        public int ReservationId { get; set; }
+    }
+}

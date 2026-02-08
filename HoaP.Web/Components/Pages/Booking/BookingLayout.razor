@@ -1,0 +1,48 @@
+@inherits LayoutComponentBase
+@inject HotelProfileService HotelProfileService
+
+<div class="booking-layout">
+    <nav class="navbar navbar-light bg-white shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4" href="/booking">
+                @if (hotelLogo != null)
+                {
+                    <img src="data:image/png;base64,@hotelLogo" alt="@hotelName" style="height: 40px;" class="me-2" />
+                }
+                @hotelName
+            </a>
+            <div class="d-flex gap-2">
+                <a href="/booking" class="btn btn-outline-primary btn-sm">Vyhledat pokoje</a>
+                <a href="/booking/lookup" class="btn btn-outline-secondary btn-sm">Moje rezervace</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        @Body
+    </div>
+
+    <footer class="bg-light text-center py-3 mt-5">
+        <div class="container">
+            <p class="text-muted mb-0">&copy; @DateTime.Now.Year @hotelName. Vyhrazena vsechna prava.</p>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private string hotelName = "Hotel";
+    private string? hotelLogo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await HotelProfileService.GetHotelProfileAsync();
+        if (profile != null)
+        {
+            hotelName = profile.Name;
+            if (profile.Logo != null && profile.Logo.Length > 0)
+            {
+                hotelLogo = Convert.ToBase64String(profile.Logo);
+            }
+        }
+    }
+}

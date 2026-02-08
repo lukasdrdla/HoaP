@@ -5,12 +5,18 @@ using HoaP.Application.Services;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using HoaP.Infrastructure.Repositories;
+using HoaP.Infrastructure.Services;
 using HoaP.Web.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using HoaP.Infrastructure.HealthChecks;
+using HoaP.Infrastructure.Middleware;
+using HoaP.Web.Endpoints;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +39,8 @@ builder.Services.AddAutoMapper(typeof(TaskProfile));
 builder.Services.AddAutoMapper(typeof(AccountProfile));
 builder.Services.AddAutoMapper(typeof(ReviewProfile));
 builder.Services.AddAutoMapper(typeof(ServiceProfile));
+builder.Services.AddAutoMapper(typeof(HotelProfileProfile));
+builder.Services.AddAutoMapper(typeof(RatePlanProfile));
 
 builder.Services.AddLocalization();
 
@@ -43,6 +51,8 @@ CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
@@ -58,6 +68,10 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequireUppercase = true;
     options.Password.RequireLowercase = true;
+
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 });
 
 
@@ -115,7 +129,7 @@ builder.Services.AddScoped<CurrencyService>();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<AccountService>();
 
-builder.Services.AddScoped<IDashBoardRepsoitory, DashBoardRepository>();
+builder.Services.AddScoped<IDashBoardRepository, DashBoardRepository>();
 builder.Services.AddScoped<DashBoardService>();
 
 builder.Services.AddScoped<IMealPlanRepository, MealPlanRepository>();
@@ -136,13 +150,56 @@ builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
-builder.Services.AddScoped<ServiceService>();
+builder.Services.AddScoped<AddonService>();
+
+builder.Services.AddScoped<IHotelProfileRepository, HotelProfileRepository>();
+builder.Services.AddScoped<HotelProfileService>();
+
+builder.Services.AddScoped<IRatePlanRepository, RatePlanRepository>();
+builder.Services.AddScoped<RatePlanService>();
+
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<ReportService>();
+
+builder.Services.AddSingleton<IEncryptionService, AesEncryptionService>();
+
+builder.Services.AddSingleton<MockPaymentGatewayService>();
+builder.Services.AddSingleton<IPaymentGatewayService>(sp => sp.GetRequiredService<MockPaymentGatewayService>());
+
+builder.Services.AddScoped<InvoicePdfGenerator>();
+
+// Multi-tenancy
+builder.Services.AddDbContext<MasterDbContext>(options =>
+    options.UseMySQL(builder.Configuration.GetConnectionString("MasterConnection")
+        ?? throw new InvalidOperationException("Connection string 'MasterConnection' not found.")));
+
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<TenantDbContextFactory>();
+builder.Services.AddScoped<TenantDatabaseProvisioner>();
+
+// Health checks
+builder.Services.AddHealthChecks()
+    .AddMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "mysql",
+        tags: new[] { "db", "ready" })
+    .AddCheck<EncryptionServiceHealthCheck>(
+        "encryption",
+        tags: new[] { "security", "ready" })
+    .AddCheck<DiskSpaceHealthCheck>(
+        "disk-space",
+        tags: new[] { "infrastructure" });
 
 
 
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    await DbInitializer.SeedAdminAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -159,12 +216,36 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseMiddleware<TenantResolutionMiddleware>();
+
 app.UseStaticFiles();
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+// Health check endpoints
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready"),
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+// Map API endpoints
+app.MapRoomEndpoints();
+app.MapReservationEndpoints();
+app.MapCustomerEndpoints();
+app.MapInvoiceEndpoints();
+app.MapDashboardEndpoints();
+app.MapRatePlanEndpoints();
+app.MapReportEndpoints();
+app.MapPaymentGatewayEndpoints();
+app.MapTenantEndpoints();
 
 QuestPDF.Settings.License = LicenseType.Community;
 

@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HoaP.Application.ViewModels.MealPlan;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface IMealPlanRepository
     {
-        Task<List<MealPlanViewModel>> GetMealPlansAsync();
-        Task<MealPlanViewModel> GetMealPlanByIdAsync(int id);
-        Task CreateMealPlanAsync(MealPlanViewModel model);
-        Task UpdateMealPlanAsync(MealPlanViewModel model);
+        Task<List<MealPlan>> GetMealPlansAsync();
+        Task<MealPlan?> GetMealPlanByIdAsync(int id);
+        Task CreateMealPlanAsync(MealPlan entity);
+        Task UpdateMealPlanAsync(MealPlan entity);
         Task DeleteMealPlanAsync(int id);
     }
 }

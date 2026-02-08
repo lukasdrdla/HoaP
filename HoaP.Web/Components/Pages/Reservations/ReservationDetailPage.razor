@@ -148,15 +148,34 @@
 
 
     <!-- Akce -->
-    <div class="d-flex gap-3">
-		@if (reservation.ReservationStatusId == 1)
+    <div class="d-flex gap-3 flex-wrap">
+		@if (reservation.ReservationStatusId == 1 || reservation.ReservationStatusId == 3)
 		{
-            <button class="btn btn-danger flex-grow-1" @onclick="() => CancelReservation(reservation.Id)">Zrušit rezervaci</button>
+            <button class="btn btn-success flex-grow-1" @onclick="() => CheckIn(reservation.Id)">
+                <i class="bi bi-box-arrow-in-right"></i> Check-in
+            </button>
+            <button class="btn btn-danger flex-grow-1" @onclick="() => CancelReservation(reservation.Id)">
+                <i class="bi bi-x-circle"></i> Zrušit
+            </button>
         }
-		else
-		{
+        else if (reservation.ReservationStatusId == 4)
+        {
+            <button class="btn btn-warning flex-grow-1" @onclick="() => CheckOut(reservation.Id)">
+                <i class="bi bi-box-arrow-right"></i> Check-out
+            </button>
+        }
+        else if (reservation.ReservationStatusId == 2)
+        {
 			<button class="btn btn-secondary flex-grow-1" disabled>Rezervace zrušena</button>
-		}
+        }
+        else if (reservation.ReservationStatusId == 5)
+        {
+            <button class="btn btn-secondary flex-grow-1" disabled>Host odhlášen</button>
+        }
+        else if (reservation.ReservationStatusId == 6)
+        {
+            <button class="btn btn-secondary flex-grow-1" disabled>Host se nedostavil</button>
+        }
         <button class="btn btn-outline-secondary flex-grow-1" @onclick="NavigateToReservations">Zpět na seznam rezervací</button>
     </div>
 </div>
@@ -183,14 +202,26 @@
     }
 
 
-    private async Task CancelReservation(int invoiceId)
+    private async Task CancelReservation(int reservationId)
     {
 		var result = await JSRuntime.InvokeAsync<bool>("confirm", "Opravdu chcete zrušit rezervaci?");
         if (result)
         {
-			await ReservationService.CancelReservationAsync(invoiceId);
+			await ReservationService.CancelReservationAsync(reservationId);
 			NavigationManager.NavigateTo("/rezervace");
         }
+    }
+
+    private async Task CheckIn(int reservationId)
+    {
+        await ReservationService.CheckInAsync(reservationId);
+        reservation = await ReservationService.GetReservationByIdAsync(Id);
+    }
+
+    private async Task CheckOut(int reservationId)
+    {
+        await ReservationService.CheckOutAsync(reservationId);
+        reservation = await ReservationService.GetReservationByIdAsync(Id);
     }
 
 	private async Task DeleteReservation(int reservationId)

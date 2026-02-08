@@ -19,5 +19,8 @@ namespace HoaP.Domain.Entities
         public int CurrencyId { get; set; }
         public Currency Currency { get; set; }
 
+        public string? GatewayTransactionId { get; set; }
+        public string? GatewayStatus { get; set; }
+        public string? GatewaySessionId { get; set; }
     }
 }

@@ -46,9 +46,12 @@
                 <li class="nav-item">
                     <a class="@GetNavLinkClass(10)" @onclick="() => SelectTab(10)">Služby</a>
                 </li>
-
-
-
+                <li class="nav-item">
+                    <a class="@GetNavLinkClass(11)" @onclick="() => SelectTab(11)">Profil hotelu</a>
+                </li>
+                <li class="nav-item">
+                    <a class="@GetNavLinkClass(12)" @onclick="() => SelectTab(12)">Cenové plány</a>
+                </li>
 
             </ul>
 
@@ -85,7 +88,12 @@
 					case 10:
                     <ServicesComponent />
                     break;
-
+					case 11:
+                    <HotelProfileComponent />
+                    break;
+                    case 12:
+                    <RatePlansComponent />
+                    break;
 
                 }
             </div>

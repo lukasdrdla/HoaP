@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HoaP.Application.ViewModels.Currency;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface ICurrencyRepository
     {
-        Task<List<CurrencyViewModel>> GetCurrenciesAsync();
-        Task<CurrencyViewModel> GetCurrencyByIdAsync(int id);
-        Task CreateCurrencyAsync(CurrencyViewModel model);
-        Task UpdateCurrencyAsync(CurrencyViewModel model);
+        Task<List<Currency>> GetCurrenciesAsync();
+        Task<Currency?> GetCurrencyByIdAsync(int id);
+        Task CreateCurrencyAsync(Currency entity);
+        Task UpdateCurrencyAsync(Currency entity);
         Task DeleteCurrencyAsync(int id);
     }
 }

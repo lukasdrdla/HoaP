@@ -1,18 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HoaP.Application.ViewModels;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface IReservationStatusRepository
     {
-        Task<List<ReservationStatusViewModel>> GetReservationStatusesAsync();
-        Task<ReservationStatusViewModel> GetReservationStatusByIdAsync(int id);
-        Task CreateReservationStatusAsync(ReservationStatusViewModel model);
-        Task UpdateReservationStatusAsync(ReservationStatusViewModel model);
+        Task<List<ReservationStatus>> GetReservationStatusesAsync();
+        Task<ReservationStatus?> GetReservationStatusByIdAsync(int id);
+        Task CreateReservationStatusAsync(ReservationStatus entity);
+        Task UpdateReservationStatusAsync(ReservationStatus entity);
         Task DeleteReservationStatusAsync(int id);
     }
 }

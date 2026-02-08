@@ -1,0 +1,97 @@
+@page "/booking/payment-result/{ReservationId:int}"
+@layout BookingLayout
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.WebUtilities
+@inject IPaymentGatewayService PaymentGateway
+@inject NavigationManager NavigationManager
+
+<PageTitle>Vysledek platby</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        @if (isVerifying)
+        {
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <h5>Overujeme platbu...</h5>
+            </div>
+        }
+        else if (paymentSuccess)
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">Platba uspesna!</h3>
+                    <p class="text-muted">Vase platba byla uspesne zpracovana.</p>
+                    <p class="text-muted">ID transakce: <strong>@transactionId</strong></p>
+
+                    <div class="mt-4">
+                        <a href="/booking/confirmation/@ReservationId" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-1"></i> Zpet na potvrzeni rezervace
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-x-circle-fill text-danger" style="font-size: 4rem;"></i>
+                    <h3 class="mt-3">Platba se nezdarila</h3>
+                    <p class="text-muted">@errorMessage</p>
+
+                    <div class="mt-4 d-flex justify-content-center gap-2">
+                        <a href="/booking/payment/@ReservationId" class="btn btn-primary">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Zkusit znovu
+                        </a>
+                        <a href="/booking/confirmation/@ReservationId" class="btn btn-outline-secondary">
+                            Zpet na rezervaci
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public int ReservationId { get; set; }
+
+    private bool isVerifying = true;
+    private bool paymentSuccess = false;
+    private string? transactionId;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(NavigationManager.Uri);
+        var queryParams = QueryHelpers.ParseQuery(uri.Query);
+
+        if (queryParams.TryGetValue("sessionId", out var sessionId) && !string.IsNullOrEmpty(sessionId))
+        {
+            var result = await PaymentGateway.VerifyPaymentAsync(sessionId!);
+
+            if (result.Success)
+            {
+                paymentSuccess = true;
+                transactionId = result.TransactionId;
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "Platba nebyla dokoncena.";
+            }
+        }
+        else if (queryParams.TryGetValue("status", out var status) && status == "cancelled")
+        {
+            errorMessage = "Platba byla zrusena.";
+        }
+        else
+        {
+            errorMessage = "Neplatny vysledek platby.";
+        }
+
+        isVerifying = false;
+    }
+}

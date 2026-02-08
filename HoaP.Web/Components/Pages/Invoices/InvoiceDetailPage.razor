@@ -1,6 +1,7 @@
 ﻿@page "/faktura/{invoiceId:int}"
 @using HoaP.Application.ViewModels.Invoice
 @inject InvoiceService InvoiceService
+@inject HotelProfileService HotelProfileService
 @inject NavigationManager NavigationManager
 @inject CurrencyService CurrencyService
 @inject IJSRuntime JSRuntime
@@ -189,8 +190,9 @@
 
     private async Task DownloadPDF()
     {
-        var pdfData = new InvoicePdfGenerator().GeneratePdf(invoice);
-        var fileName = $"Faktura_{invoice.Id}.pdf";
+        var hotel = await HotelProfileService.GetHotelProfileAsync();
+        var pdfData = new InvoicePdfGenerator().GeneratePdf(invoice, hotel);
+        var fileName = $"Faktura_{invoice.InvoiceNumber}.pdf";
 
         using var stream = new MemoryStream(pdfData);
         using var streamRef = new DotNetStreamReference(stream: stream);

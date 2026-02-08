@@ -9,9 +9,9 @@ namespace HoaP.Application.Services
 {
     public class DashBoardService
     {
-        private readonly IDashBoardRepsoitory _dashBoardRepsoitory;
+        private readonly IDashBoardRepository _dashBoardRepsoitory;
 
-        public DashBoardService(IDashBoardRepsoitory dashBoardRepsoitory)
+        public DashBoardService(IDashBoardRepository dashBoardRepsoitory)
         {
             _dashBoardRepsoitory = dashBoardRepsoitory;
         }

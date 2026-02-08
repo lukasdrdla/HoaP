@@ -260,7 +260,7 @@ else
         try
         {
             var file = e.File;
-            var result = await FileUploadService.HandleFileUploadAsync(file);
+            var result = await FileUploadService.HandleFileUploadAsync(file.OpenReadStream(), file.Size);
             employee!.ProfilePicture = result;
             profileImageBase64 = $"data:image/png;base64,{Convert.ToBase64String(result)}";
 

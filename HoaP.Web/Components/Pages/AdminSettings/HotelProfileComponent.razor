@@ -1,0 +1,168 @@
+@using HoaP.Application.ViewModels.HotelProfile
+@using HoaP.Application.Services
+@inject HotelProfileService hotelProfileService
+
+<div>
+	<h4>Profil hotelu</h4>
+	<p class="text-muted">Údaje o hotelu se zobrazují na fakturách a v zákaznickém portálu.</p>
+
+	@if (isLoading)
+	{
+		<div class="text-center py-4">
+			<div class="spinner-border" role="status">
+				<span class="visually-hidden">Načítání...</span>
+			</div>
+		</div>
+	}
+	else
+	{
+		@if (!string.IsNullOrEmpty(successMessage))
+		{
+			<div class="alert alert-success alert-dismissible fade show" role="alert">
+				@successMessage
+				<button type="button" class="btn-close" @onclick="() => successMessage = null"></button>
+			</div>
+		}
+
+		<EditForm Model="profile" OnValidSubmit="HandleSubmit">
+			<DataAnnotationsValidator />
+			<ValidationSummary />
+
+			<div class="row">
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label for="name" class="form-label">Název hotelu *</label>
+						<InputText id="name" class="form-control" @bind-Value="profile.Name" />
+						<ValidationMessage For="@(() => profile.Name)" />
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label for="email" class="form-label">Email</label>
+						<InputText id="email" class="form-control" @bind-Value="profile.Email" />
+						<ValidationMessage For="@(() => profile.Email)" />
+					</div>
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<label for="description" class="form-label">Popis</label>
+				<InputTextArea id="description" class="form-control" rows="3" @bind-Value="profile.Description" />
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label for="address" class="form-label">Adresa *</label>
+						<InputText id="address" class="form-control" @bind-Value="profile.Address" />
+						<ValidationMessage For="@(() => profile.Address)" />
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label for="city" class="form-label">Město *</label>
+						<InputText id="city" class="form-control" @bind-Value="profile.City" />
+						<ValidationMessage For="@(() => profile.City)" />
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="postalCode" class="form-label">PSČ *</label>
+						<InputText id="postalCode" class="form-control" @bind-Value="profile.PostalCode" />
+						<ValidationMessage For="@(() => profile.PostalCode)" />
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="country" class="form-label">Země *</label>
+						<InputText id="country" class="form-control" @bind-Value="profile.Country" />
+						<ValidationMessage For="@(() => profile.Country)" />
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="phone" class="form-label">Telefon</label>
+						<InputText id="phone" class="form-control" @bind-Value="profile.Phone" />
+						<ValidationMessage For="@(() => profile.Phone)" />
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="ico" class="form-label">IČO *</label>
+						<InputText id="ico" class="form-control" @bind-Value="profile.ICO" />
+						<ValidationMessage For="@(() => profile.ICO)" />
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="dic" class="form-label">DIČ</label>
+						<InputText id="dic" class="form-control" @bind-Value="profile.DIC" />
+						<ValidationMessage For="@(() => profile.DIC)" />
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="mb-3">
+						<label for="website" class="form-label">Web</label>
+						<InputText id="website" class="form-control" @bind-Value="profile.Website" />
+					</div>
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<label for="logo" class="form-label">Logo</label>
+				<InputFile id="logo" class="form-control" OnChange="HandleLogoUpload" accept="image/*" />
+				@if (profile.Logo != null && profile.Logo.Length > 0)
+				{
+					<div class="mt-2">
+						<img src="@($"data:image/png;base64,{Convert.ToBase64String(profile.Logo)}")" alt="Logo" style="max-height: 80px;" />
+						<button type="button" class="btn btn-sm btn-outline-danger ms-2" @onclick="RemoveLogo">Odstranit logo</button>
+					</div>
+				}
+			</div>
+
+			<button class="btn btn-success" type="submit">Uložit profil</button>
+		</EditForm>
+	}
+</div>
+
+@code {
+	private HotelProfileViewModel profile = new();
+	private bool isLoading = true;
+	private string? successMessage;
+
+	protected override async Task OnInitializedAsync()
+	{
+		profile = await hotelProfileService.GetHotelProfileAsync();
+		isLoading = false;
+	}
+
+	private async Task HandleSubmit()
+	{
+		await hotelProfileService.SaveHotelProfileAsync(profile);
+		successMessage = "Profil hotelu byl úspěšně uložen.";
+	}
+
+	private async Task HandleLogoUpload(InputFileChangeEventArgs e)
+	{
+		var file = e.File;
+		if (file.Size > 2 * 1024 * 1024)
+		{
+			return;
+		}
+
+		using var stream = new MemoryStream();
+		await file.OpenReadStream(2 * 1024 * 1024).CopyToAsync(stream);
+		profile.Logo = stream.ToArray();
+	}
+
+	private void RemoveLogo()
+	{
+		profile.Logo = null;
+	}
+}

@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Customer;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,28 +13,21 @@ namespace HoaP.Infrastructure.Repositories
     public class CustomerRepository : ICustomerRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public CustomerRepository(ApplicationDbContext context, IMapper mapper)
+        public CustomerRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-
-        public async Task CreateCustomerAsync(CustomerFormViewModel customer)
+        public async Task CreateCustomerAsync(Customer customer)
         {
-            var customerEntity = _mapper.Map<Customer>(customer);
-            await _context.Customers.AddAsync(customerEntity);
+            await _context.Customers.AddAsync(customer);
             await _context.SaveChangesAsync();
-
         }
 
         public async Task DeleteCustomerAsync(int id)
         {
             var customer = await _context.Customers.FindAsync(id);
-
-
             if (customer != null)
             {
                 _context.Customers.Remove(customer);
@@ -44,44 +35,37 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
-        public async Task<DetailCustomerViewModel> GetCustomerByIdAsync(int id)
+        public async Task<Customer?> GetCustomerByIdAsync(int id)
         {
-            var customer = await _context.Customers
+            return await _context.Customers
+                .AsNoTracking()
                 .Include(c => c.ReservationCustomers)
-                .ThenInclude(rc => rc.Reservation)
-                .ThenInclude(r => r.Currency)
-
+                    .ThenInclude(rc => rc.Reservation)
+                        .ThenInclude(r => r.Currency)
                 .FirstOrDefaultAsync(c => c.Id == id);
-
-
-            if (customer != null)
-            {
-                return _mapper.Map<DetailCustomerViewModel>(customer);
-            }
-
-            return null;
         }
 
-        public async Task<List<CustomerViewModel>> GetCustomersAsync()
+        public async Task<Customer?> GetCustomerByEmailAsync(string email)
         {
-            var customers = await _context.Customers.ToListAsync();
-            return _mapper.Map<List<CustomerViewModel>>(customers);
-
+            return await _context.Customers
+                .FirstOrDefaultAsync(c => c.Email == email);
         }
 
-        public async Task UpdateCustomerAsync(CustomerFormViewModel customer)
+        public async Task<List<Customer>> GetCustomersAsync()
+        {
+            return await _context.Customers
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task UpdateCustomerAsync(Customer customer)
         {
             var existingCustomer = await _context.Customers.FindAsync(customer.Id);
-
             if (existingCustomer == null)
-            {
                 return;
-            }
 
+            _context.Entry(existingCustomer).CurrentValues.SetValues(customer);
             existingCustomer.UpdatedAt = DateTime.Now;
-
-            _mapper.Map(customer, existingCustomer);
-            _context.Customers.Update(existingCustomer);
             await _context.SaveChangesAsync();
         }
     }

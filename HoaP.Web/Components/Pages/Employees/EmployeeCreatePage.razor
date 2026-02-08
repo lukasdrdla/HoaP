@@ -210,7 +210,7 @@
         var file = e.File;
         try
         {
-            profilePictureBytes = await FileUploadService.HandleFileUploadAsync(file);
+            profilePictureBytes = await FileUploadService.HandleFileUploadAsync(file.OpenReadStream(), file.Size);
             employee.ProfilePicture = profilePictureBytes;
             message = "Obrázek byl úspěšně nahrán.";
         }

@@ -33,6 +33,7 @@ namespace HoaP.Application.ViewModels
 
         public int ReservationStatusId { get; set; }
         public string AdminNote { get; set; } = string.Empty;
+        public int? ReservationSourceId { get; set; }
         public List<CustomerFormViewModel> Guests { get; set; } = new();
         public List<CurrencyViewModel> Currencies { get; set; } = new();
         public List<ServiceReservationViewModel> SelectedServices { get; set; } = new();

@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Room;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,51 +13,42 @@ namespace HoaP.Infrastructure.Repositories
     public class RoomStatusRepository : IRoomStatusRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public RoomStatusRepository(ApplicationDbContext context, IMapper mapper)
+        public RoomStatusRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task CreateRoomStatusAsync(RoomStatusViewModel model)
+        public async Task CreateRoomStatusAsync(RoomStatus entity)
         {
-            await _context.RoomStatuses.AddAsync(_mapper.Map<RoomStatus>(model));
+            await _context.RoomStatuses.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteRoomStatusAsync(int id)
         {
-            var existingRoomStatus = await _context.RoomStatuses.FindAsync(id);
-            if (existingRoomStatus != null)
+            var existing = await _context.RoomStatuses.FindAsync(id);
+            if (existing != null)
             {
-                _context.RoomStatuses.Remove(existingRoomStatus);
+                _context.RoomStatuses.Remove(existing);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task<RoomStatusViewModel> GetRoomStatusByIdAsync(int id)
+        public async Task<RoomStatus?> GetRoomStatusByIdAsync(int id)
         {
-            var roomStatus = await _context.RoomStatuses.FindAsync(id);
-            return _mapper.Map<RoomStatusViewModel>(roomStatus);
+            return await _context.RoomStatuses.FindAsync(id);
         }
 
-        public async Task<List<RoomStatusViewModel>> GetRoomStatusesAsync()
+        public async Task<List<RoomStatus>> GetRoomStatusesAsync()
         {
-            var roomStatuses = await _context.RoomStatuses.ToListAsync();
-            return _mapper.Map<List<RoomStatusViewModel>>(roomStatuses);
+            return await _context.RoomStatuses.AsNoTracking().ToListAsync();
         }
 
-        public async Task UpdateRoomStatusAsync(RoomStatusViewModel model)
+        public async Task UpdateRoomStatusAsync(RoomStatus entity)
         {
-            var existingRoomStatus = await _context.RoomStatuses.FindAsync(model.Id);
-            if (existingRoomStatus != null)
-            {
-                _mapper.Map(model, existingRoomStatus);
-                _context.RoomStatuses.Update(existingRoomStatus);
-                await _context.SaveChangesAsync();
-            }
+            _context.RoomStatuses.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

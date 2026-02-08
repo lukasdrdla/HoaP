@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HoaP.Application.ViewModels.Role;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface IRoleRepository
     {
-        Task<List<RoleViewModel>> GetRolesAsync();
-        Task<RoleViewModel> GetRoleByIdAsync(string id);
-        Task CreateRoleAsync(RoleViewModel model);
-        Task UpdateRoleAsync(RoleViewModel model);
+        Task<List<AppRole>> GetRolesAsync();
+        Task<AppRole?> GetRoleByIdAsync(string id);
+        Task CreateRoleAsync(AppRole role);
+        Task UpdateRoleAsync(AppRole role);
         Task DeleteRoleAsync(string id);
     }
 }

@@ -1,0 +1,158 @@
+@page "/booking/confirmation/{reservationId:int}"
+@layout BookingLayout
+@rendermode InteractiveServer
+
+@inject ReservationService ReservationService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Potvrzeni rezervace</PageTitle>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Nacitani...</span>
+        </div>
+    </div>
+}
+else if (reservation == null)
+{
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6 text-center py-5">
+            <i class="bi bi-check-circle fs-1 text-success"></i>
+            <h3 class="mt-3">Rezervace byla vytvorena</h3>
+            <p class="text-muted">Vase rezervace byla uspesne odeslana. Brzy Vam prijde potvrzeni na e-mail.</p>
+            <a href="/booking" class="btn btn-primary mt-3">Vytvorit dalsi rezervaci</a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="text-center mb-4">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                     style="width: 80px; height: 80px;">
+                    <i class="bi bi-check-lg text-success" style="font-size: 2.5rem;"></i>
+                </div>
+                <h2 class="fw-bold">Dekujeme za Vasi rezervaci!</h2>
+                <p class="text-muted fs-5">Vase rezervace byla uspesne prijata a ceka na potvrzeni.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Detail rezervace</h5>
+                    <span class="badge bg-white text-primary">
+                        #@reservation.Id
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Referencni cislo</small>
+                            <strong class="fs-5">#@reservation.Id</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Stav</small>
+                            <span class="badge bg-warning text-dark">@reservation.ReservationStatusName</span>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Host</small>
+                            <strong>@reservation.CustomerName</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">E-mail</small>
+                            <strong>@reservation.CustomerEmail</strong>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Pokoj</small>
+                            <strong>@reservation.RoomTypeName - @reservation.RoomNumber</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Pocet hostu</small>
+                            <strong>@reservation.Adults dospelych@(reservation.Children > 0 ? $", {reservation.Children} deti" : "")</strong>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Prijezd</small>
+                            <strong>@reservation.CheckIn.ToString("dd.MM.yyyy")</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Odjezd</small>
+                            <strong>@reservation.CheckOut.ToString("dd.MM.yyyy")</strong>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(reservation.SpecialRequest))
+                    {
+                        <hr />
+                        <div>
+                            <small class="text-muted d-block">Specialni pozadavky</small>
+                            <span>@reservation.SpecialRequest</span>
+                        </div>
+                    }
+
+                    <hr />
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fs-5">Celkova cena:</span>
+                        <span class="fs-4 fw-bold text-primary">@reservation.TotalPrice.ToString("0.##") @reservation.CurrencySymbol</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <i class="bi bi-info-circle text-primary me-1"></i>
+                    <span class="text-muted">
+                        Vasi rezervaci muzete kdykoliv zkontrolovat na strance
+                        <a href="/booking/lookup">Moje rezervace</a>
+                        pomoci Vaseho e-mailu a referencniho cisla <strong>#@reservation.Id</strong>.
+                    </span>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="/booking/payment/@ReservationId" class="btn btn-success btn-lg">
+                    <i class="bi bi-credit-card me-1"></i> Zaplatit online
+                </a>
+                <a href="/booking" class="btn btn-primary btn-lg">Vytvorit dalsi rezervaci</a>
+                <a href="/booking/lookup" class="btn btn-outline-secondary">Vyhledat rezervaci</a>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int ReservationId { get; set; }
+
+    private DetailReservationViewModel? reservation;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (ReservationId > 0)
+            {
+                reservation = await ReservationService.GetReservationByIdAsync(ReservationId);
+            }
+        }
+        catch (Exception)
+        {
+            reservation = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

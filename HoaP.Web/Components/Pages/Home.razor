@@ -146,7 +146,7 @@
 		totalRooms = await DashBoardService.GetTotalRooms();
 		totalRevenue = await DashBoardService.GetRevenueFromLastMonth();
 
-        bookings = await ReservationService.GetReservationsAsync();
+        await LoadBookingsForCurrentMonth();
         UpdateSelectedDayBookings();
 	}
 
@@ -187,14 +187,25 @@
     }
 
 
-    private void GoToPreviousMonth()
+    private async Task GoToPreviousMonth()
     {
         currentMonth = currentMonth.AddMonths(-1);
+        await LoadBookingsForCurrentMonth();
+        UpdateSelectedDayBookings();
     }
 
-    private void GoToNextMonth()
+    private async Task GoToNextMonth()
     {
         currentMonth = currentMonth.AddMonths(1);
+        await LoadBookingsForCurrentMonth();
+        UpdateSelectedDayBookings();
+    }
+
+    private async Task LoadBookingsForCurrentMonth()
+    {
+        var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+        var rangeEnd = firstDay.AddDays(42);
+        bookings = await ReservationService.GetReservationsByDateRangeAsync(firstDay, rangeEnd);
     }
 
     private void SelectDay(DateTime date)

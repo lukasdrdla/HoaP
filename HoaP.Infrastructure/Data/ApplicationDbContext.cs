@@ -1,21 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-using HoaP.Application.Services;
+using System.Text.Json;
+using HoaP.Application.Interfaces;
 using HoaP.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace HoaP.Infrastructure.Data
 {
     public class ApplicationDbContext : IdentityDbContext<AppUser, AppRole, string>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        private readonly IEncryptionService? _encryptionService;
+        private readonly IHttpContextAccessor? _httpContextAccessor;
+
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options,
+            IEncryptionService? encryptionService = null,
+            IHttpContextAccessor? httpContextAccessor = null) : base(options)
         {
+            _encryptionService = encryptionService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public DbSet<Currency> Currencies { get; set; }
@@ -38,11 +45,31 @@ namespace HoaP.Infrastructure.Data
         public DbSet<Service> Services { get; set; }
         public DbSet<ServiceReservation> ReservationServices { get; set; }
         public DbSet<InvoiceItem> InvoiceItems { get; set; }
+        public DbSet<HotelProfile> HotelProfiles { get; set; }
+        public DbSet<ReservationSource> ReservationSources { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<RatePlan> RatePlans { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Sifrovani citlivych dat (GDPR)
+            if (_encryptionService != null)
+            {
+                var encryptedStringConverter = new ValueConverter<string, string>(
+                    v => _encryptionService.Encrypt(v),
+                    v => _encryptionService.Decrypt(v));
+
+                builder.Entity<Customer>()
+                    .Property(c => c.PersonalIdentificationNumber)
+                    .HasConversion(encryptedStringConverter);
+
+                builder.Entity<Customer>()
+                    .Property(c => c.DocumentNumber)
+                    .HasConversion(encryptedStringConverter);
+            }
 
             builder.Entity<Reservation>()
                 .HasOne(r => r.Invoice)
@@ -54,13 +81,6 @@ namespace HoaP.Infrastructure.Data
                 .HasOne(p => p.Invoice)
                 .WithMany(i => i.Payments)
                 .HasForeignKey(p => p.InvoiceId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-
-            builder.Entity<Reservation>()
-                .HasOne(r => r.Invoice)
-                .WithMany(i => i.Reservations)
-                .HasForeignKey(r => r.InvoiceId)
                 .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -91,6 +111,14 @@ namespace HoaP.Infrastructure.Data
             builder.Entity<InvoiceItem>()
                 .Property(i => i.Price)
                 .HasPrecision(18, 2);
+
+            builder.Entity<InvoiceItem>()
+                .Property(i => i.UnitPrice)
+                .HasPrecision(18, 2);
+
+            builder.Entity<InvoiceItem>()
+                .Property(i => i.VatRate)
+                .HasPrecision(5, 2);
 
             builder.Entity<Invoice>()
                 .Property(i => i.Discount)
@@ -134,63 +162,185 @@ namespace HoaP.Infrastructure.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            // Indexy pro caste dotazy
+            builder.Entity<Reservation>()
+                .HasIndex(r => new { r.RoomId, r.CheckIn, r.CheckOut })
+                .HasDatabaseName("IX_Reservation_Room_Dates");
+
+            builder.Entity<Reservation>()
+                .HasIndex(r => r.CustomerId)
+                .HasDatabaseName("IX_Reservation_CustomerId");
+
+            builder.Entity<Reservation>()
+                .HasIndex(r => r.ReservationStatusId)
+                .HasDatabaseName("IX_Reservation_StatusId");
+
+            builder.Entity<Room>()
+                .HasIndex(r => r.RoomStatusId)
+                .HasDatabaseName("IX_Room_StatusId");
+
+            builder.Entity<Invoice>()
+                .HasIndex(i => new { i.IsPaid, i.DueDate })
+                .HasDatabaseName("IX_Invoice_IsPaid_DueDate");
+
+            builder.Entity<RatePlan>()
+                .Property(rp => rp.PriceModifier)
+                .HasPrecision(18, 2);
+
+            builder.Entity<RatePlan>()
+                .HasIndex(rp => new { rp.StartDate, rp.EndDate, rp.IsActive })
+                .HasDatabaseName("IX_RatePlan_DateRange_Active");
+
             SeedData(builder);
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var auditEntries = OnBeforeSaveChanges();
+            var result = await base.SaveChangesAsync(cancellationToken);
+            await OnAfterSaveChanges(auditEntries);
+            return result;
+        }
+
+        private List<AuditEntry> OnBeforeSaveChanges()
+        {
+            ChangeTracker.DetectChanges();
+            var auditEntries = new List<AuditEntry>();
+
+            var userId = _httpContextAccessor?.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "System";
+            var userName = _httpContextAccessor?.HttpContext?.User?.Identity?.Name ?? "System";
+
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                if (entry.Entity is AuditLog || entry.State == EntityState.Detached || entry.State == EntityState.Unchanged)
+                    continue;
+
+                var auditEntry = new AuditEntry
+                {
+                    UserId = userId,
+                    UserName = userName,
+                    EntityName = entry.Entity.GetType().Name,
+                    Action = entry.State.ToString(),
+                    Entry = entry
+                };
+
+                foreach (var property in entry.Properties)
+                {
+                    if (property.IsTemporary)
+                    {
+                        auditEntry.TemporaryProperties.Add(property);
+                        continue;
+                    }
+
+                    var propertyName = property.Metadata.Name;
+
+                    if (entry.State == EntityState.Added)
+                    {
+                        auditEntry.NewValues[propertyName] = property.CurrentValue;
+                    }
+                    else if (entry.State == EntityState.Deleted)
+                    {
+                        auditEntry.OldValues[propertyName] = property.OriginalValue;
+                    }
+                    else if (entry.State == EntityState.Modified && property.IsModified)
+                    {
+                        auditEntry.OldValues[propertyName] = property.OriginalValue;
+                        auditEntry.NewValues[propertyName] = property.CurrentValue;
+                    }
+                }
+
+                if (entry.State == EntityState.Added || entry.State == EntityState.Deleted ||
+                    auditEntry.OldValues.Count > 0)
+                {
+                    auditEntries.Add(auditEntry);
+                }
+            }
+
+            foreach (var auditEntry in auditEntries.Where(e => !e.HasTemporaryProperties))
+            {
+                AuditLogs.Add(auditEntry.ToAuditLog());
+            }
+
+            return auditEntries.Where(e => e.HasTemporaryProperties).ToList();
+        }
+
+        private async Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
+        {
+            if (auditEntries.Count == 0) return;
+
+            foreach (var auditEntry in auditEntries)
+            {
+                foreach (var prop in auditEntry.TemporaryProperties)
+                {
+                    if (prop.Metadata.IsPrimaryKey())
+                    {
+                        auditEntry.EntityId = prop.CurrentValue?.ToString();
+                    }
+                    auditEntry.NewValues[prop.Metadata.Name] = prop.CurrentValue;
+                }
+                AuditLogs.Add(auditEntry.ToAuditLog());
+            }
+
+            await base.SaveChangesAsync();
+        }
+
+        private class AuditEntry
+        {
+            public string UserId { get; set; } = string.Empty;
+            public string UserName { get; set; } = string.Empty;
+            public string Action { get; set; } = string.Empty;
+            public string EntityName { get; set; } = string.Empty;
+            public string? EntityId { get; set; }
+            public EntityEntry Entry { get; set; } = null!;
+            public Dictionary<string, object?> OldValues { get; } = new();
+            public Dictionary<string, object?> NewValues { get; } = new();
+            public List<PropertyEntry> TemporaryProperties { get; } = new();
+            public bool HasTemporaryProperties => TemporaryProperties.Count > 0;
+
+            public AuditLog ToAuditLog()
+            {
+                var primaryKey = Entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey());
+                return new AuditLog
+                {
+                    UserId = UserId,
+                    UserName = UserName,
+                    Action = Action,
+                    EntityName = EntityName,
+                    EntityId = EntityId ?? primaryKey?.CurrentValue?.ToString(),
+                    OldValues = OldValues.Count > 0 ? JsonSerializer.Serialize(OldValues) : null,
+                    NewValues = NewValues.Count > 0 ? JsonSerializer.Serialize(NewValues) : null,
+                    Timestamp = DateTime.UtcNow
+                };
+            }
         }
 
 
         private void SeedData(ModelBuilder modelBuilder)
         {
+            // Fixní datum pro deterministické seed data
+            var seedDate = new DateTime(2025, 1, 1, 12, 0, 0);
 
-           
+            // Fixní ID pro deterministické migrace
+            const string adminRoleId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+            const string managerRoleId = "b2c3d4e5-f6a7-8901-bcde-f12345678901";
+            const string receptionistRoleId = "c3d4e5f6-a7b8-9012-cdef-123456789012";
+            const string adminUserId = "d4e5f6a7-b8c9-0123-defa-234567890123";
 
-            var adminRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Admin", NormalizedName = "ADMIN" };
-            var managerRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Manager", NormalizedName = "MANAGER" };
-            var receptionistRole = new AppRole { Id = Guid.NewGuid().ToString(), Name = "Receptionist", NormalizedName = "RECEPTIONIST" };
+            var adminRole = new AppRole { Id = adminRoleId, Name = "Admin", NormalizedName = "ADMIN" };
+            var managerRole = new AppRole { Id = managerRoleId, Name = "Manager", NormalizedName = "MANAGER" };
+            var receptionistRole = new AppRole { Id = receptionistRoleId, Name = "Receptionist", NormalizedName = "RECEPTIONIST" };
 
             modelBuilder.Entity<AppRole>().HasData(adminRole, managerRole, receptionistRole);
 
-            var adminId = Guid.NewGuid().ToString();
-            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "admin.png");
-            byte[]? profilePictureBytes = File.Exists(imagePath) ? File.ReadAllBytes(imagePath) : null;
+            // Admin user is seeded at runtime via DbInitializer (password from configuration)
 
-            var admin = new AppUser
-            {
-                    Id = adminId,
-                    UserName = "admin@admin.com",
-                    NormalizedUserName = "ADMIN@ADMIN.COM",
-                    Email = "admin@admin.com",
-                    NormalizedEmail = "ADMIN@ADMIN.COM",
-                    EmailConfirmed = true,
-                    SecurityStamp = Guid.NewGuid().ToString(),
-                    FirstName = "Admin",
-                    ProfilePicture = profilePictureBytes,
-                    LastName = "Admin",
-                    Address = "Hlavní 123",
-                    City = "Praha",
-                    PostalCode = "11000",
-                    Country = "Česká republika",
-                    PersonalIdentificationNumber = "CZ1234567890",
-                    PlaceOfBirth = "Praha",
-                    JobTitle = "Admin",
-                    StartDate = DateTime.Now,
-                    Salary = 50000,
-                    IsEmployed = true,
-                    InsuranceCompanyId = 1
-            };
-
-            var passwordHasher = new PasswordHasher<AppUser>();
-            admin.PasswordHash = passwordHasher.HashPassword(admin, "Admin123456789!");
-
-            modelBuilder.Entity<AppUser>().HasData(admin);
-
-            modelBuilder.Entity<IdentityUserRole<string>>().HasData(new IdentityUserRole<string>
-            {
-                RoleId = adminRole.Id,
-                UserId = adminId
-            });
-
-
-
+            modelBuilder.Entity<ReservationSource>().HasData(
+                new ReservationSource { Id = 1, Name = "Walk-in" },
+                new ReservationSource { Id = 2, Name = "Telefon" },
+                new ReservationSource { Id = 3, Name = "Web" },
+                new ReservationSource { Id = 4, Name = "OTA (Booking.com apod.)" },
+                new ReservationSource { Id = 5, Name = "Email" }
+            );
 
             modelBuilder.Entity<Currency>().HasData(
                 new Currency { Id = 1, Name = "Americký dolar", Symbol = "$", Code = "USD", Rate = 22.50m },
@@ -214,7 +364,11 @@ namespace HoaP.Infrastructure.Data
 
             modelBuilder.Entity<ReservationStatus>().HasData(
                 new ReservationStatus { Id = 1, Name = "Potvrzená" },
-                new ReservationStatus { Id = 2, Name = "Zrušená" }
+                new ReservationStatus { Id = 2, Name = "Zrušená" },
+                new ReservationStatus { Id = 3, Name = "Čeká na potvrzení" },
+                new ReservationStatus { Id = 4, Name = "Ubytován" },
+                new ReservationStatus { Id = 5, Name = "Odhlášen" },
+                new ReservationStatus { Id = 6, Name = "Nedostavil se" }
             );
 
             modelBuilder.Entity<RoomType>().HasData(
@@ -251,30 +405,30 @@ namespace HoaP.Infrastructure.Data
             );
 
             modelBuilder.Entity<Customer>().HasData(
-                new Customer { Id = 1, FirstName = "Jan", LastName = "Novák", DocumentNumber = "+420725912987", PlaceOfBirth = "Praha", DateOfBirth = new DateTime(1990, 1, 1), DateOfIssue = new DateTime(2020, 1, 1), DateOfExpiry = new DateTime(2030, 1, 1), PersonalIdentificationNumber = "CZ1234567890", Nationality = "Česká republika", Phone = "+420123456789", Email = "jan.novak@example.com", Address = "Hlavní 123", City = "Praha", PostalCode = "11000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 2, FirstName = "Petr", LastName = "Svoboda", DocumentNumber = "+420725912298", PlaceOfBirth = "Brno", DateOfBirth = new DateTime(1985, 5, 15), DateOfIssue = new DateTime(2019, 6, 10), DateOfExpiry = new DateTime(2029, 6, 10), PersonalIdentificationNumber = "CZ0987654321", Nationality = "Česká republika", Phone = "+420987654321", Email = "petr.svoboda@example.com", Address = "Náměstí 456", City = "Brno", PostalCode = "60200", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 3, FirstName = "Marie", LastName = "Černá", DocumentNumber = "+420745912987", PlaceOfBirth = "Ostrava", DateOfBirth = new DateTime(1992, 3, 25), DateOfIssue = new DateTime(2021, 7, 20), DateOfExpiry = new DateTime(2031, 7, 20), PersonalIdentificationNumber = "CZ4567891234", Nationality = "Česká republika", Phone = "+420654789123", Email = "marie.cerna@example.com", Address = "Sokolská 789", City = "Ostrava", PostalCode = "70200", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 4, FirstName = "Anna", LastName = "Havlíčková", DocumentNumber = "+420725612987", PlaceOfBirth = "Plzeň", DateOfBirth = new DateTime(1988, 8, 30), DateOfIssue = new DateTime(2022, 4, 15), DateOfExpiry = new DateTime(2032, 4, 15), PersonalIdentificationNumber = "CZ3216549870", Nationality = "Česká republika", Phone = "+420321654987", Email = "anna.havlickova@example.com", Address = "Jasná 321", City = "Plzeň", PostalCode = "30100", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 5, FirstName = "Tomáš", LastName = "Procházka", DocumentNumber = "+420725922987", PlaceOfBirth = "Liberec", DateOfBirth = new DateTime(1995, 12, 12), DateOfIssue = new DateTime(2021, 11, 11), DateOfExpiry = new DateTime(2031, 11, 11), PersonalIdentificationNumber = "CZ1597534680", Nationality = "Česká republika", Phone = "+420159753468", Email = "tomas.prochazka@example.com", Address = "Květná 159", City = "Liberec", PostalCode = "46000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 6, FirstName = "Petra", LastName = "Dvořáková", DocumentNumber = "+420725912387", PlaceOfBirth = "Ústí nad Labem", DateOfBirth = new DateTime(1998, 10, 20), DateOfIssue = new DateTime(2020, 8, 15), DateOfExpiry = new DateTime(2030, 8, 15), PersonalIdentificationNumber = "CZ7539518520", Nationality = "Česká republika", Phone = "+420753951852", Email = "petra.dvorakova@example.com", Address = "Lípa 753", City = "Ústí nad Labem", PostalCode = "40000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 7, FirstName = "Jakub", LastName = "Novotný", DocumentNumber = "+420725112987", PlaceOfBirth = "Hradec Králové", DateOfBirth = new DateTime(1987, 4, 5), DateOfIssue = new DateTime(2021, 5, 1), DateOfExpiry = new DateTime(2031, 5, 1), PersonalIdentificationNumber = "CZ8524567890", Nationality = "Česká republika", Phone = "+420852456789", Email = "jakub.novotny@example.com", Address = "Březová 852", City = "Hradec Králové", PostalCode = "50000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 8, FirstName = "Lucie", LastName = "Krejčová", DocumentNumber = "+420025912987", PlaceOfBirth = "Zlín", DateOfBirth = new DateTime(1993, 11, 11), DateOfIssue = new DateTime(2021, 3, 12), DateOfExpiry = new DateTime(2031, 3, 12), PersonalIdentificationNumber = "CZ2589631470", Nationality = "Česká republika", Phone = "+420258963147", Email = "lucie.krejcova@example.com", Address = "Růžová 258", City = "Zlín", PostalCode = "76000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 9, FirstName = "Martin", LastName = "Fiala", DocumentNumber = "+420723912987", PlaceOfBirth = "Karlovy Vary", DateOfBirth = new DateTime(1980, 9, 9), DateOfIssue = new DateTime(2018, 4, 20), DateOfExpiry = new DateTime(2028, 4, 20), PersonalIdentificationNumber = "CZ3692581470", Nationality = "Česká republika", Phone = "+420369258147", Email = "martin.fiala@example.com", Address = "Modrá 369", City = "Karlovy Vary", PostalCode = "36000", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Customer { Id = 10, FirstName = "Barbora", LastName = "Kovářová", DocumentNumber = "+420225912987", PlaceOfBirth = "Jihlava", DateOfBirth = new DateTime(1991, 6, 15), DateOfIssue = new DateTime(2021, 9, 15), DateOfExpiry = new DateTime(2031, 9, 15), PersonalIdentificationNumber = "CZ7418529630", Nationality = "Česká republika", Phone = "+420741852963", Email = "barbora.kovarova@example.com", Address = "Violetová 741", City = "Jihlava", PostalCode = "58601", Country = "Česká republika", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+                new Customer { Id = 1, FirstName = "Jan", LastName = "Novák", DocumentNumber = "+420725912987", PlaceOfBirth = "Praha", DateOfBirth = new DateTime(1990, 1, 1), DateOfIssue = new DateTime(2020, 1, 1), DateOfExpiry = new DateTime(2030, 1, 1), PersonalIdentificationNumber = "CZ1234567890", Nationality = "Česká republika", Phone = "+420123456789", Email = "jan.novak@example.com", Address = "Hlavní 123", City = "Praha", PostalCode = "11000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 2, FirstName = "Petr", LastName = "Svoboda", DocumentNumber = "+420725912298", PlaceOfBirth = "Brno", DateOfBirth = new DateTime(1985, 5, 15), DateOfIssue = new DateTime(2019, 6, 10), DateOfExpiry = new DateTime(2029, 6, 10), PersonalIdentificationNumber = "CZ0987654321", Nationality = "Česká republika", Phone = "+420987654321", Email = "petr.svoboda@example.com", Address = "Náměstí 456", City = "Brno", PostalCode = "60200", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 3, FirstName = "Marie", LastName = "Černá", DocumentNumber = "+420745912987", PlaceOfBirth = "Ostrava", DateOfBirth = new DateTime(1992, 3, 25), DateOfIssue = new DateTime(2021, 7, 20), DateOfExpiry = new DateTime(2031, 7, 20), PersonalIdentificationNumber = "CZ4567891234", Nationality = "Česká republika", Phone = "+420654789123", Email = "marie.cerna@example.com", Address = "Sokolská 789", City = "Ostrava", PostalCode = "70200", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 4, FirstName = "Anna", LastName = "Havlíčková", DocumentNumber = "+420725612987", PlaceOfBirth = "Plzeň", DateOfBirth = new DateTime(1988, 8, 30), DateOfIssue = new DateTime(2022, 4, 15), DateOfExpiry = new DateTime(2032, 4, 15), PersonalIdentificationNumber = "CZ3216549870", Nationality = "Česká republika", Phone = "+420321654987", Email = "anna.havlickova@example.com", Address = "Jasná 321", City = "Plzeň", PostalCode = "30100", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 5, FirstName = "Tomáš", LastName = "Procházka", DocumentNumber = "+420725922987", PlaceOfBirth = "Liberec", DateOfBirth = new DateTime(1995, 12, 12), DateOfIssue = new DateTime(2021, 11, 11), DateOfExpiry = new DateTime(2031, 11, 11), PersonalIdentificationNumber = "CZ1597534680", Nationality = "Česká republika", Phone = "+420159753468", Email = "tomas.prochazka@example.com", Address = "Květná 159", City = "Liberec", PostalCode = "46000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 6, FirstName = "Petra", LastName = "Dvořáková", DocumentNumber = "+420725912387", PlaceOfBirth = "Ústí nad Labem", DateOfBirth = new DateTime(1998, 10, 20), DateOfIssue = new DateTime(2020, 8, 15), DateOfExpiry = new DateTime(2030, 8, 15), PersonalIdentificationNumber = "CZ7539518520", Nationality = "Česká republika", Phone = "+420753951852", Email = "petra.dvorakova@example.com", Address = "Lípa 753", City = "Ústí nad Labem", PostalCode = "40000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 7, FirstName = "Jakub", LastName = "Novotný", DocumentNumber = "+420725112987", PlaceOfBirth = "Hradec Králové", DateOfBirth = new DateTime(1987, 4, 5), DateOfIssue = new DateTime(2021, 5, 1), DateOfExpiry = new DateTime(2031, 5, 1), PersonalIdentificationNumber = "CZ8524567890", Nationality = "Česká republika", Phone = "+420852456789", Email = "jakub.novotny@example.com", Address = "Březová 852", City = "Hradec Králové", PostalCode = "50000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 8, FirstName = "Lucie", LastName = "Krejčová", DocumentNumber = "+420025912987", PlaceOfBirth = "Zlín", DateOfBirth = new DateTime(1993, 11, 11), DateOfIssue = new DateTime(2021, 3, 12), DateOfExpiry = new DateTime(2031, 3, 12), PersonalIdentificationNumber = "CZ2589631470", Nationality = "Česká republika", Phone = "+420258963147", Email = "lucie.krejcova@example.com", Address = "Růžová 258", City = "Zlín", PostalCode = "76000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 9, FirstName = "Martin", LastName = "Fiala", DocumentNumber = "+420723912987", PlaceOfBirth = "Karlovy Vary", DateOfBirth = new DateTime(1980, 9, 9), DateOfIssue = new DateTime(2018, 4, 20), DateOfExpiry = new DateTime(2028, 4, 20), PersonalIdentificationNumber = "CZ3692581470", Nationality = "Česká republika", Phone = "+420369258147", Email = "martin.fiala@example.com", Address = "Modrá 369", City = "Karlovy Vary", PostalCode = "36000", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Customer { Id = 10, FirstName = "Barbora", LastName = "Kovářová", DocumentNumber = "+420225912987", PlaceOfBirth = "Jihlava", DateOfBirth = new DateTime(1991, 6, 15), DateOfIssue = new DateTime(2021, 9, 15), DateOfExpiry = new DateTime(2031, 9, 15), PersonalIdentificationNumber = "CZ7418529630", Nationality = "Česká republika", Phone = "+420741852963", Email = "barbora.kovarova@example.com", Address = "Violetová 741", City = "Jihlava", PostalCode = "58601", Country = "Česká republika", CreatedAt = seedDate, UpdatedAt = seedDate }
             );
 
             modelBuilder.Entity<Reservation>().HasData(
-                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 },
-                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 },
-                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now, CurrencyId = 3 }
+                new Reservation { Id = 1, RoomId = 1, CheckIn = new DateTime(2025, 1, 4), CheckOut = new DateTime(2025, 1, 10), TotalPrice = 6600, ReservationStatusId = 1, CustomerId = 1, Adults = 1, Children = 0, MealPlanId = 2, SpecialRequest = "Přistýlka", AdminNote = "Poznámka pro recepci", CreatedAt = seedDate, UpdatedAt = seedDate, CurrencyId = 3 },
+                new Reservation { Id = 2, RoomId = 2, CheckIn = new DateTime(2025, 1, 2), CheckOut = new DateTime(2025, 1, 8), TotalPrice = 13500, ReservationStatusId = 1, CustomerId = 2, Adults = 2, Children = 1, MealPlanId = 3, SpecialRequest = "Dětská postýlka", AdminNote = "Poznámka pro recepci", CreatedAt = seedDate, UpdatedAt = seedDate, CurrencyId = 3 },
+                new Reservation { Id = 3, RoomId = 3, CheckIn = new DateTime(2025, 1, 1), CheckOut = new DateTime(2025, 1, 12), TotalPrice = 19000, ReservationStatusId = 1, CustomerId = 3, Adults = 3, Children = 2, MealPlanId = 4, SpecialRequest = "Bezlepková dieta", AdminNote = "Poznámka pro recepci", CreatedAt = seedDate, UpdatedAt = seedDate, CurrencyId = 3 }
                 );
 
             modelBuilder.Entity<Invoice>().HasData(
-                new Invoice { Id = 1, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1500.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 2, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2500.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 3, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1200.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 4, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 2000.00m, IsPaid = true, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now},
-                new Invoice { Id = 5, AppUserId = adminId, CurrencyId = 3, IssueDate = DateTime.Now, DueDate = DateTime.Now.AddDays(30), Price = 1700.00m, IsPaid = false, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now}
+                new Invoice { Id = 1, AppUserId = adminUserId, CurrencyId = 3, IssueDate = seedDate, DueDate = new DateTime(2025, 1, 31, 12, 0, 0), Price = 1500.00m, IsPaid = false, CreatedAt = seedDate, UpdatedAt = seedDate},
+                new Invoice { Id = 2, AppUserId = adminUserId, CurrencyId = 3, IssueDate = seedDate, DueDate = new DateTime(2025, 1, 31, 12, 0, 0), Price = 2500.00m, IsPaid = true, CreatedAt = seedDate, UpdatedAt = seedDate},
+                new Invoice { Id = 3, AppUserId = adminUserId, CurrencyId = 3, IssueDate = seedDate, DueDate = new DateTime(2025, 1, 31, 12, 0, 0), Price = 1200.00m, IsPaid = false, CreatedAt = seedDate, UpdatedAt = seedDate},
+                new Invoice { Id = 4, AppUserId = adminUserId, CurrencyId = 3, IssueDate = seedDate, DueDate = new DateTime(2025, 1, 31, 12, 0, 0), Price = 2000.00m, IsPaid = true, CreatedAt = seedDate, UpdatedAt = seedDate},
+                new Invoice { Id = 5, AppUserId = adminUserId, CurrencyId = 3, IssueDate = seedDate, DueDate = new DateTime(2025, 1, 31, 12, 0, 0), Price = 1700.00m, IsPaid = false, CreatedAt = seedDate, UpdatedAt = seedDate}
                 );
             modelBuilder.Entity<Service>().HasData(
                 new Service { Id = 1, Name = "Wellness vstup", Price = 500, IsPerNight = false },
@@ -310,14 +464,14 @@ namespace HoaP.Infrastructure.Data
 
 
             modelBuilder.Entity<Payment>().HasData(
-                new Payment { Id = Guid.NewGuid(), InvoiceId = 1, CurrencyId = 3, TotalAmount = 7100, PaymentDate = DateTime.Now.AddDays(-5), PaymentMethodId = 1, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Payment { Id = Guid.NewGuid(), InvoiceId = 2, CurrencyId = 3, TotalAmount = 16000, PaymentDate = DateTime.Now.AddDays(-10), PaymentMethodId = 2, CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+                new Payment { Id = new Guid("f1a2b3c4-d5e6-7890-abcd-ef1234500001"), InvoiceId = 1, CurrencyId = 3, TotalAmount = 7100, PaymentDate = new DateTime(2024, 12, 27, 12, 0, 0), PaymentMethodId = 1, CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Payment { Id = new Guid("f1a2b3c4-d5e6-7890-abcd-ef1234500002"), InvoiceId = 2, CurrencyId = 3, TotalAmount = 16000, PaymentDate = new DateTime(2024, 12, 22, 12, 0, 0), PaymentMethodId = 2, CreatedAt = seedDate, UpdatedAt = seedDate }
             );
 
             modelBuilder.Entity<Review>().HasData(
-                new Review { Id = 1, CustomerId = 1, RoomId = 1, Rating = 5, Comment = "Skvělý pobyt, čistota na jedničku!", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Review { Id = 2, CustomerId = 2, RoomId = 2, Rating = 4, Comment = "Příjemný personál a dobré jídlo.", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now },
-                new Review { Id = 3, CustomerId = 3, RoomId = 3, Rating = 3, Comment = "Hezký pokoj, ale trochu hlučný soused.", CreatedAt = DateTime.Now, UpdatedAt = DateTime.Now }
+                new Review { Id = 1, CustomerId = 1, RoomId = 1, Rating = 5, Comment = "Skvělý pobyt, čistota na jedničku!", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Review { Id = 2, CustomerId = 2, RoomId = 2, Rating = 4, Comment = "Příjemný personál a dobré jídlo.", CreatedAt = seedDate, UpdatedAt = seedDate },
+                new Review { Id = 3, CustomerId = 3, RoomId = 3, Rating = 3, Comment = "Hezký pokoj, ale trochu hlučný soused.", CreatedAt = seedDate, UpdatedAt = seedDate }
             );
 
 

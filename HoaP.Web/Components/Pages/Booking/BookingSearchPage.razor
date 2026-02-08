@@ -1,0 +1,240 @@
+@page "/booking"
+@layout BookingLayout
+@rendermode InteractiveServer
+
+@inject RoomService RoomService
+@inject HotelProfileService HotelProfileService
+@inject RatePlanService RatePlanService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Rezervace pokoje</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold">Najdete svuj idealni pokoj</h2>
+            <p class="text-muted">Vyberte termín a pocet hostu pro zobrazení dostupnych pokoju.</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Príjezd</label>
+                        <input type="date" class="form-control" @bind="checkIn" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Odjezd</label>
+                        <input type="date" class="form-control" @bind="checkOut" min="@checkIn.AddDays(1).ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Dospelí</label>
+                        <select class="form-select" @bind="adults">
+                            @for (int i = 1; i <= 10; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Deti</label>
+                        <select class="form-select" @bind="children">
+                            @for (int i = 0; i <= 10; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" @onclick="SearchRooms" disabled="@isSearching">
+                            @if (isSearching)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+                            }
+                            Hledat
+                        </button>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(validationError))
+                {
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i> @validationError
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Search Results -->
+        @if (hasSearched)
+        {
+            @if (filteredRooms != null && filteredRooms.Any())
+            {
+                <p class="text-muted mb-3">
+                    Nalezeno <strong>@filteredRooms.Count</strong> dostupnych pokoju
+                    pro @adults @(adults == 1 ? "dospely" : "dospelych")@(children > 0 ? $" a {children} {(children == 1 ? "díte" : "detí")}" : "")
+                    na @numberOfNights @(numberOfNights == 1 ? "noc" : numberOfNights < 5 ? "noci" : "nocí").
+                </p>
+
+                <div class="row g-4">
+                    @foreach (var room in filteredRooms)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="position-relative">
+                                    @if (roomImages.ContainsKey(room.Id) && roomImages[room.Id] != null)
+                                    {
+                                        <img src="data:image/jpeg;base64,@roomImages[room.Id]"
+                                             class="card-img-top" alt="Pokoj @room.RoomNumber"
+                                             style="height: 200px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                             style="height: 200px;">
+                                            <i class="bi bi-house-door fs-1 text-muted"></i>
+                                        </div>
+                                    }
+                                    <span class="badge bg-primary position-absolute top-0 end-0 m-2">
+                                        @room.RoomTypeName
+                                    </span>
+                                </div>
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title">Pokoj @room.RoomNumber</h5>
+                                    <p class="text-muted small mb-2">
+                                        @if (roomDescriptions.ContainsKey(room.Id))
+                                        {
+                                            @(roomDescriptions[room.Id].Length > 120
+                                                ? roomDescriptions[room.Id].Substring(0, 120) + "..."
+                                                : roomDescriptions[room.Id])
+                                        }
+                                    </p>
+                                    <div class="mb-2">
+                                        <span class="badge bg-light text-dark me-1">
+                                            <i class="bi bi-people me-1"></i>Max @room.MaxAdults dospelych
+                                        </span>
+                                        @if (room.MaxChildren > 0)
+                                        {
+                                            <span class="badge bg-light text-dark">
+                                                <i class="bi bi-person me-1"></i>Max @room.MaxChildren detí
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fs-5 fw-bold text-primary">@room.Price.ToString("0.##") @room.CurrencySymbol</span>
+                                                <span class="text-muted small"> / noc</span>
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-muted small">
+                                            Celkem za @numberOfNights @(numberOfNights == 1 ? "noc" : numberOfNights < 5 ? "noci" : "nocí"):
+                                            <strong>@(calculatedPrices.ContainsKey(room.Id) ? calculatedPrices[room.Id].ToString("0.##") : (room.Price * numberOfNights).ToString("0.##")) @room.CurrencySymbol</strong>
+                                        </div>
+                                        <button class="btn btn-primary w-100 mt-3"
+                                                @onclick="() => ReserveRoom(room.Id)">
+                                            Rezervovat
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-calendar-x fs-1 text-muted"></i>
+                    <h4 class="mt-3">Zadne dostupne pokoje</h4>
+                    <p class="text-muted">Pro zvoleny termín a pocet hostu nejsou k dispozici zadne pokoje. Zkuste zmenit termín nebo pocet hostu.</p>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    private DateTime checkIn = DateTime.Now.Date;
+    private DateTime checkOut = DateTime.Now.Date.AddDays(3);
+    private int adults = 1;
+    private int children = 0;
+
+    private bool isSearching = false;
+    private bool hasSearched = false;
+    private string? validationError;
+
+    private List<RoomViewModel>? filteredRooms;
+    private Dictionary<int, string?> roomImages = new();
+    private Dictionary<int, string> roomDescriptions = new();
+    private Dictionary<int, decimal> calculatedPrices = new();
+    private int numberOfNights;
+
+    private async Task SearchRooms()
+    {
+        validationError = null;
+
+        if (checkIn >= checkOut)
+        {
+            validationError = "Datum odjezdu musí byt po datu príjezdu.";
+            return;
+        }
+
+        if (checkIn < DateTime.Now.Date)
+        {
+            validationError = "Datum príjezdu nesmí byt v minulosti.";
+            return;
+        }
+
+        isSearching = true;
+        StateHasChanged();
+
+        try
+        {
+            numberOfNights = (int)(checkOut - checkIn).TotalDays;
+            var availableRooms = await RoomService.GetAvailableRoomsAsync(checkIn, checkOut);
+
+            // Filter by capacity and not disabled
+            filteredRooms = availableRooms
+                .Where(r => !r.IsDisable && r.MaxAdults >= adults && r.MaxChildren >= children)
+                .OrderBy(r => r.Price)
+                .ToList();
+
+            // Load room details (images, descriptions, dynamic prices) for each available room
+            roomImages.Clear();
+            roomDescriptions.Clear();
+            calculatedPrices.Clear();
+            foreach (var room in filteredRooms)
+            {
+                var detail = await RoomService.GetRoomByIdAsync(room.Id);
+                if (detail != null)
+                {
+                    roomImages[room.Id] = detail.Image != null ? Convert.ToBase64String(detail.Image) : null;
+                    roomDescriptions[room.Id] = detail.Description ?? "";
+                }
+
+                var totalPrice = await RatePlanService.CalculatePriceForStayAsync(
+                    room.Id, room.RoomTypeId, checkIn, checkOut, room.Price);
+                calculatedPrices[room.Id] = totalPrice;
+            }
+
+            hasSearched = true;
+        }
+        catch (Exception)
+        {
+            validationError = "Pri vyhledaváni doslo k chybe. Zkuste to prosím znovu.";
+        }
+        finally
+        {
+            isSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ReserveRoom(int roomId)
+    {
+        var url = $"/booking/reserve/{roomId}?checkIn={checkIn:yyyy-MM-dd}&checkOut={checkOut:yyyy-MM-dd}&adults={adults}&children={children}";
+        NavigationManager.NavigateTo(url);
+    }
+}

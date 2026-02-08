@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Amenity;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,56 +13,52 @@ namespace HoaP.Infrastructure.Repositories
     public class AmenityRepository : IAmenityRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public AmenityRepository(ApplicationDbContext context, IMapper mapper)
+        public AmenityRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task CreateAmenityAsync(AmenityViewModel amenity)
+        public async Task CreateAmenityAsync(Amenity entity)
         {
-            await _context.Amenities.AddAsync(_mapper.Map<Amenity>(amenity));
+            await _context.Amenities.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteAmenityAsync(int id)
         {
-            var eixstingAmenity = await _context.Amenities.FindAsync(id);
-            if (eixstingAmenity != null)
+            var existing = await _context.Amenities.FindAsync(id);
+            if (existing != null)
             {
-                _context.Amenities.Remove(eixstingAmenity);
+                _context.Amenities.Remove(existing);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task<List<AmenityViewModel>> GetAmenitiesAsync()
+        public async Task<List<Amenity>> GetAmenitiesAsync()
         {
-            var amenities = await _context.Amenities.ToListAsync();
-            return _mapper.Map<List<AmenityViewModel>>(amenities);
+            return await _context.Amenities.AsNoTracking().ToListAsync();
         }
 
-        public async Task<List<AmenityViewModel>> GetAmenitiesByRoomIdAsync(int roomId)
+        public async Task<List<Amenity>> GetAmenitiesByRoomIdAsync(int roomId)
         {
-            var amenities = await _context.RoomAmenities.Where(ra => ra.RoomId == roomId).Include(ra => ra.Amenity).ToListAsync();
-            return _mapper.Map<List<AmenityViewModel>>(amenities);
+            return await _context.RoomAmenities
+                .AsNoTracking()
+                .Where(ra => ra.RoomId == roomId)
+                .Include(ra => ra.Amenity)
+                .Select(ra => ra.Amenity)
+                .ToListAsync();
         }
 
-        public Task<AmenityViewModel> GetAmenityByIdAsync(int id)
+        public async Task<Amenity?> GetAmenityByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _context.Amenities.FindAsync(id);
         }
 
-        public async Task UpdateAmenityAsync(AmenityViewModel amenity)
+        public async Task UpdateAmenityAsync(Amenity entity)
         {
-            var existingAmenity = await _context.Amenities.FindAsync(amenity.Id);
-            if (existingAmenity != null)
-            {
-                _mapper.Map(amenity, existingAmenity);
-                _context.Amenities.Update(existingAmenity);
-                await _context.SaveChangesAsync();
-            }
+            _context.Amenities.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

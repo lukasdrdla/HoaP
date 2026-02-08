@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.InsuranceCompany;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,55 +13,42 @@ namespace HoaP.Infrastructure.Repositories
     public class InsuranceCompanyRepository : IInsuranceCompanyRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public InsuranceCompanyRepository(ApplicationDbContext context, IMapper mapper)
+        public InsuranceCompanyRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task CreateInsuranceCompanyAsync(InsuranceCompanyViewModel model)
+        public async Task CreateInsuranceCompanyAsync(InsuranceCompany entity)
         {
-            await _context.InsuranceCompanies.AddAsync(_mapper.Map<InsuranceCompany>(model));
+            await _context.InsuranceCompanies.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeleteInsuranceCompanyAsync(int id)
         {
-            var existingInsuranceCompany = await _context.InsuranceCompanies.FindAsync(id);
-
-            if (existingInsuranceCompany != null)
+            var existing = await _context.InsuranceCompanies.FindAsync(id);
+            if (existing != null)
             {
-                _context.InsuranceCompanies.Remove(existingInsuranceCompany);
+                _context.InsuranceCompanies.Remove(existing);
                 await _context.SaveChangesAsync();
             }
-
         }
 
-        public async Task<List<InsuranceCompanyViewModel>> GetInsuranceCompaniesAsync()
+        public async Task<List<InsuranceCompany>> GetInsuranceCompaniesAsync()
         {
-            var insuranceCompanies = await _context.InsuranceCompanies.ToListAsync();
-            return _mapper.Map<List<InsuranceCompanyViewModel>>(insuranceCompanies);
+            return await _context.InsuranceCompanies.AsNoTracking().ToListAsync();
         }
 
-        public async Task<InsuranceCompanyViewModel> GetInsuranceCompanyByIdAsync(int id)
+        public async Task<InsuranceCompany?> GetInsuranceCompanyByIdAsync(int id)
         {
-            var insuranceCompany = await _context.InsuranceCompanies.FindAsync(id);
-
-            return _mapper.Map<InsuranceCompanyViewModel>(insuranceCompany);
+            return await _context.InsuranceCompanies.FindAsync(id);
         }
 
-        public async Task UpdateInsuranceCompanyAsync(InsuranceCompanyViewModel model)
+        public async Task UpdateInsuranceCompanyAsync(InsuranceCompany entity)
         {
-            var existingInsuranceCompany = await _context.InsuranceCompanies.FindAsync(model.Id);
-
-            if (existingInsuranceCompany != null)
-            {
-                _mapper.Map(model, existingInsuranceCompany);
-                _context.Update(existingInsuranceCompany);
-                await _context.SaveChangesAsync();
-            }
+            _context.InsuranceCompanies.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

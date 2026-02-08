@@ -20,6 +20,7 @@ namespace HoaP.Application.ViewModels
         public string CurrencySymbol { get; set; } = "";
 
         public int? InvoiceId { get; set; }
+        public string? ReservationSourceName { get; set; }
 
 
         public int Guests { get; set; }

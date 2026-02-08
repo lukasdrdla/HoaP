@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HoaP.Infrastructure.Repositories
 {
-    public class DashBoardRepository : IDashBoardRepsoitory
+    public class DashBoardRepository : IDashBoardRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -22,11 +22,15 @@ namespace HoaP.Infrastructure.Repositories
             var firstDayOfLastMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
             var lastDayOfLastMonth = firstDayOfLastMonth.AddMonths(1).AddDays(-1);
 
-            var revenue = await _context.Reservations
+            var reservations = await _context.Reservations
+                .AsNoTracking()
+                .Include(r => r.Currency)
                 .Where(r => r.CheckIn >= firstDayOfLastMonth && r.CheckIn <= lastDayOfLastMonth)
-                .SumAsync(r => r.TotalPrice);
+                .Where(r => !r.IsCanceled)
+                .Select(r => new { r.TotalPrice, Rate = r.Currency != null ? r.Currency.Rate : 1m })
+                .ToListAsync();
 
-            return revenue;
+            return reservations.Sum(r => r.TotalPrice * r.Rate);
         }
 
         public async Task<int> GetTotalBookingsAsync()

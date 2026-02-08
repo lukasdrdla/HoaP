@@ -1,0 +1,354 @@
+@page "/booking/reserve/{roomId:int}"
+@layout BookingLayout
+@rendermode InteractiveServer
+
+@inject RoomService RoomService
+@inject ReservationService ReservationService
+@inject CustomerService CustomerService
+@inject CurrencyService CurrencyService
+@inject MealPlanService MealPlanService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Rezervace pokoje</PageTitle>
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Nacítání...</span>
+        </div>
+        <p class="mt-2 text-muted">Nacítání informací o pokoji...</p>
+    </div>
+}
+else if (room == null)
+{
+    <div class="text-center py-5">
+        <i class="bi bi-exclamation-circle fs-1 text-danger"></i>
+        <h4 class="mt-3">Pokoj nebyl nalezen</h4>
+        <a href="/booking" class="btn btn-primary mt-3">Zpet na vyhledáváni</a>
+    </div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/booking">Vyhledaváni</a></li>
+                    <li class="breadcrumb-item active">Rezervace pokoje @room.RoomNumber</li>
+                </ol>
+            </nav>
+
+            <h2 class="fw-bold mb-4">Dokoncit rezervaci</h2>
+
+            <div class="row g-4">
+                <!-- Room Summary -->
+                <div class="col-md-4 order-md-2">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Shrnutí rezervace</h5>
+                        </div>
+                        <div class="card-body">
+                            @if (roomImageBase64 != null)
+                            {
+                                <img src="data:image/jpeg;base64,@roomImageBase64"
+                                     class="img-fluid rounded mb-3" alt="Pokoj @room.RoomNumber" />
+                            }
+                            <h6 class="fw-bold">@room.RoomTypeName - Pokoj @room.RoomNumber</h6>
+                            @if (!string.IsNullOrEmpty(room.Description))
+                            {
+                                <p class="text-muted small">@room.Description</p>
+                            }
+                            <hr />
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Príjezd:</span>
+                                <strong>@checkIn.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Odjezd:</span>
+                                <strong>@checkOut.ToString("dd.MM.yyyy")</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Pocet nocí:</span>
+                                <strong>@numberOfNights</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Hosté:</span>
+                                <strong>@adults dospelych@(children > 0 ? $", {children} detí" : "")</strong>
+                            </div>
+                            <hr />
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Cena za noc:</span>
+                                <span>@room.Price.ToString("0.##") @room.CurrencySymbol</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold fs-5 mt-2">
+                                <span>Celkem:</span>
+                                <span class="text-primary">@totalPrice.ToString("0.##") @room.CurrencySymbol</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form -->
+                <div class="col-md-8 order-md-1">
+                    <EditForm Model="guestForm" OnValidSubmit="HandleSubmit" FormName="bookingForm">
+                        <DataAnnotationsValidator />
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-circle me-1"></i> @errorMessage
+                            </div>
+                        }
+
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Kontaktni udaje</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Jmeno <span class="text-danger">*</span></label>
+                                        <InputText class="form-control" @bind-Value="guestForm.FirstName" placeholder="Jan" />
+                                        <ValidationMessage For="@(() => guestForm.FirstName)" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Príjmeni <span class="text-danger">*</span></label>
+                                        <InputText class="form-control" @bind-Value="guestForm.LastName" placeholder="Novak" />
+                                        <ValidationMessage For="@(() => guestForm.LastName)" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">E-mail <span class="text-danger">*</span></label>
+                                        <InputText class="form-control" type="email" @bind-Value="guestForm.Email" placeholder="jan.novak@email.cz" />
+                                        <ValidationMessage For="@(() => guestForm.Email)" />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Telefon <span class="text-danger">*</span></label>
+                                        <InputText class="form-control" @bind-Value="guestForm.Phone" placeholder="+420 123 456 789" />
+                                        <ValidationMessage For="@(() => guestForm.Phone)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Specialni pozadavky</h5>
+                            </div>
+                            <div class="card-body">
+                                <textarea class="form-control" rows="3" @bind="specialRequest"
+                                          placeholder="Máte nejaké specialni pozadavky? Napr. preferovaný poschodí, prístelek apod."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                    <span>Zpracovavam...</span>
+                                }
+                                else
+                                {
+                                    <span>Potvrdit rezervaci</span>
+                                }
+                            </button>
+                            <a href="/booking" class="btn btn-outline-secondary">Zpet na vyhledaváni</a>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int RoomId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "checkIn")]
+    public string? CheckInParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "checkOut")]
+    public string? CheckOutParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "adults")]
+    public int? AdultsParam { get; set; }
+
+    [SupplyParameterFromQuery(Name = "children")]
+    public int? ChildrenParam { get; set; }
+
+    private DetailRoomViewModel? room;
+    private string? roomImageBase64;
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private DateTime checkIn;
+    private DateTime checkOut;
+    private int adults = 1;
+    private int children = 0;
+    private int numberOfNights;
+    private decimal totalPrice;
+
+    private string specialRequest = string.Empty;
+
+    private BookingGuestForm guestForm = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Parse query parameters
+        checkIn = DateTime.TryParse(CheckInParam, out var ci) ? ci : DateTime.Now.Date;
+        checkOut = DateTime.TryParse(CheckOutParam, out var co) ? co : DateTime.Now.Date.AddDays(3);
+        adults = AdultsParam ?? 1;
+        children = ChildrenParam ?? 0;
+        numberOfNights = (int)(checkOut - checkIn).TotalDays;
+        if (numberOfNights < 1) numberOfNights = 1;
+
+        try
+        {
+            room = await RoomService.GetRoomByIdAsync(RoomId);
+            if (room != null)
+            {
+                totalPrice = room.Price * numberOfNights;
+                if (room.Image != null)
+                {
+                    roomImageBase64 = Convert.ToBase64String(room.Image);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            room = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+        StateHasChanged();
+
+        try
+        {
+            // Find or create customer by email
+            var existingCustomer = await CustomerService.GetCustomerByEmailAsync(guestForm.Email);
+            int customerId;
+
+            if (existingCustomer != null)
+            {
+                customerId = existingCustomer.Id;
+            }
+            else
+            {
+                // Create new customer with minimal info from public form
+                var customerForm = new CustomerFormViewModel
+                {
+                    FirstName = guestForm.FirstName,
+                    LastName = guestForm.LastName,
+                    Email = guestForm.Email,
+                    Phone = guestForm.Phone,
+                    // Set required fields with placeholder values for public booking
+                    DocumentNumber = "---",
+                    PlaceOfBirth = "---",
+                    DateOfBirth = DateTime.Now,
+                    DateOfIssue = DateTime.Now,
+                    DateOfExpiry = DateTime.Now.AddYears(10),
+                    PersonalIdentificationNumber = "---",
+                    Nationality = "---",
+                    Address = "---",
+                    City = "---",
+                    PostalCode = "---",
+                    Country = "---"
+                };
+                customerId = await CustomerService.CreateCustomerAndReturnIdAsync(customerForm);
+            }
+
+            // Get default currency (CZK)
+            var currencies = await CurrencyService.GetCurrenciesAsync();
+            var defaultCurrency = currencies.FirstOrDefault(c => c.Code == "CZK") ?? currencies.FirstOrDefault();
+            int currencyId = defaultCurrency?.Id ?? 1;
+
+            // Get default meal plan ("Bez stravy")
+            var mealPlans = await MealPlanService.GetMealPlansAsync();
+            var defaultMealPlan = mealPlans.FirstOrDefault(m => m.Name == "Bez stravy") ?? mealPlans.FirstOrDefault();
+            int mealPlanId = defaultMealPlan?.Id ?? 1;
+
+            // Create reservation
+            var reservationForm = new ReservationFormViewModel
+            {
+                RoomId = RoomId,
+                CustomerId = customerId,
+                CheckIn = checkIn,
+                CheckOut = checkOut,
+                Adults = adults,
+                Children = children,
+                TotalPrice = totalPrice,
+                CurrencyId = currencyId,
+                MealPlanId = mealPlanId,
+                ReservationStatusId = 3, // Ceka na potvrzeni
+                ReservationSourceId = 3, // Web
+                SpecialRequest = specialRequest,
+                AdminNote = string.Empty,
+                Guests = new(),
+                SelectedServices = new()
+            };
+
+            await ReservationService.CreateReservationAsync(reservationForm);
+
+            // Find the created reservation to get its ID
+            var reservations = await ReservationService.GetReservationsAsync();
+            var createdReservation = reservations
+                .Where(r => r.Customer.Email == guestForm.Email && r.RoomNumber == room!.RoomNumber)
+                .OrderByDescending(r => r.Id)
+                .FirstOrDefault();
+
+            if (createdReservation != null)
+            {
+                NavigationManager.NavigateTo($"/booking/confirmation/{createdReservation.Id}");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/booking/confirmation/0");
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            errorMessage = ex.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Pri vytvareni rezervace doslo k chybe. Zkuste to prosím znovu.";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    public class BookingGuestForm
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Jmeno je povinne.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Jmeno nesmi byt delsi nez 100 znaku.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Príjmeni je povinne.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "Príjmeni nesmi byt delsi nez 100 znaku.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "E-mail je povinny.")]
+        [System.ComponentModel.DataAnnotations.EmailAddress(ErrorMessage = "Zadejte platny e-mail.")]
+        [System.ComponentModel.DataAnnotations.StringLength(100, ErrorMessage = "E-mail nesmi byt delsi nez 100 znaku.")]
+        public string Email { get; set; } = string.Empty;
+
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Telefon je povinny.")]
+        [System.ComponentModel.DataAnnotations.Phone(ErrorMessage = "Zadejte platne telefonni cislo.")]
+        [System.ComponentModel.DataAnnotations.StringLength(15, ErrorMessage = "Telefonni cislo nesmi byt delsi nez 15 znaku.")]
+        public string Phone { get; set; } = string.Empty;
+    }
+}

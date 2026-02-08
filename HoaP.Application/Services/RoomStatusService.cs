@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,36 +13,41 @@ namespace HoaP.Application.Services
     public class RoomStatusService
     {
         private readonly IRoomStatusRepository _roomStatusRepository;
+        private readonly IMapper _mapper;
 
-        public RoomStatusService(IRoomStatusRepository roomStatusRepository)
+        public RoomStatusService(IRoomStatusRepository roomStatusRepository, IMapper mapper)
         {
             _roomStatusRepository = roomStatusRepository;
+            _mapper = mapper;
         }
 
         public async Task<List<RoomStatusViewModel>> GetRoomStatusesAsync()
         {
-            return await _roomStatusRepository.GetRoomStatusesAsync();
+            var entities = await _roomStatusRepository.GetRoomStatusesAsync();
+            return _mapper.Map<List<RoomStatusViewModel>>(entities);
         }
 
         public async Task<RoomStatusViewModel> GetRoomStatusByIdAsync(int id)
         {
-            return await _roomStatusRepository.GetRoomStatusByIdAsync(id);
+            var entity = await _roomStatusRepository.GetRoomStatusByIdAsync(id);
+            return _mapper.Map<RoomStatusViewModel>(entity);
         }
 
         public async Task CreateRoomStatusAsync(RoomStatusViewModel model)
         {
-            await _roomStatusRepository.CreateRoomStatusAsync(model);
+            var entity = _mapper.Map<RoomStatus>(model);
+            await _roomStatusRepository.CreateRoomStatusAsync(entity);
         }
 
         public async Task UpdateRoomStatusAsync(RoomStatusViewModel model)
         {
-            await _roomStatusRepository.UpdateRoomStatusAsync(model);
+            var entity = _mapper.Map<RoomStatus>(model);
+            await _roomStatusRepository.UpdateRoomStatusAsync(entity);
         }
 
         public async Task DeleteRoomStatusAsync(int id)
         {
             await _roomStatusRepository.DeleteRoomStatusAsync(id);
         }
-
     }
 }

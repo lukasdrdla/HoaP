@@ -1,11 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Payment;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,51 +13,42 @@ namespace HoaP.Infrastructure.Repositories
     public class PaymentMethodRepository : IPaymentMethodRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public PaymentMethodRepository(ApplicationDbContext context, IMapper mapper)
+        public PaymentMethodRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
-        public async Task CreatePaymentMethodAsync(PaymentMethodViewModel model)
+        public async Task CreatePaymentMethodAsync(PaymentMethod entity)
         {
-            await _context.PaymentMethods.AddAsync(_mapper.Map<PaymentMethod>(model));
+            await _context.PaymentMethods.AddAsync(entity);
             await _context.SaveChangesAsync();
         }
 
         public async Task DeletePaymentMethodAsync(int id)
         {
-            var existingPaymentMethod = await _context.PaymentMethods.FindAsync(id);
-            if (existingPaymentMethod != null)
+            var existing = await _context.PaymentMethods.FindAsync(id);
+            if (existing != null)
             {
-                _context.PaymentMethods.Remove(existingPaymentMethod);
+                _context.PaymentMethods.Remove(existing);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task<List<PaymentMethodViewModel>> GetAllPaymentMethodsAsync()
+        public async Task<List<PaymentMethod>> GetAllPaymentMethodsAsync()
         {
-            var paymentMethods = await _context.PaymentMethods.ToListAsync();
-            return _mapper.Map<List<PaymentMethodViewModel>>(paymentMethods);
+            return await _context.PaymentMethods.AsNoTracking().ToListAsync();
         }
 
-        public async Task<PaymentMethodViewModel> GetPaymentMethodByIdAsync(int id)
+        public async Task<PaymentMethod?> GetPaymentMethodByIdAsync(int id)
         {
-            var paymentMethod = await _context.PaymentMethods.FindAsync(id);
-            return _mapper.Map<PaymentMethodViewModel>(paymentMethod);
+            return await _context.PaymentMethods.FindAsync(id);
         }
 
-        public async Task UpdatePaymentMethodAsync(PaymentMethodViewModel model)
+        public async Task UpdatePaymentMethodAsync(PaymentMethod entity)
         {
-            var existingPaymentMethod = await _context.PaymentMethods.FindAsync(model.Id);
-            if (existingPaymentMethod != null)
-            {
-                _mapper.Map(model, existingPaymentMethod);
-                _context.PaymentMethods.Update(existingPaymentMethod);
-                await _context.SaveChangesAsync();
-            }
+            _context.PaymentMethods.Update(entity);
+            await _context.SaveChangesAsync();
         }
     }
 }

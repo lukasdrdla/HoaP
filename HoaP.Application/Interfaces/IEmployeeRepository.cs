@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HoaP.Application.ViewModels.Employee;
+using HoaP.Domain.Entities;
 
 namespace HoaP.Application.Interfaces
 {
     public interface IEmployeeRepository
     {
-        Task<List<EmployeeViewModel>> GetEmployeesAsync();
-        Task<DetailEmployeeViewModel> GetEmployeeByIdAsync(string id);
-        Task<DetailEmployeeViewModel> GetEmployeeByEmail(string email);
-
-        Task UpdateEmployeeAsync(UpdateEmployeeViewModel employee);
-
+        Task<List<AppUser>> GetEmployeesAsync();
+        Task<AppUser?> GetEmployeeByIdAsync(string id);
+        Task<AppUser?> GetEmployeeByEmail(string email);
+        Task<(string roleId, string roleName)> GetEmployeeRoleAsync(string employeeId);
+        Task UpdateEmployeeAsync(AppUser employee, string? roleId);
         Task DeleteEmployeeAsync(string id);
     }
 }

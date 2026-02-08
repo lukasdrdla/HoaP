@@ -22,10 +22,12 @@ namespace HoaP.Domain.Entities
         public string SpecialRequest { get; set; } = "";
         public string AdminNote { get; set; } = "";
         public bool IsCanceled { get; set; } = false;
+        public int? ReservationSourceId { get; set; }
 
 
         public Room? Room { get; set; }
         public ReservationStatus? ReservationStatus { get; set; }
+        public ReservationSource? ReservationSource { get; set; }
         public MealPlan? MealPlan { get; set; }
         public Currency? Currency { get; set; }
         public int? InvoiceId { get; set; }

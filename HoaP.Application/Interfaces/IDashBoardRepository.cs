@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace HoaP.Application.Interfaces
 {
-    public interface IDashBoardRepsoitory
+    public interface IDashBoardRepository
     {
         Task<int> GetTotalCustomersAsync();
         Task<int> GetTotalRoomsAsync();

@@ -1,13 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Invoice;
 using HoaP.Domain.Entities;
-using HoaP.Domain.Interfaces;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,12 +13,10 @@ namespace HoaP.Infrastructure.Repositories
     public class InvoiceRepository : IInvoiceRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public InvoiceRepository(ApplicationDbContext context, IMapper mapper)
+        public InvoiceRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public Task<bool> CheckIfInvoiceExistsForReservation(int reservationId)
@@ -44,23 +39,17 @@ namespace HoaP.Infrastructure.Repositories
                 .FirstOrDefaultAsync(i => i.Id == id);
         }
 
-
-
-
-        public async Task CreateInvoiceAsync(InvoiceFormViewModel invoice)
+        public async Task CreateInvoiceAsync(Invoice invoice, List<int> reservationIds)
         {
-
-            if (invoice.ReservationIds == null || !invoice.ReservationIds.Any())
+            if (reservationIds == null || !reservationIds.Any())
                 throw new ArgumentException("Faktura musí obsahovat alespoň jednu rezervaci.");
 
-
-            var entity = _mapper.Map<Invoice>(invoice);
-
             var reservations = await _context.Reservations
-                .Where(r => invoice.ReservationIds.Contains(r.Id))
+                .Include(r => r.Currency)
+                .Where(r => reservationIds.Contains(r.Id))
                 .ToListAsync();
 
-            entity.Reservations = reservations;
+            invoice.Reservations = reservations;
 
             var currencies = await _context.Currencies.ToListAsync();
 
@@ -93,16 +82,15 @@ namespace HoaP.Infrastructure.Repositories
             if (selectedCurrency == null || selectedCurrency.Rate <= 0)
                 throw new Exception("Nelze určit cílovou měnu nebo její kurz.");
 
-            // Přepočet CZK do měny faktury
-            entity.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
-            entity.CurrencyId = selectedCurrency.Id;
+            invoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
+            invoice.CurrencyId = selectedCurrency.Id;
 
-            await _context.Invoices.AddAsync(entity);
+            await _context.Invoices.AddAsync(invoice);
             await _context.SaveChangesAsync();
 
             foreach (var reservation in reservations)
             {
-                reservation.InvoiceId = entity.Id;
+                reservation.InvoiceId = invoice.Id;
             }
 
             await _context.SaveChangesAsync();
@@ -128,60 +116,53 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
-        public async Task<DetailInvoiceViewModel> GetInvoiceByIdAsync(int id)
+        public async Task<Invoice?> GetInvoiceByIdAsync(int id)
         {
-            var invoice = await _context.Invoices
+            return await _context.Invoices
+                .AsNoTracking()
                 .Include(i => i.Reservations)
-                        .ThenInclude(r => r.ReservationCustomers)
-                            .ThenInclude(rc => rc.Customer)
+                    .ThenInclude(r => r.ReservationCustomers)
+                        .ThenInclude(rc => rc.Customer)
                 .Include(i => i.Reservations)
-                        .ThenInclude(r => r.Room)
-                            .ThenInclude(room => room.RoomType)
+                    .ThenInclude(r => r.Room)
+                        .ThenInclude(room => room.RoomType)
                 .Include(i => i.Currency)
                 .Include(i => i.AppUser)
                 .Include(i => i.Items)
                 .FirstOrDefaultAsync(i => i.Id == id);
-
-            return _mapper.Map<DetailInvoiceViewModel>(invoice);
         }
 
-
-        public async Task<List<InvoiceViewModel>> GetInvoiceByReservationIdAsync(int reservationId)
+        public async Task<List<Invoice>> GetInvoiceByReservationIdAsync(int reservationId)
         {
-            var invoices = await _context.Invoices
+            return await _context.Invoices
+                .AsNoTracking()
                 .Include(i => i.Reservations)
                     .ThenInclude(r => r.Customer)
                 .Where(i => i.Reservations.Any(ir => ir.Id == reservationId))
                 .ToListAsync();
-
-            return _mapper.Map<List<InvoiceViewModel>>(invoices);
         }
 
-        public async Task<List<InvoiceViewModel>> GetInvoicesAsync()
+        public async Task<List<Invoice>> GetInvoicesAsync()
         {
-            var invoices = await _context.Invoices
+            return await _context.Invoices
+                .AsNoTracking()
                 .Include(i => i.Reservations)
                     .ThenInclude(r => r.Customer)
                 .Include(i => i.Currency)
                 .ToListAsync();
-
-            return _mapper.Map<List<InvoiceViewModel>>(invoices);
         }
 
-
-        public async Task<List<InvoiceViewModel>> GetInvoicesByCustomerIdAsync(int customerId)
+        public async Task<List<Invoice>> GetInvoicesByCustomerIdAsync(int customerId)
         {
-            var invoices = await _context.Invoices
+            return await _context.Invoices
+                .AsNoTracking()
                 .Include(i => i.Reservations)
-                .ThenInclude(r => r.Customer)
+                    .ThenInclude(r => r.Customer)
                 .Where(i => i.Reservations.Any(r => r.CustomerId == customerId))
                 .ToListAsync();
-
-            return _mapper.Map<List<InvoiceViewModel>>(invoices);
         }
 
-
-        public async Task UpdateInvoiceAsync(InvoiceFormViewModel invoice)
+        public async Task UpdateInvoiceAsync(Invoice invoice, List<int> reservationIds)
         {
             var existingInvoice = await _context.Invoices
                 .Include(i => i.Reservations)
@@ -191,11 +172,17 @@ namespace HoaP.Infrastructure.Repositories
             if (existingInvoice == null)
                 return;
 
-
-            _mapper.Map(invoice, existingInvoice);
+            existingInvoice.CurrencyId = invoice.CurrencyId;
+            existingInvoice.IssueDate = invoice.IssueDate;
+            existingInvoice.DueDate = invoice.DueDate;
+            existingInvoice.Description = invoice.Description;
+            existingInvoice.Discount = invoice.Discount;
+            existingInvoice.Prepayment = invoice.Prepayment;
+            existingInvoice.AppUserId = invoice.AppUserId;
 
             var updatedReservations = await _context.Reservations
-                .Where(r => invoice.ReservationIds.Contains(r.Id))
+                .Include(r => r.Currency)
+                .Where(r => reservationIds.Contains(r.Id))
                 .ToListAsync();
 
             existingInvoice.Reservations.Clear();
@@ -243,7 +230,6 @@ namespace HoaP.Infrastructure.Repositories
             if (selectedCurrency == null || selectedCurrency.Rate <= 0)
                 throw new Exception("Nelze určit cílovou měnu nebo její kurz.");
 
-            // Přepočet zpět do měny faktury
             existingInvoice.Price = Math.Round(basePriceCZK / selectedCurrency.Rate, 2);
             existingInvoice.CurrencyId = selectedCurrency.Id;
 
@@ -251,7 +237,6 @@ namespace HoaP.Infrastructure.Repositories
 
             await _context.SaveChangesAsync();
         }
-
 
         public async Task DeleteInvoiceAsync(int id)
         {

@@ -1,0 +1,169 @@
+@page "/super-admin/tenants"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using HoaP.Domain.Entities
+@using HoaP.Infrastructure.Services
+@inject ITenantService TenantService
+@inject TenantDatabaseProvisioner Provisioner
+
+<PageTitle>Sprava tenantu</PageTitle>
+
+<div class="container mt-4">
+    <h3 class="mb-4">Sprava tenantu (multi-tenancy)</h3>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible">
+            @message
+            <button type="button" class="btn-close" @onclick="() => message = null"></button>
+        </div>
+    }
+
+    <!-- Tenant list -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Nazev</th>
+                        <th>Subdomena</th>
+                        <th>Plan</th>
+                        <th>Stav</th>
+                        <th>Vytvoreno</th>
+                        <th>Akce</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tenant in tenants)
+                    {
+                        <tr>
+                            <td>@tenant.Name</td>
+                            <td><code>@tenant.Subdomain</code></td>
+                            <td><span class="badge bg-info">@tenant.Plan</span></td>
+                            <td>
+                                <span class="badge @(tenant.IsActive ? "bg-success" : "bg-secondary")">
+                                    @(tenant.IsActive ? "Aktivni" : "Neaktivni")
+                                </span>
+                            </td>
+                            <td>@tenant.CreatedAt.ToString("dd.MM.yyyy")</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeactivateTenant(tenant.Id)"
+                                        disabled="@(!tenant.IsActive)">
+                                    Deaktivovat
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            @if (!tenants.Any())
+            {
+                <div class="text-center text-muted py-3">
+                    Zatim zadni tenanti. Vytvorte prvniho nize.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Create tenant form -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Novy tenant</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Nazev hotelu</label>
+                    <input type="text" class="form-control" @bind="newTenantName" placeholder="Grand Hotel Praha" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Subdomena</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind="newTenantSubdomain" placeholder="grandhotel" />
+                        <span class="input-group-text">.hoap.cz</span>
+                    </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" @onclick="CreateTenant" disabled="@isCreating">
+                        @if (isCreating)
+                        {
+                            <span class="spinner-border spinner-border-sm me-1"></span>
+                            <span>Vytvari se...</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-plus-lg me-1"></i>
+                            <span>Vytvorit tenanta</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Tenant> tenants = new();
+    private string? newTenantName;
+    private string? newTenantSubdomain;
+    private string? message;
+    private bool isError;
+    private bool isCreating;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tenants = await TenantService.GetAllTenantsAsync();
+    }
+
+    private async Task CreateTenant()
+    {
+        if (string.IsNullOrWhiteSpace(newTenantName) || string.IsNullOrWhiteSpace(newTenantSubdomain))
+        {
+            message = "Vyplnte nazev i subdomenu.";
+            isError = true;
+            return;
+        }
+
+        isCreating = true;
+        StateHasChanged();
+
+        try
+        {
+            var tenant = await TenantService.CreateTenantAsync(newTenantName, newTenantSubdomain);
+            await Provisioner.ProvisionTenantDatabaseAsync(tenant);
+
+            message = $"Tenant '{tenant.Name}' uspesne vytvoren s databazi '{tenant.DatabaseName}'.";
+            isError = false;
+            newTenantName = null;
+            newTenantSubdomain = null;
+            tenants = await TenantService.GetAllTenantsAsync();
+        }
+        catch (Exception ex)
+        {
+            message = $"Chyba: {ex.Message}";
+            isError = true;
+        }
+        finally
+        {
+            isCreating = false;
+        }
+    }
+
+    private async Task DeactivateTenant(Guid tenantId)
+    {
+        try
+        {
+            await TenantService.DeactivateTenantAsync(tenantId);
+            message = "Tenant deaktivovan.";
+            isError = false;
+            tenants = await TenantService.GetAllTenantsAsync();
+        }
+        catch (Exception ex)
+        {
+            message = $"Chyba: {ex.Message}";
+            isError = true;
+        }
+    }
+}

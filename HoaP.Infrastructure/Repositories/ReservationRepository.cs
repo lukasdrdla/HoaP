@@ -1,12 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels;
-using HoaP.Application.ViewModels.Customer;
 using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -16,84 +13,119 @@ namespace HoaP.Infrastructure.Repositories
     public class ReservationRepository : IReservationRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public ReservationRepository(ApplicationDbContext context, IMapper mapper)
+        public ReservationRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
-        public async Task CreateReservationAsync(ReservationFormViewModel reservation)
+
+        public async Task CreateReservationAsync(Reservation reservation, List<Customer> guestsToUpdate)
         {
-            var newReservation = _mapper.Map<Reservation>(reservation);
-
-            newReservation.ReservationCustomers.Add(new ReservationCustomer
+            foreach (var guest in guestsToUpdate)
             {
-                CustomerId = reservation.CustomerId,
-                IsMainGuest = true
-            });
-
-            foreach (var guest in reservation.Guests)
-            {
-                if (guest.Id > 0)
+                var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == guest.Id);
+                if (existingCustomer != null)
                 {
-                    var existingCustomer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == guest.Id);
-                    if (existingCustomer != null)
-                    {
-                        _mapper.Map(guest, existingCustomer);
-                        _context.Customers.Update(existingCustomer);
-                    }
-
-                    newReservation.ReservationCustomers.Add(new ReservationCustomer
-                    {
-                        CustomerId = guest.Id.Value,
-                        IsMainGuest = false
-                    });
-                }
-                else
-                {
-                    var guestEntity = _mapper.Map<Customer>(guest);
-                    _context.Customers.Add(guestEntity);
-                    newReservation.ReservationCustomers.Add(new ReservationCustomer
-                    {
-                        Customer = guestEntity,
-                        IsMainGuest = false
-                    });
+                    existingCustomer.FirstName = guest.FirstName;
+                    existingCustomer.LastName = guest.LastName;
+                    existingCustomer.Email = guest.Email;
+                    existingCustomer.Phone = guest.Phone;
+                    existingCustomer.DocumentNumber = guest.DocumentNumber;
+                    existingCustomer.PersonalIdentificationNumber = guest.PersonalIdentificationNumber;
+                    existingCustomer.Nationality = guest.Nationality;
+                    existingCustomer.Address = guest.Address;
+                    existingCustomer.City = guest.City;
+                    existingCustomer.PostalCode = guest.PostalCode;
+                    existingCustomer.Country = guest.Country;
+                    existingCustomer.PlaceOfBirth = guest.PlaceOfBirth;
+                    existingCustomer.DateOfBirth = guest.DateOfBirth;
+                    existingCustomer.DateOfIssue = guest.DateOfIssue;
+                    existingCustomer.DateOfExpiry = guest.DateOfExpiry;
+                    _context.Customers.Update(existingCustomer);
                 }
             }
 
-            foreach (var service in reservation.SelectedServices)
-            {
-                newReservation.ServiceReservations.Add(new ServiceReservation
-                {
-                    ServiceId = service.ServiceId,
-                    Quantity = service.Quantity,
-                    UnitPrice = service.UnitPrice,
-                    OriginalUnitPrice = service.OriginalUnitPrice,
-                    Note = service.Note
-                });
-            }
-
-
-            await _context.Reservations.AddAsync(newReservation);
+            await _context.Reservations.AddAsync(reservation);
             await _context.SaveChangesAsync();
         }
 
-
-        public async Task CancelReservationAsync(int id)
+        public async Task UpdateReservationAsync(Reservation reservation)
         {
-            var reservation = await _context.Reservations.FindAsync(id);
-            if (reservation != null)
+            var existingReservation = await _context.Reservations
+                .Include(r => r.ServiceReservations)
+                .Include(r => r.ReservationCustomers)
+                .FirstOrDefaultAsync(r => r.Id == reservation.Id);
+
+            if (existingReservation != null)
             {
-                reservation.IsCanceled = true;
-                reservation.ReservationStatusId = 2;
+                _context.Entry(existingReservation).CurrentValues.SetValues(reservation);
                 await _context.SaveChangesAsync();
             }
         }
 
-        public async Task<DetailReservationViewModel> GetReservationByIdAsync(int id)
+        public async Task UpdateReservationStatusAsync(int id, int statusId, bool? isCanceled = null)
         {
-            var reservation = await _context.Reservations
+            var reservation = await _context.Reservations.FindAsync(id);
+            if (reservation != null)
+            {
+                reservation.ReservationStatusId = statusId;
+                if (isCanceled.HasValue)
+                {
+                    reservation.IsCanceled = isCanceled.Value;
+                }
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteReservationAsync(int id)
+        {
+            var reservation = await _context.Reservations.FindAsync(id);
+            if (reservation != null)
+            {
+                _context.Reservations.Remove(reservation);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime checkIn, DateTime checkOut, int? excludeReservationId = null)
+        {
+            var query = _context.Reservations
+                .Where(r => r.RoomId == roomId
+                    && r.CheckIn < checkOut
+                    && r.CheckOut > checkIn
+                    && r.ReservationStatusId != 2
+                    && r.ReservationStatusId != 5
+                    && r.ReservationStatusId != 6);
+
+            if (excludeReservationId.HasValue)
+            {
+                query = query.Where(r => r.Id != excludeReservationId.Value);
+            }
+
+            return !await query.AnyAsync();
+        }
+
+        public async Task<bool> HasInvoiceAsync(int id)
+        {
+            return await _context.Reservations
+                .AsNoTracking()
+                .Where(r => r.Id == id)
+                .AnyAsync(r => r.InvoiceId != null);
+        }
+
+        public async Task<int?> GetReservationStatusIdAsync(int id)
+        {
+            return await _context.Reservations
+                .AsNoTracking()
+                .Where(r => r.Id == id)
+                .Select(r => (int?)r.ReservationStatusId)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<Reservation?> GetReservationByIdAsync(int id)
+        {
+            return await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.ServiceReservations)
                     .ThenInclude(sr => sr.Service)
@@ -104,49 +136,36 @@ namespace HoaP.Infrastructure.Repositories
                     .ThenInclude(rc => rc.Customer)
                 .Include(r => r.MealPlan)
                 .Include(r => r.Currency)
-
                 .FirstOrDefaultAsync(r => r.Id == id);
-
-            var result = _mapper.Map<DetailReservationViewModel>(reservation);
-
-            var guests = await _context.ReservationCustomers
-                .Include(rc => rc.Customer)
-                .Where(rc => rc.ReservationId == id && !rc.IsMainGuest)
-                .Select(rc => rc.Customer)
-                .ToListAsync();
-
-            result.Guests = _mapper.Map<List<CustomerViewModel>>(guests);
-
-            return result;
         }
 
-
-        public async Task<List<ReservationViewModel>> GetReservationsAsync()
+        public async Task<List<Reservation>> GetReservationsAsync()
         {
-            var reservations = await _context.Reservations
+            return await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.ReservationCustomers)
                     .ThenInclude(rc => rc.Customer)
                 .Include(r => r.Room)
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Currency)
                 .ToListAsync();
-            return _mapper.Map<List<ReservationViewModel>>(reservations);
         }
 
-        public async Task<List<ReservationViewModel>> GetReservationsByCustomerIdAsync(int customerId)
+        public async Task<List<Reservation>> GetReservationsByCustomerIdAsync(int customerId)
         {
-            var reservation = await _context.Reservations
+            return await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.ReservationStatus)
                 .Include(r => r.Customer)
                 .Include(r => r.Room)
                 .Where(r => r.CustomerId == customerId)
                 .ToListAsync();
-            return _mapper.Map<List<ReservationViewModel>>(reservation);
         }
 
-        public async Task<List<ReservationViewModel>> GetReservationsByRoomIdAsync(int roomId)
+        public async Task<List<Reservation>> GetReservationsByRoomIdAsync(int roomId)
         {
-            var reservations = await _context.Reservations
+            return await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.Invoice)
                 .Include(r => r.Currency)
                 .Include(r => r.ReservationStatus)
@@ -158,45 +177,19 @@ namespace HoaP.Infrastructure.Repositories
                     .ThenInclude(rc => rc.Customer)
                 .Where(r => r.RoomId == roomId)
                 .ToListAsync();
-
-            return _mapper.Map<List<ReservationViewModel>>(reservations);
         }
 
-
-        public async Task UpdateReservationAsync(ReservationFormViewModel reservation)
+        public async Task<List<Reservation>> GetReservationsByDateRangeAsync(DateTime from, DateTime to)
         {
-            var existingReservation = await _context.Reservations
-                .Include(r => r.ServiceReservations)
+            return await _context.Reservations
+                .AsNoTracking()
                 .Include(r => r.ReservationCustomers)
-                .FirstOrDefaultAsync(r => r.Id == reservation.Id);
-
-            if (existingReservation != null)
-            {
-                _mapper.Map(reservation, existingReservation);
-                _context.Reservations.Update(existingReservation);
-                await _context.SaveChangesAsync();
-            }
+                    .ThenInclude(rc => rc.Customer)
+                .Include(r => r.Room)
+                .Include(r => r.ReservationStatus)
+                .Include(r => r.Currency)
+                .Where(r => r.CheckIn < to && r.CheckOut > from)
+                .ToListAsync();
         }
-
-        public async Task DeleteReservationAsync(int id)
-        {
-            var reservation = await _context.Reservations
-                .Include(r => r.Invoice)
-                .FirstOrDefaultAsync(r => r.Id == id);
-
-            if (reservation != null)
-            {
-                if (reservation.InvoiceId != null)
-                {
-                    throw new Exception("Nelze smazat rezervaci, která je přiřazena k faktuře.");
-                }
-
-                _context.Reservations.Remove(reservation);
-                await _context.SaveChangesAsync();
-            }
-        }
-
-
-
     }
 }

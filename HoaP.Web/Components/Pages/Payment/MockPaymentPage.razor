@@ -1,0 +1,102 @@
+@page "/payment/mock/{SessionId}"
+@layout HoaP.Web.Components.Pages.Booking.BookingLayout
+@rendermode InteractiveServer
+
+@using HoaP.Infrastructure.Services
+@inject MockPaymentGatewayService MockGateway
+@inject NavigationManager NavigationManager
+
+<PageTitle>Platba</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        @if (session == null)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Platební relace nebyla nalezena nebo vypršela.
+            </div>
+        }
+        else if (isProcessed)
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-check-circle fs-1 text-success"></i>
+                <h4 class="mt-3">Platba provedena</h4>
+                <p class="text-muted">Presmerujeme vas zpet...</p>
+            </div>
+        }
+        else
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Mock platebni brana</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <small class="text-muted">Castka k uhrade</small>
+                        <h2 class="text-primary">@session.Amount.ToString("N2") @session.CurrencyCode</h2>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Popis:</small>
+                        <p>@session.Description</p>
+                    </div>
+
+                    <hr />
+
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Toto je simulovana platebni brana. V produkci bude nahrazena realnym poskytovatelem (Stripe, GoPay apod.).
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success btn-lg" @onclick="CompletePayment" disabled="@isProcessing">
+                            @if (isProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            <i class="bi bi-check-lg me-1"></i> Zaplatit
+                        </button>
+                        <button class="btn btn-outline-danger" @onclick="CancelPayment" disabled="@isProcessing">
+                            <i class="bi bi-x-lg me-1"></i> Zrusit platbu
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string SessionId { get; set; } = string.Empty;
+
+    private HoaP.Domain.Entities.PaymentSession? session;
+    private bool isProcessing = false;
+    private bool isProcessed = false;
+
+    protected override void OnInitialized()
+    {
+        session = MockGateway.GetSession(SessionId);
+    }
+
+    private async Task CompletePayment()
+    {
+        isProcessing = true;
+        StateHasChanged();
+
+        await Task.Delay(1500); // simulate processing
+        MockGateway.CompletePayment(SessionId);
+
+        isProcessed = true;
+        StateHasChanged();
+
+        await Task.Delay(1000);
+        NavigationManager.NavigateTo($"{session!.ReturnUrl}?sessionId={SessionId}&status=success");
+    }
+
+    private void CancelPayment()
+    {
+        MockGateway.CancelPayment(SessionId);
+        NavigationManager.NavigateTo($"{session!.ReturnUrl}?sessionId={SessionId}&status=cancelled");
+    }
+}

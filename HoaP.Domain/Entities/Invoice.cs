@@ -8,15 +8,20 @@ namespace HoaP.Domain.Entities
 {
     public class Invoice : AuditableEntity<int>
     {
+        public string InvoiceNumber { get; set; } = string.Empty;
         public int CurrencyId { get; set; }
         public DateTime IssueDate { get; set; } = DateTime.Now;
         public DateTime DueDate { get; set; } = DateTime.Now.AddDays(14);
+        public DateTime? DateOfTaxableSupply { get; set; }
         public decimal Price { get; set; }
         public bool IsPaid { get; set; } = false;
         public string Description { get; set; } = string.Empty;
         public decimal Discount { get; set; } = 0.0m;
         public decimal Prepayment { get; set; } = 0.0m;
         public bool IsCanceled { get; set; } = false;
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string VariableSymbol { get; set; } = string.Empty;
+        public string BankAccount { get; set; } = string.Empty;
 
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
         public List<InvoiceItem> Items { get; set; } = new();

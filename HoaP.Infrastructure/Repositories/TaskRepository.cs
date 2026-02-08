@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using HoaP.Application.Interfaces;
-using HoaP.Application.ViewModels.Task;
+using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,18 +13,16 @@ namespace HoaP.Infrastructure.Repositories
     public class TaskRepository : ITaskRepository
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public TaskRepository(ApplicationDbContext context, IMapper mapper)
+        public TaskRepository(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
-        public async Task CreateTask(TaskViewModel task, string employeeId)
+
+        public async Task CreateTask(TaskItem task, string employeeId)
         {
-            var taskItem = _mapper.Map<Domain.Entities.TaskItem>(task);
-            taskItem.EmployeeId = employeeId;
-            await _context.TaskItems.AddAsync(taskItem);
+            task.EmployeeId = employeeId;
+            await _context.TaskItems.AddAsync(task);
             await _context.SaveChangesAsync();
         }
 
@@ -39,38 +36,32 @@ namespace HoaP.Infrastructure.Repositories
             }
         }
 
-        public async Task<List<TaskViewModel>> GetAllTasksAsync()
+        public async Task<List<TaskItem>> GetAllTasksAsync()
         {
-            var tasks = await _context.TaskItems.ToListAsync();
-            return _mapper.Map<List<TaskViewModel>>(tasks);
+            return await _context.TaskItems.AsNoTracking().ToListAsync();
         }
 
-        public async Task<TaskViewModel> GetTaskById(int id)
+        public async Task<TaskItem?> GetTaskById(int id)
         {
-            var task = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == id);
-            return _mapper.Map<TaskViewModel>(task);
+            return await _context.TaskItems.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id);
         }
 
-        public async Task<List<TaskViewModel>> GetTasksForEmployeeAsync(string employeeId)
+        public async Task<List<TaskItem>> GetTasksForEmployeeAsync(string employeeId)
         {
-            var tasks = await _context.TaskItems
+            return await _context.TaskItems
+                .AsNoTracking()
                 .Where(t => t.EmployeeId == employeeId)
                 .ToListAsync();
-
-            return _mapper.Map<List<TaskViewModel>>(tasks);
-
         }
 
-        public async Task UpdateTask(TaskViewModel task)
+        public async Task UpdateTask(TaskItem task)
         {
             var existingTask = await _context.TaskItems.FirstOrDefaultAsync(t => t.Id == task.Id);
             if (existingTask != null)
             {
-                _mapper.Map(task, existingTask);
-                _context.TaskItems.Update(existingTask);
+                existingTask.Title = task.Title;
+                existingTask.IsCompleted = task.IsCompleted;
                 await _context.SaveChangesAsync();
-
-            
             }
         }
     }
