@@ -11,17 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     services:
-      mysql:
-        image: mysql:8
+      postgres:
+        image: postgres:17
         env:
-          MYSQL_ROOT_PASSWORD: testroot
-          MYSQL_DATABASE: hoapdb_test
-          MYSQL_USER: testuser
-          MYSQL_PASSWORD: testpass
+          POSTGRES_DB: hoap_test
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
         ports:
-          - 3306:3306
+          - 5432:5432
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="pg_isready -U testuser -d hoap_test"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -29,10 +28,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET 8
+      - name: Setup .NET 9
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '9.0.x'
 
       - name: Restore dependencies
         run: dotnet restore HoaP.sln

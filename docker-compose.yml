@@ -1,29 +1,29 @@
 services:
-  mysql:
-    image: mysql:8
-    container_name: hoap-mysql
+  postgres:
+    image: postgres:17
+    container_name: hoap-postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: hoapdb
-      MYSQL_USER: hoapuser
-      MYSQL_PASSWORD: hoappass
+      POSTGRES_DB: hoap_db
+      POSTGRES_USER: hoap_user
+      POSTGRES_PASSWORD: hoap_pass
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
 
   web:
     build:
       context: .
       dockerfile: HoaP.Web/Dockerfile
     depends_on:
-      - mysql
+      - postgres
     ports:
       - "8080:8080"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=server=mysql;port=3306;user=hoapuser;password=hoappass;database=hoapdb
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=hoap_db;Username=hoap_user;Password=hoap_pass;
+      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=hoap_db;Username=hoap_user;Password=hoap_pass;
 
 volumes:
-  mysql_data:
+  postgres_data:

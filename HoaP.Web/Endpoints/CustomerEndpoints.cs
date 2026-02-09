@@ -18,50 +18,26 @@ namespace HoaP.Web.Endpoints
             group.MapGet("/{id:int}", async (int id, CustomerService service) =>
             {
                 var customer = await service.GetCustomerById(id);
-                if (customer is null)
-                    return Results.NotFound();
-
-                return Results.Ok(customer);
+                return customer is null ? Results.NotFound() : Results.Ok(customer);
             });
 
             group.MapPost("/", async (CustomerFormViewModel model, CustomerService service) =>
             {
-                try
-                {
-                    await service.CreateCustomer(model);
-                    return Results.Created();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CreateCustomer(model);
+                return Results.Created();
             });
 
             group.MapPut("/{id:int}", async (int id, CustomerFormViewModel model, CustomerService service) =>
             {
-                try
-                {
-                    model.Id = id;
-                    await service.UpdateCustomer(model);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                model.Id = id;
+                await service.UpdateCustomer(model);
+                return Results.NoContent();
             });
 
             group.MapDelete("/{id:int}", async (int id, CustomerService service) =>
             {
-                try
-                {
-                    await service.DeleteCustomer(id);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.DeleteCustomer(id);
+                return Results.NoContent();
             });
         }
     }

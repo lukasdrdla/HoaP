@@ -18,50 +18,26 @@ namespace HoaP.Web.Endpoints
             group.MapGet("/{id:int}", async (int id, InvoiceService service) =>
             {
                 var invoice = await service.GetInvoiceByIdAsync(id);
-                if (invoice is null)
-                    return Results.NotFound();
-
-                return Results.Ok(invoice);
+                return invoice is null ? Results.NotFound() : Results.Ok(invoice);
             });
 
             group.MapPost("/", async (InvoiceFormViewModel model, InvoiceService service) =>
             {
-                try
-                {
-                    await service.CreateInvoiceAsync(model);
-                    return Results.Created();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CreateInvoiceAsync(model);
+                return Results.Created();
             });
 
             group.MapPut("/{id:int}", async (int id, InvoiceFormViewModel model, InvoiceService service) =>
             {
-                try
-                {
-                    model.Id = id;
-                    await service.UpdateInvoiceAsync(model);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                model.Id = id;
+                await service.UpdateInvoiceAsync(model);
+                return Results.NoContent();
             });
 
             group.MapDelete("/{id:int}", async (int id, InvoiceService service) =>
             {
-                try
-                {
-                    await service.DeleteInvoiceAsync(id);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.DeleteInvoiceAsync(id);
+                return Results.NoContent();
             });
 
             group.MapGet("/{id:int}/pdf", async (int id, InvoiceService invoiceService,

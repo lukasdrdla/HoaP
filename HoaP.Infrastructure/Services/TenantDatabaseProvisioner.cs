@@ -2,7 +2,7 @@ using HoaP.Domain.Entities;
 using HoaP.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using MySql.Data.MySqlClient;
+using Npgsql;
 
 namespace HoaP.Infrastructure.Services
 {
@@ -29,23 +29,30 @@ namespace HoaP.Infrastructure.Services
 
         private static async Task CreateDatabaseAsync(string connectionString, string databaseName)
         {
-            // Use a connection string without the database to create it
-            var builder = new MySqlConnectionStringBuilder(connectionString);
+            var builder = new NpgsqlConnectionStringBuilder(connectionString);
             var dbToCreate = builder.Database;
-            builder.Database = string.Empty;
+            builder.Database = "postgres";
 
-            using var connection = new MySqlConnection(builder.ConnectionString);
+            using var connection = new NpgsqlConnection(builder.ConnectionString);
             await connection.OpenAsync();
 
-            using var command = connection.CreateCommand();
-            command.CommandText = $"CREATE DATABASE IF NOT EXISTS `{dbToCreate}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
-            await command.ExecuteNonQueryAsync();
+            // Check if database exists first
+            using var checkCmd = connection.CreateCommand();
+            checkCmd.CommandText = $"SELECT 1 FROM pg_database WHERE datname = '{dbToCreate}'";
+            var exists = await checkCmd.ExecuteScalarAsync();
+
+            if (exists == null)
+            {
+                using var command = connection.CreateCommand();
+                command.CommandText = $"CREATE DATABASE \"{dbToCreate}\" ENCODING 'UTF8'";
+                await command.ExecuteNonQueryAsync();
+            }
         }
 
         private async Task MigrateDatabaseAsync(string connectionString)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseMySQL(connectionString);
+            optionsBuilder.UseNpgsql(connectionString);
 
             using var scope = _serviceProvider.CreateScope();
             var encryptionService = scope.ServiceProvider.GetService<HoaP.Application.Interfaces.IEncryptionService>();

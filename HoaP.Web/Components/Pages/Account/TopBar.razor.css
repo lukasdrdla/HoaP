@@ -1,48 +1,109 @@
-﻿/* Základní nastavení pro topbar */
+/* TopBar Container */
 .topbar {
-    position: fixed; /* Zůstane přilepený nahoře */
+    position: fixed;
     top: 0;
-    left: var(--sidebar-width, 250px); /* pokud máš sidebar, uprav šířku */
+    left: var(--sidebar-width, 240px);
     right: 0;
-    height: 60px;
-    z-index: 1000;
+    height: var(--topbar-height);
+    z-index: 100;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
-    background-color: #f8f9fa;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    width: calc(100% - var(--sidebar-width, 250px)); /* přesně zbytek šířky */
+    padding: 0 var(--space-xl);
+    background-color: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border-color);
+    width: calc(100% - var(--sidebar-width, 240px));
 }
 
-
+/* Search */
 .search-container {
     flex-grow: 1;
-    margin-right: 20px;
+    max-width: 320px;
+    margin-right: var(--space-xl);
 }
 
 .search-input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 25px;
-    font-size: 14px;
+    padding: 0.375rem 0.75rem 0.375rem 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.8125rem;
     outline: none;
-    transition: border 0.3s ease;
+    transition: border-color 100ms ease;
+    background-color: var(--bg-card);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='%23a1a1aa' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.625rem center;
+    background-size: 13px;
+    color: var(--text-primary);
 }
 
     .search-input:focus {
-        border-color: #007bff;
+        border-color: var(--text-primary);
     }
 
-/* Ikony v topbaru */
+    .search-input::placeholder {
+        color: var(--text-muted);
+    }
+
+/* TopBar Icons */
 .topbar-icons {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-md);
 }
 
-/* Ikona notifikace */
+/* User Profile */
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-pic {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-color);
+}
+
+.user-info {
+    text-align: left;
+    line-height: 1.3;
+}
+
+    .user-info span {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: block;
+    }
+
+    .user-info small {
+        font-size: 0.6875rem;
+        color: var(--text-muted);
+        display: block;
+    }
+
+/* Logout Link */
+.nav-link {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--border-radius-sm);
+    transition: color 100ms ease;
+    font-weight: 400;
+}
+
+    .nav-link:hover {
+        color: #ef4444;
+        text-decoration: none;
+    }
+
+/* Notification */
 .notification-icon {
     position: relative;
 }
@@ -51,95 +112,21 @@
     position: absolute;
     top: 0;
     right: 0;
-    width: 8px;
-    height: 8px;
-    background-color: red;
+    width: 6px;
+    height: 6px;
+    background-color: #ef4444;
     border-radius: 50%;
-    border: 2px solid #f8f9fa;
+    border: 1.5px solid var(--bg-card);
 }
 
-/* Menu ikona */
-.menu-icon i {
-    font-size: 20px;
-    cursor: pointer;
-}
-
-/* Profil uživatele */
-.user-profile {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.profile-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.user-info {
-    text-align: left;
-}
-
-    .user-info span {
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .user-info small {
-        font-size: 12px;
-        color: #888;
-    }
-
-/* Vzhled odkazu pro odhlášení */
-.nav-link {
-    font-size: 14px;
-    color: #007bff;
-    text-decoration: none;
-}
-
-    .nav-link:hover {
-        text-decoration: underline;
-    }
-
-/* Responzivita pro mobilní zařízení */
+/* Responsive */
 @media (max-width: 1200px) {
     .topbar {
-        padding: 10px;
-        justify-content: space-between;
+        padding: 0 var(--space-md);
     }
 
-    .topbar-icons {
-        gap: 15px;
-    }
-}
-
-@media (max-width: 900px) {
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .search-container {
-        margin-bottom: 10px;
-        width: 100%;
-    }
-
-    .topbar-icons {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .menu-icon {
-        display: block;
-    }
-
-    .user-profile {
-        gap: 10px;
-        margin-top: 10px;
-        width: 100%;
-        justify-content: flex-start;
+    .user-info {
+        display: none;
     }
 }
 

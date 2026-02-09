@@ -18,89 +18,44 @@ namespace HoaP.Web.Endpoints
             group.MapGet("/{id:int}", async (int id, ReservationService service) =>
             {
                 var reservation = await service.GetReservationByIdAsync(id);
-                if (reservation is null)
-                    return Results.NotFound();
-
-                return Results.Ok(reservation);
+                return reservation is null ? Results.NotFound() : Results.Ok(reservation);
             });
 
             group.MapPost("/", async (ReservationFormViewModel model, ReservationService service) =>
             {
-                try
-                {
-                    await service.CreateReservationAsync(model);
-                    return Results.Created();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CreateReservationAsync(model);
+                return Results.Created();
             });
 
             group.MapPut("/{id:int}", async (int id, ReservationFormViewModel model, ReservationService service) =>
             {
-                try
-                {
-                    model.Id = id;
-                    await service.UpdateReservationAsync(model);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                model.Id = id;
+                await service.UpdateReservationAsync(model);
+                return Results.NoContent();
             });
 
             group.MapDelete("/{id:int}", async (int id, ReservationService service) =>
             {
-                try
-                {
-                    await service.DeleteReservationAsync(id);
-                    return Results.NoContent();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.DeleteReservationAsync(id);
+                return Results.NoContent();
             });
 
             group.MapPost("/{id:int}/check-in", async (int id, ReservationService service) =>
             {
-                try
-                {
-                    await service.CheckInAsync(id);
-                    return Results.Ok(new { message = "Check-in successful." });
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CheckInAsync(id);
+                return Results.Ok(new { message = "Check-in successful." });
             });
 
             group.MapPost("/{id:int}/check-out", async (int id, ReservationService service) =>
             {
-                try
-                {
-                    await service.CheckOutAsync(id);
-                    return Results.Ok(new { message = "Check-out successful." });
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CheckOutAsync(id);
+                return Results.Ok(new { message = "Check-out successful." });
             });
 
             group.MapPost("/{id:int}/cancel", async (int id, ReservationService service) =>
             {
-                try
-                {
-                    await service.CancelReservationAsync(id);
-                    return Results.Ok(new { message = "Reservation cancelled." });
-                }
-                catch (InvalidOperationException ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await service.CancelReservationAsync(id);
+                return Results.Ok(new { message = "Reservation cancelled." });
             });
         }
     }

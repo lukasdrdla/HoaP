@@ -24,28 +24,14 @@ namespace HoaP.Web.Endpoints
 
             group.MapPost("/", async (CreateTenantRequest request, ITenantService tenantService) =>
             {
-                try
-                {
-                    var tenant = await tenantService.CreateTenantAsync(request.Name, request.Subdomain);
-                    return Results.Created($"/api/tenants/{tenant.Id}", new { tenant.Id, tenant.Name, tenant.Subdomain });
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                var tenant = await tenantService.CreateTenantAsync(request.Name, request.Subdomain);
+                return Results.Created($"/api/tenants/{tenant.Id}", new { tenant.Id, tenant.Name, tenant.Subdomain });
             });
 
             group.MapDelete("/{id:guid}", async (Guid id, ITenantService tenantService) =>
             {
-                try
-                {
-                    await tenantService.DeactivateTenantAsync(id);
-                    return Results.Ok();
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                await tenantService.DeactivateTenantAsync(id);
+                return Results.NoContent();
             });
         }
 

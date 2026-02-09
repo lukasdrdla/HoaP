@@ -17,8 +17,18 @@ using HoaP.Infrastructure.Middleware;
 using HoaP.Web.Endpoints;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Serilog;
 
-var builder = WebApplication.CreateBuilder(args);
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    ContentRootPath = AppContext.BaseDirectory
+});
+
+builder.Host.UseSerilog((ctx, cfg) => cfg
+    .ReadFrom.Configuration(ctx.Configuration));
 
 builder.Services.AddAutoMapper(typeof(CustomerProfile));
 builder.Services.AddAutoMapper(typeof(RoomProfile));
@@ -54,8 +64,10 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddHttpContextAccessor();
 
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.")));
+    options.UseNpgsql(defaultConnection));
 
 builder.Services.AddIdentity<AppUser, AppRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -169,9 +181,10 @@ builder.Services.AddSingleton<IPaymentGatewayService>(sp => sp.GetRequiredServic
 builder.Services.AddScoped<InvoicePdfGenerator>();
 
 // Multi-tenancy
+var masterConnection = builder.Configuration.GetConnectionString("MasterConnection")
+    ?? throw new InvalidOperationException("Connection string 'MasterConnection' not found.");
 builder.Services.AddDbContext<MasterDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("MasterConnection")
-        ?? throw new InvalidOperationException("Connection string 'MasterConnection' not found.")));
+    options.UseNpgsql(masterConnection));
 
 builder.Services.AddScoped<ITenantService, TenantService>();
 builder.Services.AddScoped<TenantDbContextFactory>();
@@ -179,9 +192,9 @@ builder.Services.AddScoped<TenantDatabaseProvisioner>();
 
 // Health checks
 builder.Services.AddHealthChecks()
-    .AddMySql(
+    .AddNpgSql(
         builder.Configuration.GetConnectionString("DefaultConnection")!,
-        name: "mysql",
+        name: "postgresql",
         tags: new[] { "db", "ready" })
     .AddCheck<EncryptionServiceHealthCheck>(
         "encryption",
@@ -201,17 +214,20 @@ using (var scope = app.Services.CreateScope())
     await DbInitializer.SeedAdminAsync(scope.ServiceProvider);
 }
 
-// Configure the HTTP request pipeline.
+// Middleware pipeline
+app.UseMiddleware<SecurityHeadersMiddleware>();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-
+app.UseStatusCodePagesWithReExecute("/not-found");
 
 app.UseHttpsRedirection();
+app.UseSerilogRequestLogging();
 
 app.UseAuthentication();
 app.UseAuthorization();

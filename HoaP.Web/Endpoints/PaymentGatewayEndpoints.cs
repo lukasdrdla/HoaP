@@ -10,16 +10,9 @@ namespace HoaP.Web.Endpoints
 
             group.MapPost("/initiate", async (PaymentInitiateRequest request, IPaymentGatewayService gateway) =>
             {
-                try
-                {
-                    var session = await gateway.InitiatePaymentAsync(
-                        request.Amount, request.CurrencyCode, request.ReturnUrl, request.Description);
-                    return Results.Ok(session);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                var session = await gateway.InitiatePaymentAsync(
+                    request.Amount, request.CurrencyCode, request.ReturnUrl, request.Description);
+                return Results.Ok(session);
             }).RequireAuthorization();
 
             group.MapGet("/verify/{sessionId}", async (string sessionId, IPaymentGatewayService gateway) =>
@@ -30,15 +23,8 @@ namespace HoaP.Web.Endpoints
 
             group.MapPost("/refund", async (RefundRequest request, IPaymentGatewayService gateway) =>
             {
-                try
-                {
-                    var result = await gateway.RefundPaymentAsync(request.TransactionId, request.Amount);
-                    return Results.Ok(result);
-                }
-                catch (Exception ex)
-                {
-                    return Results.BadRequest(new { error = ex.Message });
-                }
+                var result = await gateway.RefundPaymentAsync(request.TransactionId, request.Amount);
+                return Results.Ok(result);
             }).RequireAuthorization();
 
             group.MapPost("/webhook", (HttpContext context) =>

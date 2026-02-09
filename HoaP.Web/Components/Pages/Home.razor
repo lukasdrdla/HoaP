@@ -6,129 +6,280 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 
-<PageTitle>Dashboard - Hotel Management</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
-<div class="container">
-    <div class="row g-3 g-md-4">
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p><i class="bi bi-people-fill"></i> Počet zákazníků</p>
-                    <h3>@totalCustomers</h3>
-                </div>
-            </div>
+<div class="dash">
+
+    <div class="dash-top">
+        <div>
+            <h1>Dashboard</h1>
+            <p>@DateTime.Now.ToString("dddd, d. MMMM yyyy")</p>
         </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p><i class="bi bi-calendar-check"></i> Počet rezervací</p>
-                    <h3>@totalReservations</h3>
-                </div>
-            </div>
+        <a href="/vytvorit-rezervaci" class="btn btn-primary">+ Nová rezervace</a>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row">
+        <div class="stat">
+            <span class="stat-num">@occupiedRooms<span class="stat-of">/@totalRooms</span></span>
+            <span class="stat-lbl">Obsazené pokoje</span>
+            <div class="stat-bar"><div class="stat-fill" style="width: @occupancyPercent%"></div></div>
         </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p><i class="bi bi-house-door"></i> Počet pokojů</p>
-                    <h3>@totalRooms</h3>
-                </div>
-            </div>
+        <div class="stat">
+            <span class="stat-num">@todayCheckIns.Count</span>
+            <span class="stat-lbl">Check-in dnes</span>
         </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body">
-                    <p><i class="bi bi-cash"></i> Příjem za poslední měsíc</p>
-                    <h3>@totalRevenue Kč</h3>
-                </div>
-            </div>
+        <div class="stat">
+            <span class="stat-num">@todayCheckOuts.Count</span>
+            <span class="stat-lbl">Check-out dnes</span>
+        </div>
+        <div class="stat">
+            <span class="stat-num">@totalRevenue.ToString("N0") Kč</span>
+            <span class="stat-lbl">Příjem tento měsíc</span>
         </div>
     </div>
 
-    <div class="row mt-4">
-        <div class="col-lg-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body px-2 px-md-4">
-                    <h3 class="text-center mb-4 page-title">Kalendář rezervací</h3>
+    <div class="dash-grid">
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <button class="btn btn-outline-secondary" @onclick="GoToPreviousMonth">←</button>
-                        <h4>@currentMonth.ToString("MMMM yyyy")</h4>
-                        <button class="btn btn-outline-secondary" @onclick="GoToNextMonth">→</button>
-                    </div>
+        <!-- Left column -->
+        <div class="dash-main">
 
-                    <div class="calendar-grid mb-4">
-                        @foreach (var week in GetCalendarGrid())
+            <!-- Today's guests -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Dnešní hosté</h2>
+                    <span class="badge">@currentlyStaying.Count ubytovaných</span>
+                </div>
+                @if (currentlyStaying.Count == 0)
+                {
+                    <div class="empty">Dnes žádní ubytovaní hosté</div>
+                }
+                else
+                {
+                    <div class="guest-grid">
+                        @foreach (var b in currentlyStaying.Take(8))
                         {
-                            @foreach (var day in week)
-                            {
-                                <div class="calendar-day @(day.IsToday ? "today" : "") @(day.IsSelected ? "selected" : "")"
-                                     @onclick="() => SelectDay(day.Date)">
-                                    <span>@day.Date.Day</span>
-                                    @if (day.HasBookings)
-                                    {
-                                        <div class="booking-dot"></div>
-                                    }
+                            <div class="guest-card" @onclick="() => NavigateToReservationDetail(b.Id)">
+                                <div class="guest-avatar">@b.CustomerName[0]</div>
+                                <div class="guest-info">
+                                    <span class="guest-name">@b.CustomerName</span>
+                                    <span class="guest-room">Pokoj @b.RoomNumber</span>
                                 </div>
-                            }
+                                <span class="guest-out">do @b.CheckOut.ToString("d.M.")</span>
+                            </div>
                         }
                     </div>
+                    @if (currentlyStaying.Count > 8)
+                    {
+                        <div class="panel-more">
+                            <a href="/rezervace">Zobrazit všech @currentlyStaying.Count →</a>
+                        </div>
+                    }
+                }
+            </div>
 
-                    <div class="table-responsive">
-                        <QuickGrid Items="selectedDayBookings.AsQueryable()" Pagination="paginationState" Class="w-100">
-                            <PropertyColumn Title="Zákazník" Property="@(x => x.CustomerName)" Sortable="true">
-                                <ColumnOptions>
-                                    <input type="search" autofocus class="form-control" @bind="searchTerm" @oninput="SearchCustomers" placeholder="Hledat zákazníka" />
-                                </ColumnOptions>
-                            </PropertyColumn>
-                            <PropertyColumn Title="Check In" Property="@(x => x.CheckIn.ToShortDateString())" Sortable="true" />
-                            <PropertyColumn Title="Check Out" Property="@(x => x.CheckOut.ToShortDateString())" Sortable="true" />
-                            <PropertyColumn Title="Status" Property="@(x => x.ReservationStatusName)" Sortable="true" />
-                            <TemplateColumn Title="Cena">
-                                <div>
-                                    @if (context.CurrencySymbol != null)
-                                    {
-                                        @($"{context.TotalPrice:0.00} {context.CurrencySymbol}")
-                                    }
-                                    else
-                                    {
-                                        @($"{context.TotalPrice:0.00}")
-                                    }
-                                </div>
-                            </TemplateColumn>
-                            <TemplateColumn Title="Akce">
-                                <div class="d-inline-flex">
-                                    <button class="btn text-primary" @onclick="() => NavigateToReservationDetail(context.Id)">
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                    <button class="btn text-danger" @onclick="() => OpenDeleteConfirmation(context.Id)">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </TemplateColumn>
-                        </QuickGrid>
-                        <Paginator State="paginationState" />
+            <!-- Upcoming reservations -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Nadcházející rezervace</h2>
+                    <span class="badge">příštích 7 dní</span>
+                </div>
+                @if (upcomingReservations.Count == 0)
+                {
+                    <div class="empty">Žádné nadcházející rezervace</div>
+                }
+                else
+                {
+                    <table class="res-table">
+                        <thead>
+                            <tr>
+                                <th>Host</th>
+                                <th>Pokoj</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Hosté</th>
+                                <th class="text-end">Cena</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var b in upcomingReservations.Take(10))
+                            {
+                                <tr @onclick="() => NavigateToReservationDetail(b.Id)">
+                                    <td class="fw-medium">@b.CustomerName</td>
+                                    <td>@b.RoomNumber</td>
+                                    <td>@b.CheckIn.ToString("d.M.yyyy")</td>
+                                    <td>@b.CheckOut.ToString("d.M.yyyy")</td>
+                                    <td>@b.Guests</td>
+                                    <td class="text-end">@b.TotalPrice.ToString("N0") @(b.CurrencySymbol ?? "Kč")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+
+            <!-- Today check-ins / check-outs -->
+            @if (todayCheckIns.Count > 0 || todayCheckOuts.Count > 0)
+            {
+                <div class="two-cols">
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>Check-in dnes</h2>
+                        </div>
+                        @if (todayCheckIns.Count == 0)
+                        {
+                            <div class="empty">Žádné check-iny</div>
+                        }
+                        else
+                        {
+                            <div class="checklist">
+                                @foreach (var b in todayCheckIns)
+                                {
+                                    <div class="check-row" @onclick="() => NavigateToReservationDetail(b.Id)">
+                                        <span class="dot-in"></span>
+                                        <span>@b.CustomerName</span>
+                                        <span class="muted">Pokoj @b.RoomNumber</span>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
+                    <div class="panel">
+                        <div class="panel-head">
+                            <h2>Check-out dnes</h2>
+                        </div>
+                        @if (todayCheckOuts.Count == 0)
+                        {
+                            <div class="empty">Žádné check-outy</div>
+                        }
+                        else
+                        {
+                            <div class="checklist">
+                                @foreach (var b in todayCheckOuts)
+                                {
+                                    <div class="check-row" @onclick="() => NavigateToReservationDetail(b.Id)">
+                                        <span class="dot-out"></span>
+                                        <span>@b.CustomerName</span>
+                                        <span class="muted">Pokoj @b.RoomNumber</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Right sidebar: Calendar -->
+        <div class="dash-side">
+            <div class="panel">
+                <div class="cal-head">
+                    <button class="cal-nav" @onclick="GoToPreviousMonth">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0"/></svg>
+                    </button>
+                    <span class="cal-title">@currentMonth.ToString("MMMM yyyy")</span>
+                    <button class="cal-nav" @onclick="GoToNextMonth">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/></svg>
+                    </button>
+                </div>
+                <div class="cal-weekdays">
+                    <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
+                </div>
+                <div class="cal-grid">
+                    @foreach (var week in GetCalendarGrid())
+                    {
+                        @foreach (var day in week)
+                        {
+                            <button class="cal-day @(day.IsCurrentMonth ? "" : "other") @(day.IsToday ? "today" : "") @(day.IsSelected ? "sel" : "")"
+                                    @onclick="() => SelectDay(day.Date)">
+                                @day.Date.Day
+                                @if (day.HasBookings)
+                                {
+                                    <span class="dot"></span>
+                                }
+                            </button>
+                        }
+                    }
+                </div>
+
+                <!-- Selected day detail -->
+                <div class="cal-detail">
+                    <div class="cal-detail-head">
+                        <span>@selectedDay.ToString("d. MMMM")</span>
+                        <span class="muted">@selectedDayBookings.Count rez.</span>
+                    </div>
+                    @if (selectedDayBookings.Count > 0)
+                    {
+                        @foreach (var b in selectedDayBookings.Take(5))
+                        {
+                            <div class="cal-booking" @onclick="() => NavigateToReservationDetail(b.Id)">
+                                <span>@b.CustomerName</span>
+                                <span class="muted">@b.RoomNumber</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="cal-empty">Žádné rezervace</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Week occupancy -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h2>Obsazenost (7 dní)</h2>
+                </div>
+                <div class="occ-chart">
+                    @foreach (var d in weekOccupancy)
+                    {
+                        <div class="occ-col">
+                            <div class="occ-bar-wrap">
+                                <div class="occ-bar" style="height: @(d.Percent)%"></div>
+                            </div>
+                            <span class="occ-label @(d.IsToday ? "occ-today" : "")">@d.Label</span>
+                            <span class="occ-val">@d.Count</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="panel mini-stats">
+                <div class="mini-stat">
+                    <span class="mini-val">@totalCustomers</span>
+                    <span class="mini-lbl">Zákazníků celkem</span>
+                </div>
+                <div class="mini-stat">
+                    <span class="mini-val">@totalReservations</span>
+                    <span class="mini-lbl">Rezervací celkem</span>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
 <DeleteModal Title="Smazání rezervace" ActionType="DeleteReservation" IsVisible="@isDeleteModalVisible" OnClose="HandleModalClose" />
 
-
-
- 
 @code {
 
-	private DashBoardViewModel dashBoardViewModel = new DashBoardViewModel();
     private int totalCustomers;
     private int totalReservations;
     private int totalRooms;
     private decimal totalRevenue;
 
-	private bool isDeleteModalVisible = false;
-	private int reservationIdToDelete;
+    private int occupiedRooms;
+    private int occupancyPercent;
+
+    private List<ReservationViewModel> todayCheckIns = new();
+    private List<ReservationViewModel> todayCheckOuts = new();
+    private List<ReservationViewModel> currentlyStaying = new();
+    private List<ReservationViewModel> upcomingReservations = new();
+    private List<OccupancyDay> weekOccupancy = new();
+
+    private bool isDeleteModalVisible = false;
+    private int reservationIdToDelete;
 
     private DateTime currentMonth = DateTime.Now;
     private DateTime selectedDay = DateTime.Now;
@@ -138,47 +289,77 @@
     private PaginationState paginationState = new PaginationState() { ItemsPerPage = 5 };
     private string? searchTerm;
 
-	protected override async Task OnInitializedAsync()
-	{
-
-		totalCustomers = await DashBoardService.GetTotalCustomers();
-		totalReservations = await DashBoardService.GetTotalReservations();
-		totalRooms = await DashBoardService.GetTotalRooms();
-		totalRevenue = await DashBoardService.GetRevenueFromLastMonth();
+    protected override async Task OnInitializedAsync()
+    {
+        totalCustomers = await DashBoardService.GetTotalCustomers();
+        totalReservations = await DashBoardService.GetTotalReservations();
+        totalRooms = await DashBoardService.GetTotalRooms();
+        totalRevenue = await DashBoardService.GetRevenueFromLastMonth();
 
         await LoadBookingsForCurrentMonth();
+        ComputeDashboardData();
         UpdateSelectedDayBookings();
-	}
-
-	private void OpenDeleteConfirmation(int reservationId)
-	{
-		reservationIdToDelete = reservationId;
-		isDeleteModalVisible = true;
-	}
-
-	private async Task HandleModalClose(bool result)
-    {
-		var reservation = bookings.FirstOrDefault(r => r.Id == reservationIdToDelete);
-		isDeleteModalVisible = false;
-
-		if (result)
-        {
-			await ReservationService.CancelReservationAsync(reservationIdToDelete);
-            bookings.Remove(reservation);
-			UpdateSelectedDayBookings();
-        }
-
     }
 
-    private void SearchCustomers(ChangeEventArgs e)
+    private void ComputeDashboardData()
     {
-        searchTerm = e.Value?.ToString();
+        var today = DateTime.Now.Date;
 
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        todayCheckIns = bookings
+            .Where(b => b.CheckIn.Date == today)
+            .ToList();
+
+        todayCheckOuts = bookings
+            .Where(b => b.CheckOut.Date == today)
+            .ToList();
+
+        currentlyStaying = bookings
+            .Where(b => today >= b.CheckIn.Date && today < b.CheckOut.Date)
+            .ToList();
+
+        upcomingReservations = bookings
+            .Where(b => b.CheckIn.Date > today && b.CheckIn.Date <= today.AddDays(7))
+            .OrderBy(b => b.CheckIn)
+            .ToList();
+
+        occupiedRooms = currentlyStaying.Select(b => b.RoomNumber).Distinct().Count();
+        occupancyPercent = totalRooms > 0 ? Math.Min(100, (int)Math.Round((double)occupiedRooms / totalRooms * 100)) : 0;
+
+        // Week occupancy chart
+        weekOccupancy = new List<OccupancyDay>();
+        var dayNames = new[] { "Ne", "Po", "Út", "St", "Čt", "Pá", "So" };
+        for (int i = 0; i < 7; i++)
         {
-            selectedDayBookings = selectedDayBookings.Where(r => r.CustomerName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+            var date = today.AddDays(i);
+            var count = bookings.Count(b => date >= b.CheckIn.Date && date < b.CheckOut.Date);
+            weekOccupancy.Add(new OccupancyDay
+            {
+                Label = i == 0 ? "Dnes" : dayNames[(int)date.DayOfWeek],
+                Count = count,
+                Percent = totalRooms > 0 ? Math.Min(100, (int)Math.Round((double)count / totalRooms * 100)) : 0,
+                IsToday = i == 0
+            });
         }
+    }
 
+    private void OpenDeleteConfirmation(int reservationId)
+    {
+        reservationIdToDelete = reservationId;
+        isDeleteModalVisible = true;
+    }
+
+    private async Task HandleModalClose(bool result)
+    {
+        var reservation = bookings.FirstOrDefault(r => r.Id == reservationIdToDelete);
+        isDeleteModalVisible = false;
+
+        if (result)
+        {
+            await ReservationService.CancelReservationAsync(reservationIdToDelete);
+            bookings.Remove(reservation);
+            ComputeDashboardData();
+            UpdateSelectedDayBookings();
+        }
     }
 
     private void NavigateToReservationDetail(int id)
@@ -186,11 +367,11 @@
         NavigationManager.NavigateTo($"/rezervace/{id}");
     }
 
-
     private async Task GoToPreviousMonth()
     {
         currentMonth = currentMonth.AddMonths(-1);
         await LoadBookingsForCurrentMonth();
+        ComputeDashboardData();
         UpdateSelectedDayBookings();
     }
 
@@ -198,6 +379,7 @@
     {
         currentMonth = currentMonth.AddMonths(1);
         await LoadBookingsForCurrentMonth();
+        ComputeDashboardData();
         UpdateSelectedDayBookings();
     }
 
@@ -225,7 +407,8 @@
     {
         var days = new List<List<CalendarDay>>();
         var firstDay = new DateTime(currentMonth.Year, currentMonth.Month, 1);
-        var startOfWeek = firstDay;
+        int offset = ((int)firstDay.DayOfWeek + 6) % 7;
+        var startOfWeek = firstDay.AddDays(-offset);
 
         for (int week = 0; week < 6; week++)
         {
@@ -234,31 +417,33 @@
             {
                 var date = startOfWeek.AddDays(week * 7 + day);
                 weekDays.Add(new CalendarDay
-                    {
-                        Date = date,
-                        IsToday = date.Date == DateTime.Now.Date,
-                        IsSelected = date.Date == selectedDay.Date,
-                        HasBookings = bookings.Any(b => date.Date >= b.CheckIn.Date && date.Date < b.CheckOut.Date)
-                    });
+                {
+                    Date = date,
+                    IsToday = date.Date == DateTime.Now.Date,
+                    IsSelected = date.Date == selectedDay.Date,
+                    IsCurrentMonth = date.Month == currentMonth.Month,
+                    HasBookings = bookings.Any(b => date.Date >= b.CheckIn.Date && date.Date < b.CheckOut.Date)
+                });
             }
             days.Add(weekDays);
         }
         return days;
     }
 
-
-
-
-
     private class CalendarDay
     {
         public DateTime Date { get; set; }
         public bool IsToday { get; set; }
         public bool IsSelected { get; set; }
+        public bool IsCurrentMonth { get; set; }
         public bool HasBookings { get; set; }
     }
 
-
-   
-
+    private class OccupancyDay
+    {
+        public string Label { get; set; } = "";
+        public int Count { get; set; }
+        public int Percent { get; set; }
+        public bool IsToday { get; set; }
+    }
 }
