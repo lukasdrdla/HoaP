@@ -5,7 +5,7 @@
 @rendermode @(new InteractiveServerRenderMode(prerender:false))
 @attribute [Authorize]
 
-<div class="container py-5">
+<div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Detail rezervace #@reservation.Id</h2>
         <div class="d-flex gap-2">
@@ -15,7 +15,7 @@
         </div>
     </div>
 
-	<div class="card mb-4 border-0 shadow-sm">
+	<div class="card mb-4">
      
             <h5>Informace o rezervaci & Shrnutí</h5>
        
@@ -83,7 +83,7 @@
                 @foreach (var service in reservation.Services)
                 {
                     <div class="col-md-6 col-lg-4 mb-3">
-                        <div class="card h-100 shadow-sm border-0">
+                        <div class="card h-100">
                             <div class="card-body">
                                 <h5 class="card-title">@service.ServiceName</h5>
                                 <ul class="list-unstyled mb-2">

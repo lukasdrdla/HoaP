@@ -14,7 +14,7 @@
             <p class="text-muted">Zadejte svuj e-mail a cislo rezervace pro zobrazeni detailu.</p>
         </div>
 
-        <div class="card border-0 shadow-sm mb-4">
+        <div class="card mb-4">
             <div class="card-body p-4">
                 <EditForm Model="lookupForm" OnValidSubmit="HandleLookup" FormName="lookupForm">
                     <DataAnnotationsValidator />
@@ -48,7 +48,7 @@
         {
             @if (reservation != null)
             {
-                <div class="card border-0 shadow-sm mb-4">
+                <div class="card mb-4">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Rezervace #@reservation.Id</h5>
                         <span class="badge @GetStatusBadgeClass(reservation.ReservationStatusId)">

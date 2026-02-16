@@ -5,7 +5,7 @@
 @rendermode InteractiveServer
 @attribute [Authorize]
 
-<div class="container mt-4">
+<div class="container">
     @if (customer == null)
     {
         <div class="text-center mt-5">
@@ -18,7 +18,7 @@
     else
     {
         <!-- Customer Details Card -->
-        <div class="card border-0 shadow-sm">
+        <div class="card">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3>@customer.FirstName @customer.LastName <small class="text-muted">#@customer.Id</small></h3>
@@ -73,7 +73,7 @@
         </div>
 
         <!-- Reservations Table -->
-        <div class="card border-0 shadow-sm mt-5">
+        <div class="card mt-5">
             <div class="card-body">
                 <h4>Rezervace</h4>
                 <div class="table-responsive-lg">

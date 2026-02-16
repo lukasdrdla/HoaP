@@ -28,10 +28,10 @@
 
 
 
-<div class="container mt-2">
-	<div class="card border-0 shadow-sm mx-auto">
+<div class="container">
+	<div class="card mx-auto">
 		<div class="card-body">
-			<h3 class="card-title text-center  page-title">@(reservationId == null ? "Vytvořit rezervaci" : "Upravit rezervaci")</h3>
+			<h3 class="page-title">@(reservationId == null ? "Vytvořit rezervaci" : "Upravit rezervaci")</h3>
 			@if (reservationId != null)
 			{
 				<p class="text-center">Rezervace č. @reservationId</p>

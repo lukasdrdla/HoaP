@@ -5,14 +5,14 @@
 @inject IJSRuntime JSRuntime
 @attribute [Authorize]
 
-<div class="container mt-5">
-    <div class="card border-0 shadow-sm mx-auto w-75">
+<div class="container">
+    <div class="card mx-auto w-75">
         <div class="card-body">
 			<div class="d-flex justify-content-end gap-2 align-items-center">
 				<a href="/spravovat-platbu/@Id" class="btn btn-outline-primary">Upravit</a>
 				<button class="btn btn-danger" @onclick="() => DeletePayment(Id)">Odstranit platbu</button>
             </div>
-            <h3 class="text-center mb-4 page-title">Detail Platby</h3>
+            <h3 class="page-title">Detail Platby</h3>
             @if (payment is not null)
             {
                 <div class="row mb-3">

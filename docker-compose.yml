@@ -2,28 +2,39 @@ services:
   postgres:
     image: postgres:17
     container_name: hoap-postgres
-    restart: always
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: hoap_db
-      POSTGRES_USER: hoap_user
-      POSTGRES_PASSWORD: hoap_pass
+      POSTGRES_DB: ${POSTGRES_DB:-hoapdb}
+      POSTGRES_USER: ${POSTGRES_USER:-hoap}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-HoaPSecure2025!}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hoap} -d ${POSTGRES_DB:-hoapdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   web:
     build:
       context: .
       dockerfile: HoaP.Web/Dockerfile
+    container_name: hoap-web
+    restart: unless-stopped
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=hoap_db;Username=hoap_user;Password=hoap_pass;
-      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=hoap_db;Username=hoap_user;Password=hoap_pass;
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-hoapdb};Username=${POSTGRES_USER:-hoap};Password=${POSTGRES_PASSWORD:-HoaPSecure2025!};
+      - ConnectionStrings__MasterConnection=Host=postgres;Port=5432;Database=${POSTGRES_DB:-hoapdb};Username=${POSTGRES_USER:-hoap};Password=${POSTGRES_PASSWORD:-HoaPSecure2025!};
+      - AdminSettings__Password=${ADMIN_PASSWORD:-Admin123456789!}
+      - Encryption__Key=${ENCRYPTION_KEY:-HoaPDockerEncryptKey2025SecureOK}
 
 volumes:
   postgres_data:

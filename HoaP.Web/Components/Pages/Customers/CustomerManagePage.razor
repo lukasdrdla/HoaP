@@ -13,10 +13,10 @@
     </div>
 }
 
-<div class="container mt-2">
-    <div class="card border-0 shadow-sm mx-auto">
+<div class="container">
+    <div class="card mx-auto">
         <div class="card-body">
-            <h3 class="card-title text-center mb-4 page-title">@(customerId.HasValue ? "Upravit zákazníka" : "Vytvořit zákazníka")</h3>
+            <h3 class="page-title">@(customerId.HasValue ? "Upravit zákazníka" : "Vytvořit zákazníka")</h3>
 
             <EditForm Model="customer" OnValidSubmit="HandleValidSubmit" FormName="AddCustomer">
                 <DataAnnotationsValidator />

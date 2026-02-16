@@ -18,10 +18,10 @@
     </div>
 }
 
-<div class="container mt-2">
-    <div class="card border-0 shadow-sm mx-auto w-50">
+<div class="container">
+    <div class="card mx-auto w-50">
         <div class="card-body">
-			<h3 class="card-title text-center mb-4 page-title">@(paymentId == null ? "Vytvořit platbu" : "Upravit platbu")</h3>
+			<h3 class="page-title">@(paymentId == null ? "Vytvořit platbu" : "Upravit platbu")</h3>
             <EditForm Model="payment" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary />

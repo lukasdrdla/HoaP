@@ -15,18 +15,18 @@
     }
 </style>
 
-<div class="container mt-5" @onmousedown="HideOptions">
-    <div class="card border-0 shadow-sm mx-auto">
+<div class="container" @onmousedown="HideOptions">
+    <div class="card mx-auto">
         <div class="card-body">
-            <h3 class="text-center mb-4 page-title">Pokoje</h3>
-            <div class="input-group mb-4">
-                <input type="text" class="form-control" placeholder="Hledat..." @oninput="SearchRooms" />
-                <button class="btn btn-outline-secondary" type="button">Hledat</button>
-            </div>
-            <div class="d-flex justify-content-end mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="page-title mb-0">Pokoje</h3>
                 <button class="btn btn-primary" @onclick="NavigateToAddRoom">
                     <i class="bi bi-plus"></i> Přidat pokoj
                 </button>
+            </div>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Hledat pokoje..." @oninput="SearchRooms" />
+                <button class="btn btn-outline-secondary" type="button">Hledat</button>
             </div>
             @if (rooms == null || rooms.Count == 0)
             {
